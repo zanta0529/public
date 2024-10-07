@@ -154,6 +154,12 @@
                 <div class="option" data-value="256">256 bits</div>
             </div>
 
+            <label>Padding</label>
+            <div id="padding" class="option-group">
+                <div class="option selected" data-value="Pkcs7">PKCS7Padding</div>
+                <div class="option" data-value="NoPadding">NoPadding</div>
+            </div>
+
             <label>Encryption Mode</label>
             <div id="encryptionMode" class="option-group">
                 <div class="option selected" data-value="CTR">CTR</div>
@@ -312,8 +318,7 @@
              * @param {string} iv - the Initial Vector to validate
              * @returns {?string} the error message if the length is invalid, or null if the length is valid
              */
-            function validateInitialVector(iv) {
-                const expectedLength = 16;
+            function validateInitialVector(iv, expectedLength = 16) {
                 if (iv.length !== expectedLength) {
                     return `* Initial Vector 的字串長度必須為 ${expectedLength} 字元，目前長度為 ${iv.length} 字元`;
                 }
@@ -363,13 +368,22 @@
                     return;
                 }
 
+                // 獲取選擇的 Padding
+                const paddingValue = document.querySelector("#padding .selected").dataset.value;
+                const padding = CryptoJS.pad[paddingValue];
+
+                if (!padding) {
+                    displayError(`不支援的 Padding: ${paddingValue}`, "msgKeyError");
+                    return;
+                }
+
                 try {
                     const key = CryptoJS.enc.Utf8.parse(secretKey);
                     const ivParam = CryptoJS.enc.Utf8.parse(iv);
                     const config = {
                         keySize: keySize / 32,
                         mode: CryptoJS.mode[encryptionMode],
-                        padding: CryptoJS.pad.Pkcs7,
+                        padding: padding,
                     };
 
                     if (encryptionMode !== "ECB") {
@@ -383,14 +397,23 @@
                         }
                     }
 
-                    const result =
-                        mode === "encrypt"
-                            ? CryptoJS.AES.encrypt(text, key, config)
-                            : CryptoJS.AES.decrypt(
-                                  outputFormat === "base64" ? text : { ciphertext: CryptoJS.enc.Hex.parse(text) },
-                                  key,
-                                  config
-                              ).toString(CryptoJS.enc.Utf8);
+                    let result;
+                    if (mode === "encrypt") {
+                        // 加密
+                        result = CryptoJS.AES.encrypt(text, key, config);
+                    } else {
+                        // 解密
+                        if (paddingValue === "zero" && text.length % 32 !== 0) {
+                            displayError("解密時，輸入的文本必須為 16 的倍數（No Padding）", "msgIVError");
+                            return;
+                        }
+
+                        result = CryptoJS.AES.decrypt(
+                            outputFormat === "base64" ? text : { ciphertext: CryptoJS.enc.Hex.parse(text) },
+                            key,
+                            config
+                        ).toString(CryptoJS.enc.Utf8);
+                    }
 
                     document.getElementById("result").value =
                         mode === "encrypt"
