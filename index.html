@@ -156,12 +156,13 @@
 
             <label>Encryption Mode</label>
             <div id="encryptionMode" class="option-group">
-                <div class="option selected" data-value="ECB">ECB</div>
+                <div class="option selected" data-value="CTR">CTR</div>
                 <div class="option" data-value="CBC">CBC</div>
+                <div class="option" data-value="ECB">ECB</div>
             </div>
 
             <div id="ivGroup" class="input-group">
-                <label for="iv">Inivial Vector (Optional)</label>
+                <label for="iv">Initial Vector</label>
                 <input type="text" id="iv" />
                 <label id="msgIVError" class="error-message"></label>
             </div>
