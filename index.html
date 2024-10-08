@@ -278,7 +278,7 @@
              * This is useful for clearing the error messages after a successful encryption or decryption.
              */
             function clearAllText() {
-                document.querySelectorAll("#msgKeyError, #msgIVError #result #status").forEach((element) => {
+                document.querySelectorAll("#msgKeyError, #msgIVError, #result, #status").forEach((element) => {
                     element.textContent = "";
                 });
             }
