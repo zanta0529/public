@@ -152,6 +152,13 @@
                 <textarea id="text" rows="6"></textarea>
             </div>
 
+            <label>Encryption Mode</label>
+            <div id="encryptionMode" class="option-group">
+                <div class="option" data-value="CTR">CTR</div>
+                <div class="option selected" data-value="CBC">CBC</div>
+                <div class="option" data-value="ECB">ECB</div>
+            </div>
+
             <div class="input-group">
                 <label for="secretKey">Secret Key</label>
                 <input type="text" id="secretKey" />
@@ -165,17 +172,12 @@
                 <div class="option" data-value="256">256 bits</div>
             </div>
 
-            <label>Padding</label>
-            <div id="padding" class="option-group">
-                <div class="option selected" data-value="Pkcs7">PKCS7Padding</div>
-                <div class="option" data-value="NoPadding">NoPadding</div>
-            </div>
-
-            <label>Encryption Mode</label>
-            <div id="encryptionMode" class="option-group">
-                <div class="option" data-value="CTR">CTR</div>
-                <div class="option selected" data-value="CBC">CBC</div>
-                <div class="option" data-value="ECB">ECB</div>
+            <div id="paddingGroup">
+                <label>Padding</label>
+                <div id="padding" class="option-group">
+                    <div class="option selected" data-value="Pkcs7">PKCS7Padding</div>
+                    <div class="option" data-value="NoPadding">NoPadding</div>
+                </div>
             </div>
 
             <div id="ivGroup" class="input-group">
@@ -212,15 +214,30 @@
         <script>
             document.addEventListener("DOMContentLoaded", () => document.getElementById("FunctionEncrypt")?.click());
 
-            /**
-             * Toggle the visibility and value of the IV input field based on the currently selected encryption mode.
-             * If the mode is ECB, the IV field is hidden and its value is cleared. Otherwise, the IV field is shown and
-             * its value is restored to its original value.
-             */
-            function toggleIV() {
+            function toggleUI() {
+                const element = document.getElementById("padding");
+                const options = element.querySelectorAll(".option");
+
                 const isECB = document.querySelector("#encryptionMode .selected").dataset.value === "ECB";
+                const isCTR = document.querySelector("#encryptionMode .selected").dataset.value === "CTR";
+
+                if (isECB) {
+                }
+
+                if (isCTR) {
+                    // 清除已選擇的類
+                    options.forEach((option) => option.classList.remove("selected"));
+
+                    // 將 NoPadding 設定為選中
+                    const noPaddingOption = Array.from(options).find((option) => option.dataset.value === "NoPadding");
+                    if (noPaddingOption) {
+                        noPaddingOption.classList.add("selected");
+                    }
+                }
+
                 document.getElementById("iv").value = isECB ? "" : document.getElementById("iv").value;
                 document.getElementById("ivGroup").hidden = isECB;
+                document.getElementById("paddingGroup").hidden = isCTR; // 隱藏填充模式選單
             }
 
             document.querySelectorAll(".option-group").forEach((group) => {
@@ -229,7 +246,7 @@
                     if (selectedOption) {
                         group.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
                         selectedOption.classList.add("selected");
-                        toggleIV();
+                        toggleUI();
                         if (group.id === "mode") {
                             const mode = selectedOption.dataset.value;
                             document.body.className = mode === "encrypt" ? "encrypt-mode" : "decrypt-mode";
@@ -242,41 +259,20 @@
                 });
             });
 
-            /**
-             * Copy the text of an element to the clipboard by selecting the element and calling the
-             * document.execCommand("copy") method.
-             *
-             * @param {string} id - the id of the element to copy
-             */
             function copyText(id) {
                 const element = document.getElementById(id);
                 element.select();
                 document.execCommand("copy");
             }
 
-            /**
-             * Paste the text in the clipboard to the element with the given id by reading the clipboard text with
-             * navigator.clipboard.readText() and setting the element's value to the read text.
-             *
-             * @param {string} id - the id of the element to paste the text into
-             */
             function pasteText(id) {
                 navigator.clipboard.readText().then((text) => (document.getElementById(id).value = text));
             }
 
-            /**
-             * Clear the text of the element with the given id.
-             *
-             * @param {string} id - the id of the element to clear
-             */
             function clearText(id) {
                 document.getElementById(id).value = "";
             }
 
-            /**
-             * Swap the text of the "text" and "result" elements.
-             * Useful for testing the decryption process after encrypting a text.
-             */
             function swapText() {
                 const text = document.getElementById("text").value;
                 document.getElementById("text").value = document.getElementById("result").value;
@@ -284,35 +280,18 @@
                 document.getElementById("status").textContent = "已交換原始文字與加（解）密文字";
             }
 
-            /**
-             * Clear the text of all elements with id "msgKeyError", "msgIVError", "result", and "status".
-             * This is useful for clearing the error messages after a successful encryption or decryption.
-             */
             function clearAllText() {
                 document.querySelectorAll("#msgKeyError, #msgIVError, #result, #status").forEach((element) => {
                     element.textContent = "";
                 });
             }
 
-            /**
-             * Reset the form by clearing all textareas and inputs, and clearing all error messages,
-             * and then reset the encryption mode and key size to their default values.
-             */
             function resetForm() {
                 document.querySelectorAll("textarea, input[type='text']").forEach((input) => (input.value = ""));
                 clearAllText();
                 document.querySelectorAll(".option-group .option.selected").forEach((option) => option.click());
             }
 
-            /**
-             * Validate the secret key length.
-             * If the length of the secret key is not equal to the required length, return an error message.
-             * Otherwise, return null.
-             *
-             * @param {string} secretKey - the secret key to validate
-             * @param {number} keySize - the required key size in bits
-             * @returns {?string} the error message if the length is invalid, or null if the length is valid
-             */
             function validateSecretKey(secretKey, keySize) {
                 const requiredLength = keySize / 8; // bits to bytes
                 if (secretKey.length !== requiredLength) {
@@ -321,14 +300,6 @@
                 return null;
             }
 
-            /**
-             * Validate the Initial Vector length.
-             * If the length of the Initial Vector is not equal to the expected length, return an error message.
-             * Otherwise, return null.
-             *
-             * @param {string} iv - the Initial Vector to validate
-             * @returns {?string} the error message if the length is invalid, or null if the length is valid
-             */
             function validateInitialVector(iv, expectedLength = 16) {
                 if (iv.length !== expectedLength) {
                     return `* Initial Vector 的字串長度必須為 ${expectedLength} 字元，目前長度為 ${iv.length} 字元`;
@@ -336,30 +307,11 @@
                 return null;
             }
 
-            /**
-             * Display the given error message in the element with the given id.
-             *
-             * @param {string} message - the error message to display
-             * @param {string} elementId - the id of the element to display the error message in
-             */
             function displayError(message, elementId) {
                 const element = document.getElementById(elementId);
                 if (element) element.textContent = message;
             }
 
-            /**
-             * Process the data according to the selected mode (encrypt or decrypt), using the given
-             * parameters.
-             *
-             * @param {string} mode - the mode to use, either "encrypt" or "decrypt"
-             * @param {string} text - the text to encrypt or decrypt
-             * @param {string} secretKey - the secret key to use for encryption or decryption
-             * @param {number} keySize - the size of the secret key in bits
-             * @param {string} encryptionMode - the encryption mode to use, either "ECB" or "CBC"
-             * @param {string} iv - the Initial Vector to use for encryption or decryption
-             * @param {string} outputFormat - the format of the output, either "base64" or "hex"
-             * @returns {void}
-             */
             function processData() {
                 const mode = document.querySelector("#mode .selected").dataset.value;
                 const text = document.getElementById("text").value;
