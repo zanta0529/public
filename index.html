@@ -136,7 +136,6 @@
                 dataLayer.push(arguments);
             }
             gtag("js", new Date());
-
             gtag("config", "G-4KG6DFWZEM");
         </script>
     </head>
@@ -205,10 +204,11 @@
                 </div>
             </div>
 
-            <label>Output Format</label>
+            <label>Output Text Format</label>
             <div id="outputFormat" class="option-group">
-                <div class="option selected" data-value="base64">Base64</div>
-                <div class="option" data-value="hex">Hex</div>
+                <div id="optTextFormat" class="option" data-value="plaintext">Plain-Text</div>
+                <div id="optBase64Format" class="option selected" data-value="base64">Base64</div>
+                <div id="optHexFormat" class="option" data-value="hex">Hex</div>
             </div>
 
             <div class="button-group">
@@ -251,6 +251,7 @@
                 const ivGroup = document.getElementById("ivGroup");
                 const ivInput = document.getElementById("iv");
                 const tagLengthGroup = document.getElementById("tagLengthGroup");
+                const outputFormatOptions = document.querySelectorAll("#outputFormat .option");
                 const processButton = document.getElementById("btnExecute");
                 processButton.textContent = func === "encrypt" ? "加密" : "解密";
                 processButton.classList.toggle("encryptButton", func === "encrypt");
@@ -267,6 +268,19 @@
                 } else {
                     alert(`未知的加密模式: '${mode}'`);
                 }
+
+                // 根據當前功能設置預設的輸出格式
+                outputFormatOptions.forEach((option) => {
+                    option.classList.remove("selected");
+                    if (
+                        (func === "encrypt" && option.dataset.value === "base64") ||
+                        (func === "decrypt" && option.dataset.value === "plaintext")
+                    ) {
+                        option.classList.add("selected");
+                    }
+                });
+                document.getElementById("optTextFormat").style.display = func === "encrypt" ? "none" : "block";
+                document.getElementById("optHexFormat").style.display = func === "decrypt" ? "none" : "block";
                 document.body.className = func === "encrypt" ? "encrypt-mode" : "decrypt-mode";
             }
 
@@ -297,9 +311,7 @@
 
                 try {
                     if (mode === "GCM" || mode === "CTR") {
-                        // ***********************************************************
                         // 使用 Web Crypto API
-                        // ***********************************************************
                         const key = await window.crypto.subtle.importKey(
                             "raw",
                             new TextEncoder().encode(secretKey),
@@ -318,22 +330,16 @@
                         let result;
                         if (func === "encrypt") {
                             result = await window.crypto.subtle.encrypt(algorithm, key, new TextEncoder().encode(text));
-                            document.getElementById("result").value =
-                                outputFormat === "base64" ? arrayBufferToBase64(result) : arrayBufferToHex(result);
-                            document.getElementById("status").textContent = "加密成功";
+                            document.getElementById("result").value = formatOutput(result, outputFormat);
                         } else {
-                            const decryptedData =
-                                outputFormat === "base64"
-                                    ? new Uint8Array(base64ToArrayBuffer(text))
-                                    : new Uint8Array(hexToArrayBuffer(text));
+                            const decryptedData = parseInput(text, outputFormat);
                             result = await window.crypto.subtle.decrypt(algorithm, key, decryptedData);
-                            document.getElementById("result").value = new TextDecoder().decode(result);
-                            document.getElementById("status").textContent = "解密成功";
+                            const decryptedText = new TextDecoder().decode(result);
+                            document.getElementById("result").value = formatFinalOutput(decryptedText, outputFormat);
                         }
+                        document.getElementById("status").textContent = `${func === "encrypt" ? "加密" : "解密"}成功`;
                     } else {
-                        // ***********************************************************
                         // 使用 CryptoJS
-                        // ***********************************************************
                         const padding = CryptoJS.pad[paddingValue];
                         if (!padding) return displayError(`不支援的 Padding: ${paddingValue}`, "msgKeyError");
 
@@ -349,28 +355,90 @@
                         let result;
                         if (func === "encrypt") {
                             result = CryptoJS.AES.encrypt(text, key, config);
+                            document.getElementById("result").value = formatCryptoJSOutput(result, outputFormat);
                         } else {
-                            if (paddingValue === "zero" && text.length % 32 !== 0) {
+                            if (paddingValue === "NoPadding" && text.length % 32 !== 0) {
                                 return displayError("解密時，輸入的文本必須為 16 的倍數（No Padding）", "msgIVError");
                             }
-                            result = CryptoJS.AES.decrypt(
-                                outputFormat === "base64" ? text : { ciphertext: CryptoJS.enc.Hex.parse(text) },
-                                key,
-                                config
-                            ).toString(CryptoJS.enc.Utf8);
+                            const cipherParams = parseCryptoJSInput(text, outputFormat);
+                            result = CryptoJS.AES.decrypt(cipherParams, key, config);
+                            const decryptedText = result.toString(CryptoJS.enc.Utf8);
+                            document.getElementById("result").value = formatFinalOutput(decryptedText, outputFormat);
                         }
-
-                        document.getElementById("result").value =
-                            func === "encrypt"
-                                ? outputFormat === "base64"
-                                    ? result.toString()
-                                    : result.ciphertext.toString()
-                                : result;
                         document.getElementById("status").textContent = `${func === "encrypt" ? "加密" : "解密"}成功`;
                     }
                 } catch (error) {
                     document.getElementById("status").textContent = `錯誤: ${error.message}`;
                     console.error(error);
+                }
+            }
+
+            function formatOutput(buffer, format) {
+                switch (format) {
+                    case "base64":
+                        return arrayBufferToBase64(buffer);
+                    case "hex":
+                        return arrayBufferToHex(buffer);
+                    case "plaintext":
+                        return new TextDecoder().decode(buffer);
+                    default:
+                        throw new Error("Unsupported output format");
+                }
+            }
+
+            function parseInput(input, format) {
+                switch (format) {
+                    case "base64":
+                        return base64ToArrayBuffer(input);
+                    case "hex":
+                        return hexToArrayBuffer(input);
+                    case "plaintext":
+                        return base64ToArrayBuffer(input);
+                    default:
+                        throw new Error("Unsupported input format");
+                }
+            }
+
+            function formatFinalOutput(text, format) {
+                switch (format) {
+                    case "base64":
+                        // 使用 TextEncoder 和 arrayBufferToBase64 來處理 Unicode 字符
+                        return arrayBufferToBase64(new TextEncoder().encode(text));
+                    case "hex":
+                        return text
+                            .split("")
+                            .map((char) => char.charCodeAt(0).toString(16).padStart(2, "0"))
+                            .join("");
+                    case "plaintext":
+                        return text;
+                    default:
+                        throw new Error("Unsupported output format");
+                }
+            }
+
+            function formatCryptoJSOutput(result, format) {
+                switch (format) {
+                    case "base64":
+                        return result.toString();
+                    case "hex":
+                        return result.ciphertext.toString();
+                    case "plaintext":
+                        return result.toString();
+                    default:
+                        throw new Error("Unsupported output format for CryptoJS");
+                }
+            }
+
+            function parseCryptoJSInput(input, format) {
+                switch (format) {
+                    case "base64":
+                        return input;
+                    case "hex":
+                        return { ciphertext: CryptoJS.enc.Hex.parse(input) };
+                    case "plaintext":
+                        return input;
+                    default:
+                        throw new Error("Unsupported input format for CryptoJS");
                 }
             }
 
@@ -422,42 +490,6 @@
                     }
                 });
             });
-
-            function alterOptionState(value, state, elementId) {
-                const options = document.querySelectorAll("#" + elementId + " .option");
-                options.forEach((option) => {
-                    option.classList.remove("disabled"); // 移除 disabled 類別
-                    option.classList.remove(state);
-                    if (option.getAttribute("data-value") === value) {
-                        option.classList.add(state);
-                    }
-                });
-
-                // // 清除已選擇的類
-                // const options = document.querySelectorAll("#" + elementId + " .option");
-                // options.forEach((option) => {
-                //     option.classList.remove("disabled");
-                //     option.classList.remove("selected");
-                // });
-
-                // // 將 NoPadding 設定為選中
-                // const theOption = Array.from(options).find((option) => option.dataset.value === value);
-                // if (theOption) {
-                //     theOption.classList.add(state);
-                // }
-            }
-
-            function addPkcs7Padding(data) {
-                const blockSize = 16; // AES 的塊大小是 16 字節
-                const paddingSize = blockSize - (data.length % blockSize);
-                const padding = new Uint8Array(paddingSize).fill(paddingSize);
-                return new Uint8Array([...data, ...padding]);
-            }
-
-            function removePkcs7Padding(data) {
-                const paddingSize = data[data.length - 1]; // 最後一個字節是填充大小
-                return data.subarray(0, data.length - paddingSize); // 去掉填充
-            }
 
             function copyText(id) {
                 const element = document.getElementById(id);
