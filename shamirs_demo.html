@@ -9,31 +9,36 @@
                 font-family: Arial, sans-serif;
                 margin: 20px;
                 padding: 0;
-                background-color: #f9f9f9; /* 增加背景色 */
+                background-color: #f9f9f9;
             }
             .container {
                 display: flex;
                 flex-direction: column;
                 gap: 20px;
-                max-width: 80%; /* 限制最大寬度 */
-                margin: auto; /* 中央對齊 */
+                max-width: 80%;
+                margin: auto;
             }
             .section {
                 padding: 20px;
                 border: 1px solid #ccc;
                 border-radius: 5px;
-                background-color: #fff; /* 區塊背景色 */
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 增加陰影 */
+                background-color: #fff;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
             .section h2 {
                 margin-top: 0;
-                margin-bottom: 10px; /* 標題底部間距 */
+                margin-bottom: 10px;
             }
             .share-list {
                 margin-top: 10px;
             }
             .share-item {
                 margin: 5px 0;
+                display: flex;
+                align-items: center;
+            }
+            .share-info {
+                color: red;
             }
             .share-checkbox {
                 margin-right: 10px;
@@ -41,18 +46,16 @@
             .input-group {
                 margin-top: 20px;
             }
-
             textarea,
             input[type="number"] {
-                width: 100%; /* 調整為100%寬度 */
+                width: 100%;
                 padding: 10px;
                 border: 1px solid #ccc;
                 border-radius: 4px;
                 font-size: 16px;
-                margin-bottom: 20px; /* 項目底部間距 */
-                box-sizing: border-box; /* 包含內邊距和邊框 */
+                margin-bottom: 20px;
+                box-sizing: border-box;
             }
-
             button {
                 padding: 10px;
                 background-color: #007bff;
@@ -61,58 +64,86 @@
                 border-radius: 5px;
                 cursor: pointer;
                 font-size: 16px;
-                transition: background-color 0.3s; /* 加入過渡效果 */
+                transition: background-color 0.3s;
             }
-
             button:hover {
-                background-color: #0056b3; /* 懸停效果 */
+                background-color: #0056b3;
             }
-
-            /* 媒體查詢 */
+            .error-message {
+                display: none;
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: red;
+                color: yellow;
+                padding: 15px;
+                border-radius: 5px;
+                z-index: 1000;
+            }
+            .countdown {
+                margin-left: 10px;
+                font-weight: bold;
+            }
             @media (max-width: 768px) {
                 body {
-                    margin: 10px; /* 調整邊距 */
+                    margin: 10px;
                 }
             }
         </style>
     </head>
     <body>
+        <div class="error-message" id="errorMessage">
+            <span id="errorText"></span>
+            <span class="countdown" id="countdown"></span>
+        </div>
         <div class="container">
             <h1>Shamir Secret Sharing</h1>
             <div class="section" id="split">
                 <h2>分割</h2>
-
                 <label for="originalString">原始字串</label>
                 <textarea id="originalString" rows="3"></textarea>
-
-                <label for="n">分成幾份 (n)</label>
+                <label for="n">分成幾份(n)</label>
                 <input type="number" id="n" min="1" />
-
-                <label for="k">需要幾份才能重建 (k)</label>
-                <input type="number" id="k" min="1" />
-
+                <label for="k">需要幾份才能重建(k)</label>
+                <input type="number" id="k" min="1" onchange="updateReconstructInputs()" />
                 <button onclick="generateShares()">分割</button>
-
+                <button onclick="clearSplitInputs()">清除</button>
                 <div class="input-group">
                     <label for="shares"><h3>分割結果</h3></label>
                     <div class="share-list" id="shareResult"></div>
                 </div>
             </div>
-
             <div class="section" id="reconstruct">
                 <h2>重建</h2>
+                <div>
+                    <label>
+                        <input
+                            type="radio"
+                            name="reconstructMethod"
+                            value="select"
+                            checked
+                            onclick="toggleReconstructionMethod()"
+                        />選擇分割值
+                    </label>
+                    <label>
+                        <input
+                            type="radio"
+                            name="reconstructMethod"
+                            value="custom"
+                            onclick="toggleReconstructionMethod()"
+                        />自訂分割值
+                    </label>
+                </div>
                 <div id="customShares"></div>
-
                 <button id="reconstructBtn" onclick="reconstructSecret()">重建</button>
-                <button onclick="clearReconstructedSecret()">清除</button>
-
+                <button onclick="clearReconstructInputs()">清除</button>
                 <div class="input-group">
                     <label for="reconstructedResult"><h3>重建密鑰</h3></label>
                     <div class="share-list" id="reconstructedResult"></div>
                 </div>
             </div>
         </div>
-
         <script>
             class ShamirSecretSharing {
                 constructor(secret, n, k) {
@@ -130,15 +161,12 @@
                     this.n = n;
                     this.k = k;
                 }
-
                 _stringToNumbers(str) {
                     return Array.from(str).map((char) => char.charCodeAt(0));
                 }
-
                 _numbersToString(numbers) {
                     return numbers.map((num) => String.fromCharCode(num)).join("");
                 }
-
                 static _lagrangeInterpolation(x, x_s, y_s, prime) {
                     let total = 0;
                     for (let i = 0; i < x_s.length; i++) {
@@ -155,7 +183,6 @@
                     }
                     return total;
                 }
-
                 static modInverse(a, m) {
                     let m0 = m,
                         t,
@@ -174,7 +201,6 @@
                     }
                     return x1 < 0 ? x1 + m0 : x1;
                 }
-
                 generateShares() {
                     const coefficients = Array.from({ length: this.k - 1 }, () =>
                         Math.floor(Math.random() * this.prime)
@@ -195,7 +221,6 @@
                     }
                     return shares;
                 }
-
                 _modPow(base, exp, mod) {
                     let result = 1;
                     base = base % mod;
@@ -208,7 +233,6 @@
                     }
                     return result;
                 }
-
                 reconstructSecret(shares) {
                     const { k } = this;
                     if (shares.length < k) {
@@ -249,15 +273,14 @@
                 const secret = document.getElementById("originalString").value;
                 const n = parseInt(document.getElementById("n").value);
                 k = parseInt(document.getElementById("k").value);
-
                 try {
                     sssInstance = new ShamirSecretSharing(secret, n, k);
                     shares = sssInstance.generateShares();
                     displayShares(shares);
                     updateShareOptions();
-                    document.getElementById("reconstructedResult").innerText = ""; // Clear the reconstructed secret
+                    document.getElementById("reconstructedResult").innerText = "";
                 } catch (error) {
-                    alert(error.message);
+                    showError(error.message);
                 }
             }
 
@@ -265,9 +288,16 @@
                 const resultDiv = document.getElementById("shareResult");
                 resultDiv.innerHTML += "<ul>";
                 shares.forEach((share) => {
-                    resultDiv.innerHTML += `<li class="share-item">ID: <strong>${
-                        share.id
-                    }</strong> -- [${share.share.join(", ")}]</li>`;
+                    const jsonString = JSON.stringify({ id: share.id, value: share.share });
+                    const base64String = btoa(jsonString);
+                    resultDiv.innerHTML += `
+                    <li class="share-item">
+                        <button onclick="copyToClipboard('${base64String}')">複製</button>
+                        <textrearea readonly>${base64String}</textarea>
+                        <div class="share-info">（ID: <strong>${share.id}</strong>, DATA: [${share.share.join(
+                        ", "
+                    )}]）</div>                        
+                    </li>`;
                 });
                 resultDiv.innerHTML += "</ul>";
             }
@@ -289,30 +319,119 @@
                 });
             }
 
+            function toggleReconstructionMethod() {
+                const method = document.querySelector('input[name="reconstructMethod"]:checked').value;
+                const customSharesContainer = document.getElementById("customShares");
+                if (method === "custom") {
+                    customSharesContainer.innerHTML = "";
+                    for (let i = 0; i < k; i++) {
+                        const textarea = document.createElement("textarea");
+                        textarea.placeholder = `請輸入第 ${i + 1} 份 Base64 編碼文字`;
+                        customSharesContainer.appendChild(textarea);
+                    }
+                } else {
+                    customSharesContainer.innerHTML = "";
+                }
+            }
+
             function reconstructSecret() {
-                const customShares = Array.from(document.querySelectorAll("#customShares input:checked")).map(
-                    (input) => {
+                const method = document.querySelector('input[name="reconstructMethod"]:checked').value;
+                let customShares = [];
+                if (method === "select") {
+                    customShares = Array.from(document.querySelectorAll("#customShares input:checked")).map((input) => {
                         const id = parseInt(input.value);
                         return shares.find((share) => share.id === id);
-                    }
-                );
-
+                    });
+                } else {
+                    const textareas = document.querySelectorAll("#customShares textarea");
+                    customShares = Array.from(textareas)
+                        .map((textarea) => {
+                            const base64Input = textarea.value.trim();
+                            if (!base64Input) return null;
+                            const decodedShare = JSON.parse(atob(base64Input));
+                            return { id: decodedShare.id, share: decodedShare.value };
+                        })
+                        .filter(Boolean);
+                }
                 if (customShares.length < k) {
-                    alert(`必須選取至少 ${k} 份分割值才能執行重建。`);
+                    showError(`必須選取至少 ${k} 份分割值才能執行重建。`);
                     return;
                 }
-
                 const secret = sssInstance.reconstructSecret(customShares);
                 document.getElementById("reconstructedResult").innerText = `${secret}`;
             }
 
-            function clearReconstructedSecret() {
+            function clearSplitInputs() {
+                document.getElementById("originalString").value = "";
+                document.getElementById("n").value = "";
+                document.getElementById("k").value = "";
+                clearShares();
+            }
+
+            function clearReconstructInputs() {
                 document.getElementById("reconstructedResult").innerText = "";
+                clearShares();
+                document.querySelectorAll('input[name="reconstructMethod"]').forEach((input) => {
+                    input.checked = false;
+                });
+                toggleReconstructionMethod();
             }
 
             function clearShares() {
                 document.getElementById("shareResult").innerText = "";
                 document.getElementById("customShares").innerHTML = "";
+            }
+
+            function copyToClipboard(text) {
+                navigator.clipboard.writeText(text).then(
+                    () => {
+                        // showError("複製成功！");
+                    },
+                    (err) => {
+                        showError("複製失敗：" + err);
+                    }
+                );
+            }
+
+            let errorTimeout;
+
+            function showError(message) {
+                const errorMessage = document.getElementById("errorMessage");
+                const errorText = document.getElementById("errorText");
+                const countdown = document.getElementById("countdown");
+
+                // 清除之前的錯誤訊息計時器
+                clearTimeout(errorTimeout);
+
+                errorText.innerText = message;
+                errorMessage.style.display = "block";
+                errorMessage.style.opacity = 1; // 確保錯誤訊息完全可見
+
+                let seconds = 5;
+                countdown.innerText = `(${seconds})`;
+                const interval = setInterval(() => {
+                    seconds--;
+                    countdown.innerText = `(${seconds})`;
+                    if (seconds <= 0) {
+                        clearInterval(interval);
+                        fadeOutErrorMessage(errorMessage);
+                    }
+                }, 1000);
+
+                // 設置一個新的計時器，在5秒後隱藏錯誤訊息
+                errorTimeout = setTimeout(() => {
+                    fadeOutErrorMessage(errorMessage);
+                }, 5000);
+            }
+
+            function fadeOutErrorMessage(errorMessage) {
+                const fadeOutInterval = setInterval(() => {
+                    errorMessage.style.opacity -= 0.1;
+                    if (errorMessage.style.opacity <= 0) {
+                        clearInterval(fadeOutInterval);
+                        errorMessage.style.display = "none";
+                    }
+                }, 50);
             }
         </script>
     </body>
