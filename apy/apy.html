@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>APY 結果顯示</title>
+        <link rel="stylesheet" href="./utils/Table.css" />
+        <style>
+            body {
+                font-family: Tahoma, "Microsoft JhengHei", "Microsoft YaHei", "Heiti TC", "sans-serif";
+                margin: 0;
+                padding: 20px;
+                background-color: #f9f9f9;
+                display: flex;
+                flex-direction: column;
+                height: 100vh; /* 使整個視窗高度 */
+            }
+
+            h1 {
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            table {
+                width: 100%;
+                flex: 1; /* 使表格佔用剩餘空間 */
+                overflow: auto;
+            }
+
+            #apyTable {
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                overflow: hidden; /* 避免邊框圓角效果 */
+            }
+
+            #apyTable thead th {
+                background-color: #844200;
+                color: #fff;
+                padding: 12px;
+            }
+
+            #apyTable tr:nth-child(even) {
+                background: #ffdac8;
+            }
+
+            #apyTable th,
+            #apyTable td {
+                padding: 10px;
+                text-align: center;
+                border-bottom: 1px solid #ddd;
+            }
+
+            #logContainer {
+                border: 1px solid #ddd;
+                margin-top: 20px;
+                padding: 10px;
+                height: 250px; /* 固定高度 */
+                overflow-y: auto;
+                background: #fff;
+                position: relative;
+            }
+        </style>
+
+        <script type="module">
+            import log from "./utils/log.js"; // 導入日誌模組
+            import Table from "./utils/Table.js"; // 確保導入 Table 類
+
+            const adapters = [
+                { name: "AaveV3Adapter", path: "./adapters/aave/aavev3_adapter.js" },
+                { name: "BeefyAdapter", path: "./adapters/beefy/beefy_adapter.js" },
+                { name: "OriginProtocolAdapter", path: "./adapters/origin-protocol/origin_protocol_adapter.js" },
+            ];
+
+            let container;
+
+            async function loadAPYData() {
+                try {
+                    log("開始加載 APY 數據"); // 日誌記錄
+                    container = await initTable();
+                    log("APY 數據加載完成"); // 日誌記錄
+                } catch (error) {
+                    log("讀取 APY 數據時出錯: " + error.message, true);
+                }
+            }
+
+            async function initTable() {
+                const columns = [
+                    { label: "平台", field: "platform", sortable: true, align: "alignCenter", defaultSortColumn: true },
+                    { label: "區塊鏈", field: "chain", sortable: true, align: "alignCenter", defaultSortColumn: false },
+                    { label: "代幣", field: "coin", sortable: true, align: "alignCenter", defaultSortColumn: false },
+                    { label: "APY（%）", field: "apy", sortable: true, align: "alignRight", defaultSortColumn: false },
+                    { label: "金庫", field: "vault", sortable: true, align: "alignCenter", defaultSortColumn: false },
+                    { label: "資料來源", field: "source", sortable: false, align: "alignCenter" },
+                ];
+
+                // 創建表格實例
+                const table = new Table({
+                    language: "cht",
+                    container: document.querySelector("#apyTable"),
+                    columns: columns,
+                    search: true,
+                    rowsPerPage: true,
+                    navigatorStyle: 1,
+                });
+
+                table.currentPage = 1;
+                return table;
+            }
+
+            document.getElementById("fetchDataButton").addEventListener("click", async () => {
+                const allResults = [];
+
+                try {
+                    for (const adapter of adapters) {
+                        const { name, path } = adapter;
+                        const module = await import(path);
+                        const adapterInstance = new module[name]();
+
+                        const results = await adapterInstance.fetchData();
+                        allResults.push(...results); // 將結果添加到 allResults
+                    }
+
+                    // 更新表格
+                    const parsedData = loadData(allResults);
+                    container.initializeData(parsedData);
+
+                    // 更新日誌
+                    log(`擷取資料完成，總資料數量: ${allResults.length}`);
+                } catch (error) {
+                    log(`擷取資料失敗: ${error.message}`);
+                }
+            });
+
+            function loadData(rawdata) {
+                if (!rawdata) {
+                    log("未接收到任何數據", true);
+                    return;
+                }
+
+                return rawdata.map((singleData) => {
+                    const { platform, chain, coin, apy, vault, source } = singleData;
+
+                    return {
+                        platform: platform || "-",
+                        chain: chain || "-",
+                        coin: coin ? coin.trim() : "-",
+                        apy: apy ? apy.replaceAll("%", "") : "-",
+                        vault: vault || "-",
+                        source: source ? `<a href="${source}" target="_blank">網站連結</a>` : "-",
+                    };
+                });
+            }
+
+            // 日誌輸出函數
+            const logContainer = document.getElementById("logContainer");
+
+            window.log = function (message, isError = false) {
+                const logEntry = document.createElement("div");
+                logEntry.textContent = message;
+                logEntry.style.color = isError ? "red" : "black";
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight; // 自動滾動到最新日誌
+            };
+
+            // 在頁面加載時加載數據
+            window.onload = loadAPYData;
+        </script>
+    </head>
+    <body>
+        <h1>APY 結果</h1>
+        <button id="fetchDataButton">擷取最新資料</button>
+        <table id="apyTable">
+            <thead>
+                <tr>
+                    <th>平台</th>
+                    <th>鏈</th>
+                    <th>幣種</th>
+                    <th>年化收益率 (APY)</th>
+                    <th>資料來源</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 這裡將填充數據 -->
+            </tbody>
+        </table>
+
+        <div id="logContainer">
+            <h3>日誌輸出</h3>
+            <!-- 日誌將在這裡顯示 -->
+        </div>
+    </body>
+</html>
