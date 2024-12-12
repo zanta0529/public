@@ -16,6 +16,16 @@
                 height: 100vh; /* 使整個視窗高度 */
             }
 
+            a {
+                color: #0000ff;
+                text-decoration: none;
+            }
+
+            a:hover {
+                background-color: #ea0000;
+                color: #fbfbff;
+            }
+
             h1 {
                 text-align: center;
                 margin-bottom: 10px;
@@ -33,14 +43,15 @@
                 overflow: hidden; /* 避免邊框圓角效果 */
             }
 
-            #apyTable thead th {
-                background-color: #844200;
+            #apyTable thead th,
+            #apyTable tfoot tr {
+                background-color: #003d79;
                 color: #fff;
                 padding: 12px;
             }
 
             #apyTable tr:nth-child(even) {
-                background: #ffdac8;
+                background: #d2e9ff;
             }
 
             #apyTable th,
@@ -54,7 +65,7 @@
                 border: 1px solid #ddd;
                 margin-top: 20px;
                 padding: 10px;
-                height: 250px; /* 固定高度 */
+                height: 300px; /* 固定高度 */
                 overflow-y: auto;
                 background: #fff;
                 position: relative;
@@ -189,13 +200,7 @@
         <button id="fetchDataButton">擷取最新資料</button>
         <table id="apyTable">
             <thead>
-                <tr>
-                    <th>平台</th>
-                    <th>鏈</th>
-                    <th>幣種</th>
-                    <th>年化收益率 (APY)</th>
-                    <th>資料來源</th>
-                </tr>
+                <!-- 這裡將顯示表格標題 -->
             </thead>
             <tbody>
                 <!-- 這裡將填充數據 -->
