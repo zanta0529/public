@@ -108,6 +108,10 @@
             }
 
             document.getElementById("fetchDataButton").addEventListener("click", async () => {
+                // 清除表格內容
+                const tbody = document.querySelector("#apyTable tbody");
+                tbody.innerHTML = ""; // 清空表格的 tbody
+
                 const allResults = [];
 
                 try {
