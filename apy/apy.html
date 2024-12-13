@@ -13,7 +13,6 @@
                 background-color: #f9f9f9;
                 display: flex;
                 flex-direction: column;
-                height: 100vh; /* 使整個視窗高度 */
             }
 
             a {
@@ -35,6 +34,8 @@
                 border: 1px solid #ddd;
                 border-radius: 5px;
                 overflow: hidden; /* 避免邊框圓角效果 */
+                flex: 1; /* 使表格佔滿剩餘空間 */
+                margin-bottom: 20px; /* 表格與日誌之間的間距 */
             }
 
             #apyTable thead th,
@@ -50,26 +51,71 @@
 
             #logContainer {
                 border: 1px solid #ddd;
-                margin-top: 20px;
                 padding: 10px;
-                height: 300px; /* 固定高度 */
-                overflow-y: auto;
+                overflow-y: auto; /* 顯示垂直捲軸 */
                 background: #fff;
-                position: relative;
+                height: 300px; /* 設置固定高度 */
+                max-height: 300px; /* 可選：設置最大高度 */
             }
 
-            #fetchDataButton {
-                background-color: rgb(39, 39, 107);
-                font-size: 18px;
-                color: yellow;
-                margin-bottom: 10px;
+            button {
+                border-width: 1px;
+                margin: 10px;
+                border-radius: 5px;
                 cursor: pointer;
+            }
+
+            #fetchDataButton,
+            #fetchAdapterButton {
+                background-color: rgb(39, 39, 107);
+                color: yellow;
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+
+            #clearLogButton {
+                background-color: #ff3333;
+                color: white;
+                font-size: 16px;
+                margin-bottom: 10px;
             }
 
             .waiting {
                 color: red;
                 font-weight: bold;
                 font-size: 18px;
+                text-align: center;
+            }
+
+            .tabs {
+                display: flex;
+                cursor: pointer;
+                margin-bottom: 10px;
+            }
+
+            .tab {
+                padding: 10px 20px;
+                background-color: #f0f0f0;
+                border: 1px solid #ddd;
+                border-radius: 5px 5px 0 0;
+                margin-right: 5px;
+            }
+
+            .tab.active {
+                background-color: #fff;
+                border-bottom: none;
+                font-weight: bold;
+            }
+
+            .tab-content {
+                display: none;
+                border: 1px solid #ddd;
+                border-radius: 0 0 5px 5px;
+                padding: 10px;
+            }
+
+            .tab-content.active {
+                display: block;
             }
         </style>
 
@@ -87,11 +133,17 @@
 
             let container;
 
-            async function loadAPYData() {
+            async function initUI() {
                 try {
                     log("網頁初始化..."); // 日誌記錄
                     container = await initTable();
                     log("網頁初始化完成"); // 日誌記錄
+
+                    // 自動載入資料
+                    const fetchAdapterButton = document.getElementById("fetchAdapterButton");
+                    if (fetchAdapterButton) {
+                        fetchAdapterButton.click();
+                    }
                 } catch (error) {
                     log("發生錯誤: " + error.message, true);
                 }
@@ -100,25 +152,10 @@
             async function initTable() {
                 const columns = [
                     { label: "平台", field: "platform", sortable: true, align: "alignCenter", defaultSortColumn: true },
-                    {
-                        label: "區塊鏈",
-                        field: "chain",
-                        sortable: true,
-                        align: "alignLeft",
-                        sortedBy: "chain",
-                        defaultSortColumn: false,
-                    },
-                    {
-                        label: "代幣",
-                        field: "coin",
-                        sortable: true,
-                        align: "alignLeft",
-                        defaultSortColumn: false,
-                        sortedBy: "coin",
-                    },
-                    { label: "APY（%）", field: "apy", sortable: true, align: "alignRight", defaultSortColumn: false },
-                    { label: "金庫", field: "vault", sortable: true, align: "alignCenter", defaultSortColumn: false },
-                    { label: "資料來源", field: "source", sortable: false, align: "alignCenter" },
+                    { label: "區塊鏈", field: "chain", sortable: true, align: "alignLeft" },
+                    { label: "代幣", field: "coin", sortable: true, align: "alignLeft" },
+                    { label: "APY(%)", field: "apy", sortable: true, align: "alignRight" },
+                    { label: "金庫", field: "vault", sortable: true, align: "alignCenter" },
                 ];
 
                 // 創建表格實例
@@ -135,7 +172,30 @@
                 return table;
             }
 
-            document.getElementById("fetchDataButton").addEventListener("click", async () => {
+            async function loadDataFromJSON() {
+                // 清除表格內容
+                const tbody = document.querySelector("#apyTable tbody");
+                tbody.innerHTML = "<tr><td colspan='6'><span class='waiting'>資料載入中，請稍後。<span></td></tr>"; // 顯示載入提示
+
+                try {
+                    const response = await fetch("./apy_result.json"); // 讀取本機端的 JSON 檔案
+                    if (!response.ok) {
+                        throw new Error("網頁無法載入資料");
+                    }
+                    const allResults = await response.json(); // 解析 JSON 數據
+
+                    // 更新表格
+                    const parsedData = parseData(allResults);
+                    container.initializeData(parsedData);
+
+                    // 更新日誌
+                    log(`擷取資料完成，總資料數量: ${allResults.length}`);
+                } catch (error) {
+                    log(`擷取資料失敗: ${error.message}`, true);
+                }
+            }
+
+            async function loadDataFromAdapter() {
                 // 清除表格內容
                 const tbody = document.querySelector("#apyTable tbody");
                 tbody.innerHTML = "<tr><td colspan='6'><span class='waiting'>資料載入中，請稍後。<span></td></tr>"; // 顯示載入提示
@@ -153,7 +213,7 @@
                     }
 
                     // 更新表格
-                    const parsedData = loadData(allResults);
+                    const parsedData = parseData(allResults);
                     container.initializeData(parsedData);
 
                     // 更新日誌
@@ -161,9 +221,9 @@
                 } catch (error) {
                     log(`擷取資料失敗: ${error.message}`);
                 }
-            });
+            }
 
-            function loadData(rawdata) {
+            function parseData(rawdata) {
                 if (!rawdata) {
                     log("未接收到任何數據", true);
                     return;
@@ -173,8 +233,7 @@
                     const { platform, chain, coin, apy, vault, source } = singleData;
 
                     return {
-                        platform: platform || "-",
-                        // chain: chain || "-",
+                        platform: platform ? `<a href="${source}" target="_blank">${platform}</a>` : "-",
                         chain: chain
                             ? `<img src="${BlockChainInfo.getChainIconUrl(
                                   chain.trim()
@@ -187,9 +246,14 @@
                             : "",
                         apy: apy ? apy.replaceAll("%", "") : "-",
                         vault: vault || "-",
-                        source: source ? `<a href="${source}" target="_blank">網站連結</a>` : "-",
                     };
                 });
+            }
+
+            // 清除日誌的函數
+            function clearLog() {
+                const logContainer = document.getElementById("logContainer");
+                logContainer.innerHTML = ""; // 清空日誌
             }
 
             // 日誌輸出函數
@@ -203,13 +267,64 @@
                 logContainer.scrollTop = logContainer.scrollHeight; // 自動滾動到最新日誌
             };
 
-            // 在頁面加載時加載數據
-            window.onload = loadAPYData;
+            // 切換 Tab
+            function switchTab(event) {
+                const target = event.target;
+                const tabs = document.querySelectorAll(".tab");
+                const contents = document.querySelectorAll(".tab-content");
+
+                tabs.forEach((tab) => tab.classList.remove("active"));
+                contents.forEach((content) => content.classList.remove("active"));
+
+                target.classList.add("active");
+                const contentId = target.getAttribute("data-content");
+                document.getElementById(contentId).classList.add("active");
+
+                // 根據選擇的 Tab 載入資料
+                if (contentId === "jsonContent") {
+                    loadDataFromJSON();
+                } else if (contentId === "adapterContent") {
+                    loadDataFromAdapter();
+                }
+            }
+
+            // 為 Tab 添加事件
+            document.addEventListener("DOMContentLoaded", () => {
+                const tabs = document.querySelectorAll(".tab");
+                tabs.forEach((tab) => {
+                    tab.addEventListener("click", switchTab);
+                });
+
+                const fetchAdapterButton = document.getElementById("fetchAdapterButton");
+                fetchAdapterButton.addEventListener("click", loadDataFromAdapter);
+
+                const fetchDataButton = document.getElementById("fetchDataButton");
+                fetchDataButton.addEventListener("click", loadDataFromJSON);
+
+                const clearLogButton = document.getElementById("clearLogButton");
+                clearLogButton.addEventListener("click", clearLog);
+
+                // 在頁面加載時加載數據
+                initUI();
+            });
         </script>
     </head>
     <body>
-        <h1>APY 結果</h1>
-        <button id="fetchDataButton">擷取最新資料</button>
+        <h1>APY</h1>
+
+        <div class="tabs">
+            <div class="tab active" data-content="adapterContent">從 Adapter 載入</div>
+            <div class="tab" data-content="jsonContent">從檔案載入</div>
+        </div>
+
+        <div id="adapterContent" class="tab-content active">
+            <button id="fetchAdapterButton">重新連線</button>
+        </div>
+
+        <div id="jsonContent" class="tab-content">
+            <button id="fetchDataButton">讀取檔案</button>
+        </div>
+
         <table id="apyTable">
             <thead>
                 <!-- 這裡將顯示表格標題 -->
@@ -219,8 +334,11 @@
             </tbody>
         </table>
 
+        <h3>日誌輸出</h3>
+        <div class="active">
+            <button id="clearLogButton">清除日誌</button>
+        </div>
         <div id="logContainer">
-            <h3>日誌輸出</h3>
             <!-- 日誌將在這裡顯示 -->
         </div>
     </body>

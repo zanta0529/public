@@ -1,4 +1,4 @@
-// ./adapters/beefy/beefy_vault_config.js
+// adapters/beefy/beefy_vault_config.js
 const beefyVaultConfig = [
     {
         enabled: 1,
@@ -53,6 +53,42 @@ const beefyVaultConfig = [
         url: "https://api.beefy.finance/apy/breakdown",
         selector: "stargate-v2-eth-usdt",
         source: "https://app.beefy.com/vault/stargate-v2-eth-usdt",
+    },
+    {
+        enabled: 1,
+        platform: "Beefy",
+        chain: "Ethereum",
+        coin: "USDC",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "stargate-v2-eth-usdc",
+        source: "https://app.beefy.com/vault/stargate-v2-eth-usdc",
+    },
+    {
+        enabled: 1,
+        platform: "Beefy",
+        chain: "Arbitrum",
+        coin: "USDT",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "compound-arbitrum-usdt",
+        source: "https://app.beefy.com/vault/compound-arbitrum-usdt",
+    },
+    {
+        enabled: 1,
+        platform: "Beefy",
+        chain: "Polygon",
+        coin: "USDC",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "stargate-v2-polygon-usdc",
+        source: "https://app.beefy.com/vault/stargate-v2-polygon-usdc",
+    },
+    {
+        enabled: 1,
+        platform: "Beefy",
+        chain: "Polygon",
+        coin: "USDT",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "stargate-v2-polygon-usdt",
+        source: "https://app.beefy.com/vault/stargate-v2-polygon-usdt",
     },
 ];
 
