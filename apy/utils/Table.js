@@ -140,6 +140,7 @@ export class Table {
 
         if (this.sortColumn) {
             data.sort((a, b) => {
+                // 提取文本內容
                 const aValue = a[this.sortColumn] ? a[this.sortColumn].toString().replace(/<[^>]*>/g, "") : "";
                 const bValue = b[this.sortColumn] ? b[this.sortColumn].toString().replace(/<[^>]*>/g, "") : "";
 

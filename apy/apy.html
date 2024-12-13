@@ -31,12 +31,6 @@
                 margin-bottom: 10px;
             }
 
-            table {
-                width: 100%;
-                flex: 1; /* 使表格佔用剩餘空間 */
-                overflow: auto;
-            }
-
             #apyTable {
                 border: 1px solid #ddd;
                 border-radius: 5px;
@@ -52,13 +46,6 @@
 
             #apyTable tr:nth-child(even) {
                 background: #d2e9ff;
-            }
-
-            #apyTable th,
-            #apyTable td {
-                padding: 10px;
-                text-align: center;
-                border-bottom: 1px solid #ddd;
             }
 
             #logContainer {
@@ -88,7 +75,9 @@
 
         <script type="module">
             import log from "./utils/log.js"; // 導入日誌模組
-            import Table from "./utils/Table.js"; // 確保導入 Table 類
+            import BlockChainInfo from "./utils/BlockchainInfo.js"; // 導入區塊鏈資訊類別
+            import TokenInfo from "./utils/TokenInfo.js"; // 導入代幣資訊類別
+            import Table from "./utils/Table.js"; // 導入 Table 類別
 
             const adapters = [
                 { name: "AaveV3Adapter", path: "./adapters/aave/aavev3_adapter.js" },
@@ -100,19 +89,33 @@
 
             async function loadAPYData() {
                 try {
-                    log("開始加載 APY 數據"); // 日誌記錄
+                    log("網頁初始化..."); // 日誌記錄
                     container = await initTable();
-                    log("APY 數據加載完成"); // 日誌記錄
+                    log("網頁初始化完成"); // 日誌記錄
                 } catch (error) {
-                    log("讀取 APY 數據時出錯: " + error.message, true);
+                    log("發生錯誤: " + error.message, true);
                 }
             }
 
             async function initTable() {
                 const columns = [
                     { label: "平台", field: "platform", sortable: true, align: "alignCenter", defaultSortColumn: true },
-                    { label: "區塊鏈", field: "chain", sortable: true, align: "alignCenter", defaultSortColumn: false },
-                    { label: "代幣", field: "coin", sortable: true, align: "alignCenter", defaultSortColumn: false },
+                    {
+                        label: "區塊鏈",
+                        field: "chain",
+                        sortable: true,
+                        align: "alignLeft",
+                        sortedBy: "chain",
+                        defaultSortColumn: false,
+                    },
+                    {
+                        label: "代幣",
+                        field: "coin",
+                        sortable: true,
+                        align: "alignLeft",
+                        defaultSortColumn: false,
+                        sortedBy: "coin",
+                    },
                     { label: "APY（%）", field: "apy", sortable: true, align: "alignRight", defaultSortColumn: false },
                     { label: "金庫", field: "vault", sortable: true, align: "alignCenter", defaultSortColumn: false },
                     { label: "資料來源", field: "source", sortable: false, align: "alignCenter" },
@@ -171,8 +174,17 @@
 
                     return {
                         platform: platform || "-",
-                        chain: chain || "-",
-                        coin: coin ? coin.trim() : "-",
+                        // chain: chain || "-",
+                        chain: chain
+                            ? `<img src="${BlockChainInfo.getChainIconUrl(
+                                  chain.trim()
+                              )}" title="${chain}" alt="${chain}" width="20px" height="20px" />&nbsp;<span>${chain}</span>`
+                            : "",
+                        coin: coin
+                            ? `<img src="${TokenInfo.getTokenIconUrl(
+                                  coin.trim()
+                              )}" title="${coin}" alt="${coin}" width="20px" height="20px" />&nbsp;<span>${coin}</span>`
+                            : "",
                         apy: apy ? apy.replaceAll("%", "") : "-",
                         vault: vault || "-",
                         source: source ? `<a href="${source}" target="_blank">網站連結</a>` : "-",

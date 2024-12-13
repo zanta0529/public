@@ -4,8 +4,6 @@ import log from "../../utils/log.js"; // 引入 log 模組
 // 靜態方法載入配置
 import beefyVaultConfig from "./beefy_vault_config.js";
 
-let JSON_RESPONSE = "";
-
 export class BeefyAdapter extends BaseAdapter {
     constructor() {
         // 使用靜態方法來載入配置
@@ -18,6 +16,7 @@ export class BeefyAdapter extends BaseAdapter {
     }
 
     async fetchData() {
+        let responseData = "";
         const results = [];
         for (const config of this.vaultConfig) {
             if (config.enabled === 0) {
@@ -26,7 +25,7 @@ export class BeefyAdapter extends BaseAdapter {
             }
 
             try {
-                if (!JSON_RESPONSE) {
+                if (!responseData) {
                     const urlWithTimestamp = `${config.url}?_=${Date.now()}`; // 加上 timestamp 防止快取
 
                     // 使用 fetch 發送請求
@@ -34,15 +33,15 @@ export class BeefyAdapter extends BaseAdapter {
 
                     // 檢查響應是否成功
                     if (!response.ok) {
-                        throw new Error("網絡響應不是 OK");
+                        throw new Error("網路回應異常");
                     }
 
                     // 處理回應資料
-                    JSON_RESPONSE = await response.json(); // 解析 JSON 數據
+                    responseData = await response.json(); // 解析 JSON 數據
                 }
 
                 // 找出與 selector 匹配的 key
-                const apyData = JSON_RESPONSE[config.selector];
+                const apyData = responseData[config.selector];
 
                 if (apyData && apyData.totalApy !== undefined) {
                     // 取出 totalApy 並轉換成百分比格式
