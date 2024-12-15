@@ -19,6 +19,7 @@ export class OriginProtocolAdapter extends BaseAdapter {
     }
 
     async fetchData() {
+        log("https://cors-anywhere.herokuapp.com/https://origin.squids.live/origin-squid:prod/api/graphql");
         const results = [];
         for (const config of this.vaultConfig) {
             if (config.enabled === 0) {
@@ -27,11 +28,10 @@ export class OriginProtocolAdapter extends BaseAdapter {
             }
 
             try {
-                // const urlWithTimestamp = `${config.url}?_=${Date.now()}`; // 加上 timestamp 防止快取
-
                 // 瀏覽 https://cors-anywhere.herokuapp.com/https://origin.squids.live/origin-squid:prod/api/graphql
+
                 const proxyUrl = "https://cors-anywhere.herokuapp.com/";
-                const urlWithTimestamp = `${proxyUrl}${config.url}`;
+                const urlWithTimestamp = `${proxyUrl}${config.url}?_=${Date.now()}`; // 加上 timestamp 防止快取
 
                 // 使用 fetch 發送 POST 請求，並設置 HTTP headers 和 body
                 const response = await fetch(urlWithTimestamp, {

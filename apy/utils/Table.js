@@ -85,7 +85,7 @@ export class Table {
         this.rowsPerPage = 10;
         this.searchTerm = "";
         this.sortColumn = this.columns.find((col) => col.defaultSortColumn === true).field; // 設定預設排序欄位
-        this.sortDirection = "▲";
+        this.sortDirection = "▼";
         this.render();
     }
 

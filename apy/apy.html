@@ -30,6 +30,10 @@
                 margin-bottom: 10px;
             }
 
+            #destination {
+                width: 400px;
+            }
+
             #apyTable {
                 border: 1px solid #ddd;
                 border-radius: 5px;
@@ -151,10 +155,10 @@
 
             async function initTable() {
                 const columns = [
-                    { label: "平台", field: "platform", sortable: true, align: "alignCenter", defaultSortColumn: true },
+                    { label: "平台", field: "platform", sortable: true, align: "alignCenter" },
                     { label: "區塊鏈", field: "chain", sortable: true, align: "alignLeft" },
                     { label: "代幣", field: "coin", sortable: true, align: "alignLeft" },
-                    { label: "APY(%)", field: "apy", sortable: true, align: "alignRight" },
+                    { label: "APY(%)", field: "apy", sortable: true, align: "alignRight", defaultSortColumn: true },
                     { label: "金庫", field: "vault", sortable: true, align: "alignCenter" },
                 ];
 
@@ -256,17 +260,6 @@
                 logContainer.innerHTML = ""; // 清空日誌
             }
 
-            // 日誌輸出函數
-            const logContainer = document.getElementById("logContainer");
-
-            window.log = function (message, isError = false) {
-                const logEntry = document.createElement("div");
-                logEntry.textContent = message;
-                logEntry.style.color = isError ? "red" : "black";
-                logContainer.appendChild(logEntry);
-                logContainer.scrollTop = logContainer.scrollHeight; // 自動滾動到最新日誌
-            };
-
             // 切換 Tab
             function switchTab(event) {
                 const target = event.target;
@@ -295,6 +288,24 @@
                     tab.addEventListener("click", switchTab);
                 });
 
+                corsButton.addEventListener("click", (event) => {
+                    const baseUrl = document.querySelector("label").innerText; // 取得label中的網址
+                    const inputUrl = document.getElementById("destination").value; // 取得文字方塊中的網址
+
+                    // 驗證網址格式的正則表達式
+                    const urlPattern = /^(https?:\/\/[^\s/$.?#].[^\s]*)$/;
+
+                    // 檢查網址格式
+                    if (!urlPattern.test(inputUrl)) {
+                        log("請輸入有效的網址格式！", true); // 顯示錯誤訊息
+                        document.getElementById("destination").focus(); // 將游標聚焦在文字方塊內
+                        return; // 結束函式
+                    }
+
+                    const fullUrl = baseUrl + inputUrl; // 組合完整的網址
+                    window.open(fullUrl, "_blank"); // 在新視窗中打開網址
+                });
+
                 const fetchAdapterButton = document.getElementById("fetchAdapterButton");
                 fetchAdapterButton.addEventListener("click", loadDataFromAdapter);
 
@@ -311,6 +322,11 @@
     </head>
     <body>
         <h1>APY</h1>
+        <div>
+            <label>https://cors-anywhere.herokuapp.com/</label>
+            <input type="text" id="destination" value="https://origin.squids.live/origin-squid:prod/api/graphql" />
+            <button id="corsButton">CORS 請求</button>
+        </div>
 
         <div class="tabs">
             <div class="tab active" data-content="adapterContent">從 Adapter 載入</div>
