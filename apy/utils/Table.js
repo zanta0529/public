@@ -60,20 +60,24 @@ export class Table {
     createSearchBox(container) {
         const spanCtrl = document.createElement("span");
         spanCtrl.innerHTML = `
-            <span>${this.i18n[this.language].search}</span>
-            <input type="text" class="ztSearchTerm">
-        `;
+        <span>${this.i18n[this.language].search}</span>
+        <input type="text" class="ztSearchTerm">
+    `;
         const input = spanCtrl.querySelector("input");
-        input.addEventListener("input", (event) => this.setSearchTerm(event.target.value));
+        let timeout;
+        input.addEventListener("input", (event) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => this.setSearchTerm(event.target.value), 300); // 300ms 防抖
+        });
         container.appendChild(spanCtrl);
     }
 
     createRowsPerPageSelector(container) {
         const spanCtrl = document.createElement("span");
         spanCtrl.innerHTML = `
-            <span>${this.i18n[this.language].rowsPerPage}</span>
-            <select class="ztRowsPerPage"></select>
-        `;
+        <span>${this.i18n[this.language].rowsPerPage}</span>
+        <select class="ztRowsPerPage"></select>
+    `;
         const select = spanCtrl.querySelector("select");
         select.addEventListener("change", (event) => this.setRowsPerPage(parseInt(event.target.value)));
         this.generateOptions(select);
@@ -143,10 +147,23 @@ export class Table {
 
     generateOptions(selectObject) {
         const options = [
-            { value: 99999999, text: this.i18n[this.language].displayAll },
-            { value: 5, text: "5" },
-            { value: 10, text: "10", default: true },
-            { value: 100, text: "100" },
+            {
+                value: 99999999,
+                text: this.i18n[this.language].displayAll,
+            },
+            {
+                value: 5,
+                text: "5",
+            },
+            {
+                value: 10,
+                text: "10",
+                default: true,
+            },
+            {
+                value: 100,
+                text: "100",
+            },
         ];
 
         options.forEach(({ value, text, default: isDefault }) => {
@@ -175,10 +192,13 @@ export class Table {
         table.appendChild(tbody);
         table.appendChild(tfoot);
 
+        const fragment = document.createDocumentFragment();
+        fragment.appendChild(table);
+        fragment.appendChild(this.createPaginationContainer(processedData.length));
+        fragment.appendChild(this.createUpdateTimeContainer());
+
         this.container.innerHTML = ""; // 清空容器
-        this.container.appendChild(table);
-        this.container.appendChild(this.createPaginationContainer(processedData.length));
-        this.container.appendChild(this.createUpdateTimeContainer());
+        this.container.appendChild(fragment);
     }
 
     createTableHead() {
@@ -245,34 +265,90 @@ export class Table {
         const paginationContainer = document.createElement("div");
         paginationContainer.className = "ztPaginationContainer";
 
+        const spanNavigator = document.createElement("span");
+        spanNavigator.className = "ztPageNavigator";
+        paginationContainer.appendChild(spanNavigator);
+
+        const noData = totalRecords === 0;
         const totalPages = Math.ceil(totalRecords / this.rowsPerPage);
-        const pageInfo = document.createElement("span");
 
-        const pageText = this.i18n[this.language].page;
-        pageInfo.textContent = pageText.replace("%1", this.currentPage).replace("%2", totalPages);
+        switch (this.navigatorStyle) {
+            case 1:
+                // [按鈕樣式 1] 第一頁、上一頁、下一頁、最末頁
+                spanNavigator.innerHTML = `
+                <button>${this.i18n[this.language].first}</button>
+                <button>${this.i18n[this.language].prev}</button>
+                <button>${this.i18n[this.language].next}</button>
+                <button>${this.i18n[this.language].last}</button>
+            `;
 
-        paginationContainer.appendChild(pageInfo);
+                const [firstPageButton, prevPageButton, nextPageButton, lastPageButton] =
+                    spanNavigator.querySelectorAll("button");
 
-        const btnGroup = document.createElement("div");
-        btnGroup.className = "ztPaginationButtons";
+                firstPageButton.disabled = noData || this.currentPage === 1;
+                firstPageButton.addEventListener("click", () => {
+                    this.currentPage = 1;
+                    this.render();
+                });
 
-        const createButton = (text, page) => {
-            const button = document.createElement("button");
-            button.textContent = text;
-            button.disabled = page < 1 || page > totalPages;
-            button.addEventListener("click", () => {
-                this.currentPage = page;
+                prevPageButton.disabled = noData || this.currentPage === 1;
+                prevPageButton.addEventListener("click", () => {
+                    this.currentPage--;
+                    this.render();
+                });
+
+                nextPageButton.disabled = noData || this.currentPage === totalPages;
+                nextPageButton.addEventListener("click", () => {
+                    this.currentPage++;
+                    this.render();
+                });
+
+                lastPageButton.disabled = noData || this.currentPage === totalPages;
+                lastPageButton.addEventListener("click", () => {
+                    this.currentPage = totalPages;
+                    this.render();
+                });
+                break;
+
+            case 2:
+                // [按鈕樣式 2] 每一頁都有獨立按鈕
+                for (let i = 1; i <= totalPages; i++) {
+                    const button = document.createElement("button");
+                    button.textContent = i;
+                    button.disabled = noData || i === this.currentPage;
+                    button.addEventListener("click", () => {
+                        this.currentPage = i;
+                        this.render();
+                    });
+                    spanNavigator.appendChild(button);
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        // *************************************************************************************************************
+        // 快速跳頁
+        // *************************************************************************************************************
+        const spanGoToPage = document.createElement("span");
+        spanGoToPage.innerHTML = `<span class='ztPageCount'> |
+        <input type="number" min="1" max="${totalPages}" value="${this.currentPage}"> / ${totalPages}
+        <button>${this.i18n[this.language].goto}</button> | 
+        ${this.i18n[this.language].totalRecords}${totalRecords}</span>
+    `;
+        paginationContainer.appendChild(spanGoToPage);
+
+        const [gotoPageInput, gotoPageButton] = spanGoToPage.querySelectorAll("input, button");
+        gotoPageButton.disabled = noData;
+        gotoPageButton.addEventListener("click", () => {
+            const pageNumber = parseInt(gotoPageInput.value);
+            if (pageNumber >= 1 && pageNumber <= totalPages) {
+                this.currentPage = pageNumber;
                 this.render();
-            });
-            return button;
-        };
+            }
+        });
 
-        btnGroup.appendChild(createButton(this.i18n[this.language].first, 1));
-        btnGroup.appendChild(createButton(this.i18n[this.language].prev, this.currentPage - 1));
-        btnGroup.appendChild(createButton(this.i18n[this.language].next, this.currentPage + 1));
-        btnGroup.appendChild(createButton(this.i18n[this.language].last, totalPages));
-
-        paginationContainer.appendChild(btnGroup);
         return paginationContainer;
     }
 
