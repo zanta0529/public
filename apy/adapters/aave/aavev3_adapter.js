@@ -19,14 +19,13 @@ export class AaveV3Adapter extends BaseAdapter {
     async fetchData() {
         const waitingTime = 3 * 1000; // 3 秒鐘
 
-        const results = [];
-        for (const config of this.vaultConfig) {
+        // 創建一個數組來保存所有的請求
+        const fetchPromises = this.vaultConfig.map(async (config) => {
             if (config.enabled === 0) {
-                continue;
+                return null; // 如果禁用，返回 null
             }
 
             const urlWithTimestamp = `${config.url}&_=${Date.now()}`; // 加上 timestamp 防止快取
-            let apyText = "";
             try {
                 const response = await fetch(urlWithTimestamp, { method: "GET" });
                 if (!response.ok) {
@@ -34,48 +33,59 @@ export class AaveV3Adapter extends BaseAdapter {
                 }
 
                 const text = await response.text();
-                console.log(text); // 查看返回的原始 HTML 內容
-
-                // 使用 DOMParser 解析 HTML
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(text, "text/html");
 
-                // 使用 MutationObserver 來延後載入網頁
-                const observer = new MutationObserver((mutationsList, observer) => {
-                    const element = doc.querySelector(config.selector);
-                    if (element) {
-                        apyText = element.textContent.trim();
-                        results.push({
-                            platform: config.platform,
-                            chain: config.chain,
-                            coin: config.coin,
-                            apy: apyText,
-                            source: config.url,
-                        });
-                        log(`\t* Fetched APY for ${config.coin}: ${apyText} (${config.chain})`);
-                        observer.disconnect(); // 停止觀察
-                    }
-                });
+                const apyText = await this.getAPYText(doc, config.selector, waitingTime);
 
-                // 開始觀察 doc.body 的變化
-                observer.observe(doc.body, { childList: true, subtree: true });
-
-                setTimeout(() => {
-                    const element = doc.querySelector(config.selector);
-                    if (!element) {
-                        log(
-                            `\t* No APY found for ${config.coin} (${config.chain}) after waiting for ${
-                                waitingTime / 1000
-                            } second(s).`
-                        );
-                    }
-                    observer.disconnect(); // 停止觀察
-                }, waitingTime);
+                if (apyText) {
+                    log(`\t* Fetched APY for ${config.coin}: ${apyText} (${config.chain})`);
+                    return {
+                        platform: config.platform,
+                        chain: config.chain,
+                        coin: config.coin,
+                        apy: apyText,
+                        source: config.url,
+                    };
+                } else {
+                    log(
+                        `\t* No APY found for ${config.coin} (${config.chain}) after waiting for ${
+                            waitingTime / 1000
+                        } second(s).`
+                    );
+                }
             } catch (error) {
                 log(`Error fetching data for ${config.coin}: ${error.message}`);
             }
-        }
-        return results;
+            return null; // 如果發生錯誤，返回 null
+        });
+
+        // 等待所有請求完成
+        const resultsArray = await Promise.all(fetchPromises);
+        // 過濾掉 null 值的結果
+        return resultsArray.filter((result) => result !== null);
+    }
+
+    // 新增一個方法來獲取 APY 文本
+    async getAPYText(doc, selector, waitingTime) {
+        return new Promise((resolve) => {
+            const observer = new MutationObserver(() => {
+                const element = doc.querySelector(selector);
+                if (element) {
+                    resolve(element.textContent.trim());
+                    observer.disconnect(); // 停止觀察
+                }
+            });
+
+            // 開始觀察 doc.body 的變化
+            observer.observe(doc.body, { childList: true, subtree: true });
+
+            // 設定超時
+            setTimeout(() => {
+                resolve(null); // 如果超時，返回 null
+                observer.disconnect(); // 停止觀察
+            }, waitingTime);
+        });
     }
 }
 

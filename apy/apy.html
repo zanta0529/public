@@ -42,8 +42,7 @@
                 margin-bottom: 20px; /* 表格與日誌之間的間距 */
             }
 
-            #apyTable thead th,
-            #apyTable tfoot tr {
+            #apyTable thead th {
                 background-color: #003d79;
                 color: #fff;
                 padding: 12px;
@@ -204,26 +203,28 @@
                 const tbody = document.querySelector("#apyTable tbody");
                 tbody.innerHTML = "<tr><td colspan='6'><span class='waiting'>資料載入中，請稍後。<span></td></tr>"; // 顯示載入提示
 
-                const allResults = [];
-
                 try {
-                    for (const adapter of adapters) {
+                    const fetchPromises = adapters.map(async (adapter) => {
                         const { name, path } = adapter;
                         const module = await import(path);
                         const adapterInstance = new module[name]();
+                        return adapterInstance.fetchData(); // 返回每個適配器的數據
+                    });
 
-                        const results = await adapterInstance.fetchData();
-                        allResults.push(...results); // 將結果添加到 allResults
-                    }
+                    // 使用 Promise.all 等待所有適配器的數據
+                    const allResults = await Promise.all(fetchPromises);
+
+                    // 將所有結果合併成一個數組
+                    const combinedResults = allResults.flat(); // 使用 flat() 以便將嵌套的數組展平
 
                     // 更新表格
-                    const parsedData = parseData(allResults);
+                    const parsedData = parseData(combinedResults);
                     container.initializeData(parsedData);
 
                     // 更新日誌
-                    log(`擷取資料完成，總資料數量: ${allResults.length}`);
+                    log(`擷取資料完成，總資料數量: ${combinedResults.length}`);
                 } catch (error) {
-                    log(`擷取資料失敗: ${error.message}`);
+                    log(`擷取資料失敗: ${error.message}`, true);
                 }
             }
 
