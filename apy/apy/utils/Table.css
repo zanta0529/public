@@ -1,0 +1,82 @@
+/* ===================================================================== */
+/* table 相關（Table 元件）
+/* ===================================================================== */
+table.ztTable {
+    border-style: solid;
+    border-width: 1px;
+    border-collapse: collapse; /* 合併邊框 */
+    width: 100%;
+    overflow-y: auto; /* 啟用垂直滾動條 */
+    border: 1px solid #ddd; /* 添加邊框，方便觀察效果 */
+}
+
+table.ztTable thead,
+table.ztTable tfoot {
+    border: 1px solid black;
+    font-weight: bold;
+    line-height: 150%;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+table.ztTable tbody {
+    line-height: 150%;
+}
+
+table.ztTable th {
+    position: sticky;
+    top: 0; /* 固定在容器的頂部 */
+    z-index: 1; /* 確保標題欄位在內容上方 */
+}
+
+table.ztTable caption {
+    color: #6f70bb;
+    font-size: 120%;
+    font-weight: bold;
+    margin-top: 10px;
+    text-align: left;
+}
+
+table.ztTable tr:nth-child(odd) {
+    background: #fff;
+}
+
+.ztFunctionalContainer input[type="text"] {
+    margin: 0 3px 0 3px;
+    border-style: solid;
+    border-width: 1px;
+    font-size: 120%;
+    background-color: #ecf7ef;
+}
+
+.ztPaginationContainer button {
+    width: 60px;
+    margin: 0 3px 0 3px;
+    height: 30px;
+}
+
+.ztPaginationContainer input[type="number"] {
+    height: 20px;
+    width: 50px;
+}
+
+table.ztTable .alignLeft {
+    text-align: left;
+}
+
+table.ztTable .alignCenter {
+    text-align: center;
+}
+
+table.ztTable .alignRight {
+    text-align: right;
+}
+
+table.ztTable .noRecords {
+    color: red;
+    font-size: 20px;
+    font-weight: bolder;
+    padding: 20px;
+    text-align: center;
+}
