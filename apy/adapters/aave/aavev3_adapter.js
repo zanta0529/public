@@ -17,6 +17,8 @@ export class AaveV3Adapter extends BaseAdapter {
     }
 
     async fetchData() {
+        const waitingTime = 3 * 1000; // 3 秒鐘
+
         const results = [];
         for (const config of this.vaultConfig) {
             if (config.enabled === 0) {
@@ -32,25 +34,43 @@ export class AaveV3Adapter extends BaseAdapter {
                 }
 
                 const text = await response.text();
+                console.log(text); // 查看返回的原始 HTML 內容
 
                 // 使用 DOMParser 解析 HTML
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(text, "text/html");
-                const element = doc.querySelector(config.selector);
 
-                if (element) {
-                    apyText = element.textContent.trim();
-                    results.push({
-                        platform: config.platform,
-                        chain: config.chain,
-                        coin: config.coin,
-                        apy: apyText,
-                        source: config.url,
-                    });
-                    log(`\t* Fetched APY for ${config.coin}: ${apyText} (${config.chain})`);
-                } else {
-                    log(`\t* No APY found for ${config.coin} (${config.chain})`);
-                }
+                // 使用 MutationObserver 來延後載入網頁
+                const observer = new MutationObserver((mutationsList, observer) => {
+                    const element = doc.querySelector(config.selector);
+                    if (element) {
+                        apyText = element.textContent.trim();
+                        results.push({
+                            platform: config.platform,
+                            chain: config.chain,
+                            coin: config.coin,
+                            apy: apyText,
+                            source: config.url,
+                        });
+                        log(`\t* Fetched APY for ${config.coin}: ${apyText} (${config.chain})`);
+                        observer.disconnect(); // 停止觀察
+                    }
+                });
+
+                // 開始觀察 doc.body 的變化
+                observer.observe(doc.body, { childList: true, subtree: true });
+
+                setTimeout(() => {
+                    const element = doc.querySelector(config.selector);
+                    if (!element) {
+                        log(
+                            `\t* No APY found for ${config.coin} (${config.chain}) after waiting for ${
+                                waitingTime / 1000
+                            } second(s).`
+                        );
+                    }
+                    observer.disconnect(); // 停止觀察
+                }, waitingTime);
             } catch (error) {
                 log(`Error fetching data for ${config.coin}: ${error.message}`);
             }
