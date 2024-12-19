@@ -206,6 +206,11 @@ export class Table {
         thead.className = "ztTableHead";
         const tr = document.createElement("tr");
 
+        // 新增 row number 欄位
+        const rowNum = document.createElement("th");
+        rowNum.textContent = "#";
+        tr.appendChild(rowNum);
+
         this.columns.forEach((column) => {
             const th = document.createElement("th");
             th.textContent = `${column.label} ${column.field === this.sortColumn ? this.sortDirection : ""}`;
@@ -226,13 +231,20 @@ export class Table {
 
         if (totalRecords === 0) {
             const tr = document.createElement("tr");
-            tr.innerHTML = `<td class="noRecords" colspan="${this.columns.length}">${
+            tr.innerHTML = `<td class="noRecords" colspan="${this.columns.length + 1}">${
                 this.i18n[this.language].noData
             }</td>`;
             tbody.appendChild(tr);
         } else {
-            paginatedData.forEach((row) => {
+            paginatedData.forEach((row, index) => {
                 const tr = document.createElement("tr");
+
+                // 新增 row number 欄位
+                const rowNum = document.createElement("td");
+                rowNum.className = "alignCenter";
+                rowNum.textContent = (this.currentPage - 1) * this.rowsPerPage + index + 1;
+                tr.appendChild(rowNum);
+
                 this.columns.forEach(({ field, align }) => {
                     const td = document.createElement("td");
                     td.className = align;
@@ -246,10 +258,15 @@ export class Table {
         return tbody;
     }
 
-    createTableFoot(totalRecords) {
+    createTableFoot() {
         const tfoot = document.createElement("tfoot");
         tfoot.className = "ztTableFoot";
         const tr = document.createElement("tr");
+
+        // 新增 row number 欄位
+        const rowNum = document.createElement("td");
+        rowNum.textContent = "#";
+        tr.appendChild(rowNum);
 
         this.columns.forEach((column) => {
             const td = document.createElement("td");
