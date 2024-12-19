@@ -1,5 +1,8 @@
 // adapters/beefy/beefy_vault_config.js
 const beefyVaultConfig = [
+    // --------------------------------------------
+    // Arbitrum
+    // --------------------------------------------
     {
         enabled: 1,
         platform: "Beefy",
@@ -12,11 +15,11 @@ const beefyVaultConfig = [
     {
         enabled: 1,
         platform: "Beefy",
-        chain: "Ethereum",
-        coin: "USDC",
+        chain: "Arbitrum",
+        coin: "USDT",
         url: "https://api.beefy.finance/apy/breakdown",
-        selector: "conic-usdc",
-        source: "https://app.beefy.com/vault/conic-usdc",
+        selector: "compound-arbitrum-usdt",
+        source: "https://app.beefy.com/vault/compound-arbitrum-usdt",
     },
     {
         enabled: 1,
@@ -39,20 +42,42 @@ const beefyVaultConfig = [
     {
         enabled: 1,
         platform: "Beefy",
+        chain: "Arbitrum",
+        coin: "USDC",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "venus-arb-usdc",
+        source: "https://app.beefy.com/vault/venus-arb-usdc",
+    },
+    {
+        enabled: 1,
+        platform: "Beefy",
+        chain: "Arbitrum",
+        coin: "USDT",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "venus-arb-usdt",
+        source: "https://app.beefy.com/vault/venus-arb-usdt",
+    },
+    // --------------------------------------------
+    // Ethereum
+    // --------------------------------------------
+    {
+        enabled: 1,
+        platform: "Beefy",
+        chain: "Ethereum",
+        coin: "USDC",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "conic-usdc",
+        source: "https://app.beefy.com/vault/conic-usdc",
+    },
+
+    {
+        enabled: 1,
+        platform: "Beefy",
         chain: "Ethereum",
         coin: "USDC",
         url: "https://api.beefy.finance/apy/breakdown",
         selector: "compound-mainnet-usdc",
         source: "https://app.beefy.com/vault/compound-mainnet-usdc",
-    },
-    {
-        enabled: 1,
-        platform: "Beefy",
-        chain: "Ethereum",
-        coin: "USDT",
-        url: "https://api.beefy.finance/apy/breakdown",
-        selector: "stargate-v2-eth-usdt",
-        source: "https://app.beefy.com/vault/stargate-v2-eth-usdt",
     },
     {
         enabled: 1,
@@ -66,12 +91,15 @@ const beefyVaultConfig = [
     {
         enabled: 1,
         platform: "Beefy",
-        chain: "Arbitrum",
+        chain: "Ethereum",
         coin: "USDT",
         url: "https://api.beefy.finance/apy/breakdown",
-        selector: "compound-arbitrum-usdt",
-        source: "https://app.beefy.com/vault/compound-arbitrum-usdt",
+        selector: "stargate-v2-eth-usdt",
+        source: "https://app.beefy.com/vault/stargate-v2-eth-usdt",
     },
+    // --------------------------------------------
+    // Polygon
+    // --------------------------------------------
     {
         enabled: 1,
         platform: "Beefy",
@@ -89,6 +117,27 @@ const beefyVaultConfig = [
         url: "https://api.beefy.finance/apy/breakdown",
         selector: "stargate-v2-polygon-usdt",
         source: "https://app.beefy.com/vault/stargate-v2-polygon-usdt",
+    },
+    {
+        enabled: 1,
+        platform: "Beefy",
+        chain: "Polygon",
+        coin: "USDT",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "compound-polygon-usdt",
+        source: "https://app.beefy.com/vault/compound-polygon-usdt",
+    },
+    // --------------------------------------------
+    // Base
+    // --------------------------------------------
+    {
+        enabled: 1,
+        platform: "Beefy",
+        chain: "Base",
+        coin: "USDC",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "compound-base-usdc",
+        source: "https://app.beefy.com/vault/compound-base-usdc",
     },
 ];
 
