@@ -24,10 +24,12 @@ export class BeefyWebAdapter extends BaseAdapter {
             }
 
             try {
-                const urlWithTimestamp = `${config.url}?_=${Date.now()}`; // 加上 timestamp 防止快取
-
-                // 使用 fetch 發送請求
-                const response = await fetch(urlWithTimestamp);
+                // 使用 fetch 發送請求，並設置 cache control headers
+                const response = await fetch(config.url, {
+                    headers: {
+                        "Cache-Control": "no-cache",
+                    },
+                });
 
                 // 檢查響應是否成功
                 if (!response.ok) {
@@ -36,6 +38,10 @@ export class BeefyWebAdapter extends BaseAdapter {
 
                 // 處理回應資料
                 const responseData = await response.json(); // 解析 JSON 數據
+                // 確保 responseData 是一個對象
+                if (typeof responseData !== "object" || responseData === null) {
+                    throw new Error("無效的回應數據");
+                }
 
                 // 找出與 selector 匹配的 key
                 const apyData = responseData[config.selector];
@@ -56,7 +62,7 @@ export class BeefyWebAdapter extends BaseAdapter {
                     log(`\t* No APY found for ${config.coin} (${config.chain})(${config.selector})`);
                 }
             } catch (error) {
-                log(`Error fetching data for ${config.coin}: ${error.message}`);
+                log(`\t* Error fetching data for ${config.coin}: ${error.message}`);
             }
             return null; // 如果發生錯誤，返回 null
         });
@@ -70,6 +76,4 @@ export class BeefyWebAdapter extends BaseAdapter {
 
 export default BeefyWebAdapter;
 
-(function () {
-    log("BeefyWebAdapter 已加載");
-})();
+log("BeefyWebAdapter 已加載");
