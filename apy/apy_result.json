@@ -3,35 +3,35 @@
     "platform": "Aave",
     "chain": "Base",
     "coin": "USDC",
-    "apy": "10.12%",
+    "apy": "10.27%",
     "source": "https://app.aave.com/reserve-overview/?underlyingAsset=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&marketName=proto_base_v3"
   },
   {
     "platform": "Aave",
     "chain": "Ethereum",
     "coin": "USDC",
-    "apy": "10.11%",
+    "apy": "10.16%",
     "source": "https://app.aave.com/reserve-overview/?underlyingAsset=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&marketName=proto_mainnet_v3"
   },
   {
     "platform": "Aave",
     "chain": "Polygon",
     "coin": "USDC",
-    "apy": "9.88%",
+    "apy": "9.84%",
     "source": "https://app.aave.com/reserve-overview/?underlyingAsset=0x3c499c542cef5e3811e1192ce70d8cc03d5c3359&marketName=proto_polygon_v3"
   },
   {
     "platform": "Aave",
     "chain": "Polygon",
     "coin": "USDT",
-    "apy": "9.85%",
+    "apy": "9.54%",
     "source": "https://app.aave.com/reserve-overview/?underlyingAsset=0xc2132d05d31c914a87c6611c10748aeb04b58e8f&marketName=proto_polygon_v3"
   },
   {
     "platform": "Aave",
     "chain": "Ethereum",
     "coin": "USDT",
-    "apy": "8.97%",
+    "apy": "9.24%",
     "source": "https://app.aave.com/reserve-overview/?underlyingAsset=0xdac17f958d2ee523a2206206994597c13d831ec7&marketName=proto_mainnet_v3"
   },
   {
@@ -45,78 +45,78 @@
     "platform": "Aave",
     "chain": "Arbitrum",
     "coin": "USDC",
-    "apy": "7.71%",
+    "apy": "7.04%",
     "source": "https://app.aave.com/reserve-overview/?underlyingAsset=0xaf88d065e77c8cc2239327c5edb3a432268e5831&marketName=proto_arbitrum_v3"
   },
   {
     "platform": "Beefy",
     "chain": "Ethereum",
     "coin": "USDC",
-    "apy": "20.13%",
+    "apy": "20.19%",
     "source": "https://app.beefy.com/vault/conic-usdc",
     "vault": "conic-usdc"
   },
   {
     "platform": "Beefy",
-    "chain": "Polygon",
-    "coin": "USDT",
-    "apy": "14.73%",
-    "source": "https://app.beefy.com/vault/compound-polygon-usdt",
-    "vault": "compound-polygon-usdt"
-  },
-  {
-    "platform": "Beefy",
     "chain": "Ethereum",
     "coin": "USDC",
-    "apy": "10.10%",
+    "apy": "11.64%",
     "source": "https://app.beefy.com/vault/compound-mainnet-usdc",
     "vault": "compound-mainnet-usdc"
   },
   {
     "platform": "Beefy",
+    "chain": "Polygon",
+    "coin": "USDT",
+    "apy": "11.26%",
+    "source": "https://app.beefy.com/vault/compound-polygon-usdt",
+    "vault": "compound-polygon-usdt"
+  },
+  {
+    "platform": "Beefy",
     "chain": "Arbitrum",
     "coin": "USDC",
-    "apy": "9.97%",
+    "apy": "9.99%",
     "source": "https://app.beefy.com/vault/stargate-v2-arb-usdc",
     "vault": "stargate-v2-arb-usdc"
   },
   {
     "platform": "Beefy",
-    "chain": "Arbitrum",
-    "coin": "USDC",
-    "apy": "9.88%",
-    "source": "https://app.beefy.com/vault/venus-arb-usdc",
-    "vault": "venus-arb-usdc"
-  },
-  {
-    "platform": "Beefy",
     "chain": "Polygon",
     "coin": "USDC",
-    "apy": "9.76%",
+    "apy": "9.98%",
     "source": "https://app.beefy.com/vault/stargate-v2-polygon-usdc",
     "vault": "stargate-v2-polygon-usdc"
   },
   {
     "platform": "Beefy",
-    "chain": "Base",
+    "chain": "Arbitrum",
     "coin": "USDC",
-    "apy": "8.93%",
-    "source": "https://app.beefy.com/vault/compound-base-usdc",
-    "vault": "compound-base-usdc"
+    "apy": "9.63%",
+    "source": "https://app.beefy.com/vault/venus-arb-usdc",
+    "vault": "venus-arb-usdc"
   },
   {
     "platform": "Beefy",
     "chain": "Arbitrum",
     "coin": "USDC",
-    "apy": "8.51%",
+    "apy": "9.33%",
     "source": "https://app.beefy.com/vault/compound-arbitrum-usdc",
     "vault": "compound-arbitrum-usdc"
   },
   {
     "platform": "Beefy",
+    "chain": "Base",
+    "coin": "USDC",
+    "apy": "8.70%",
+    "source": "https://app.beefy.com/vault/compound-base-usdc",
+    "vault": "compound-base-usdc"
+  },
+  {
+    "platform": "Beefy",
     "chain": "Ethereum",
     "coin": "USDC",
-    "apy": "8.27%",
+    "apy": "8.46%",
     "source": "https://app.beefy.com/vault/stargate-v2-eth-usdc",
     "vault": "stargate-v2-eth-usdc"
   },
@@ -124,7 +124,7 @@
     "platform": "Beefy",
     "chain": "Arbitrum",
     "coin": "USDT",
-    "apy": "8.19%",
+    "apy": "8.28%",
     "source": "https://app.beefy.com/vault/stargate-v2-arb-usdt",
     "vault": "stargate-v2-arb-usdt"
   },
@@ -132,7 +132,7 @@
     "platform": "Beefy",
     "chain": "Ethereum",
     "coin": "USDT",
-    "apy": "7.95%",
+    "apy": "8.12%",
     "source": "https://app.beefy.com/vault/stargate-v2-eth-usdt",
     "vault": "stargate-v2-eth-usdt"
   },
@@ -140,7 +140,7 @@
     "platform": "Beefy",
     "chain": "Polygon",
     "coin": "USDT",
-    "apy": "7.85%",
+    "apy": "8.03%",
     "source": "https://app.beefy.com/vault/stargate-v2-polygon-usdt",
     "vault": "stargate-v2-polygon-usdt"
   },
@@ -148,7 +148,7 @@
     "platform": "Beefy",
     "chain": "Arbitrum",
     "coin": "USDT",
-    "apy": "6.21%",
+    "apy": "6.23%",
     "source": "https://app.beefy.com/vault/venus-arb-usdt",
     "vault": "venus-arb-usdt"
   },
@@ -156,7 +156,7 @@
     "platform": "Beefy",
     "chain": "Arbitrum",
     "coin": "USDT",
-    "apy": "4.25%",
+    "apy": "4.58%",
     "source": "https://app.beefy.com/vault/compound-arbitrum-usdt",
     "vault": "compound-arbitrum-usdt"
   },
@@ -171,7 +171,7 @@
     "platform": "Origin Protocol",
     "chain": "Base",
     "coin": "Super OETH",
-    "apy": "0.81%",
+    "apy": "4.73%",
     "source": "https://analytics.originprotocol.com/super/poy/"
   },
   {
