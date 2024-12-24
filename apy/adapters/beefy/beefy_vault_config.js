@@ -5,7 +5,7 @@ const beefyVaultConfig = [
     // --------------------------------------------
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Arbitrum",
         coin: "USDC",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -14,7 +14,7 @@ const beefyVaultConfig = [
     },
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Arbitrum",
         coin: "USDT",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -23,7 +23,7 @@ const beefyVaultConfig = [
     },
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Arbitrum",
         coin: "USDC",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -32,7 +32,7 @@ const beefyVaultConfig = [
     },
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Arbitrum",
         coin: "USDT",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -41,7 +41,7 @@ const beefyVaultConfig = [
     },
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Arbitrum",
         coin: "USDC",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -50,7 +50,7 @@ const beefyVaultConfig = [
     },
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Arbitrum",
         coin: "USDT",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -62,7 +62,7 @@ const beefyVaultConfig = [
     // --------------------------------------------
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Ethereum",
         coin: "USDC",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -72,7 +72,7 @@ const beefyVaultConfig = [
 
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Ethereum",
         coin: "USDC",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -81,7 +81,7 @@ const beefyVaultConfig = [
     },
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Ethereum",
         coin: "USDC",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -90,7 +90,7 @@ const beefyVaultConfig = [
     },
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Ethereum",
         coin: "USDT",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -102,7 +102,7 @@ const beefyVaultConfig = [
     // --------------------------------------------
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Polygon",
         coin: "USDC",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -111,7 +111,7 @@ const beefyVaultConfig = [
     },
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Polygon",
         coin: "USDT",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -120,7 +120,7 @@ const beefyVaultConfig = [
     },
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Polygon",
         coin: "USDT",
         url: "https://api.beefy.finance/apy/breakdown",
@@ -132,7 +132,7 @@ const beefyVaultConfig = [
     // --------------------------------------------
     {
         enabled: 1,
-        platform: "Beefy",
+        platform: "Beefy Finance",
         chain: "Base",
         coin: "USDC",
         url: "https://api.beefy.finance/apy/breakdown",

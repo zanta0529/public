@@ -129,10 +129,11 @@
             import TokenInfo from "./info/TokenInfo.js"; // 導入代幣資訊類別
 
             const adapters = [
-                // Aave 無法使用
+                // 無法載入有 CORS 限制的平台，須考慮使用 Node.js 在後端產製檔案
                 // { name: "AaveV3WebAdapter", path: "./adapters/aave/aavev3_web_adapter.js" },
                 { name: "BeefyWebAdapter", path: "./adapters/beefy/beefy_web_adapter.js" },
                 { name: "OriginProtocolWebAdapter", path: "./adapters/origin-protocol/origin_protocol_web_adapter.js" },
+                // { name: "OndoWebAdapter", path: "./adapters/ondo/ondo_web_adapter.js" },
             ];
 
             let container;

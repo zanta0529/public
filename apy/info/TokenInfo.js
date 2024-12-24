@@ -29,6 +29,16 @@ export class TokenInfo {
             contract: "0xdbfefd2e8460a6ee4955a68582f85708baea60a3",
             icon: "https://basescan.org/token/images/superoeth_base_32.png",
         },
+        {
+            symbol: "USDY",
+            contract: "0x96f6ef951840721adbf46ac996b59e0235cb985c",
+            icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/29256.png",
+        },
+        {
+            symbol: "OUSG",
+            contract: "0x1b19c19393e2d034d8ff31ff34c81252fcbbee92",
+            icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23463.png",
+        },
     ];
 
     // 獲取所有代幣的符號列表
