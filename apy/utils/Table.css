@@ -3,13 +3,14 @@
 /* ===================================================================== */
 
 :root {
-    --border-color: #ddd;
+    --border-color: #999;
     --header-footer-bg: #f9f9f9;
     --highlight-color: #6f70bb;
     --no-records-color: red;
     --input-bg: #ecf7ef;
     --font-size-normal: 100%;
     --font-size-large: 120%;
+    --margin: 10px 3px;
 }
 
 table.ztTable {
@@ -21,7 +22,7 @@ table.ztTable {
 
 table.ztTable thead,
 table.ztTable tfoot {
-    border: 1px solid black;
+    border: 1px solid var(--border-color);
     font-weight: bold;
     line-height: 1.5; /* 使用相對單位 */
     text-align: center;
@@ -50,31 +51,22 @@ table.ztTable tr:nth-child(odd) {
     background: #fff; /* 奇數列背景色 */
 }
 
-.ztFunctionalContainer input[type="text"] {
-    margin: 0 3px;
-    border: 1px solid #ccc;
+.ztFunctionalContainer input[type="text"],
+.ztPaginationContainer input[type="number"] {
+    margin: var(--margin);
+    border: 1px solid var(--border-color);
     font-size: var(--font-size-large);
     background-color: var(--input-bg);
 }
 
-.ztPaginationContainer {
-    display: flex; /* 使用 flexbox 來排列按鈕 */
-    align-items: center;
-}
-
 .ztPaginationContainer button {
-    width: 60px;
-    margin: 0 3px;
+    width: 60px;    
     height: 30px;
-}
-
-.ztPaginationContainer input[type="number"] {
-    height: 20px;
-    width: 50px;
+    margin: var(--margin);
 }
 
 .ztUpdateTimeContainer {
-    color:#999;
+    color: #999;
     font-size: small;
 }
 

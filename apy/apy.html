@@ -34,21 +34,13 @@
                 width: 400px;
             }
 
-            #apyTable {
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                overflow: hidden; /* 避免邊框圓角效果 */
-                flex: 1; /* 使表格佔滿剩餘空間 */
-                margin-bottom: 20px; /* 表格與日誌之間的間距 */
-            }
-
-            #apyTable thead th {
+            #apyContainer thead th {
                 background-color: #003d79;
                 color: #fff;
                 padding: 12px;
             }
 
-            #apyTable tr:nth-child(even) {
+            #apyContainer tr:nth-child(even) {
                 background: #d2e9ff;
             }
 
@@ -166,8 +158,9 @@
                 // 創建表格實例
                 const table = new Table({
                     language: "cht",
-                    container: document.querySelector("#apyTable"),
+                    container: document.querySelector("#apyContainer"),
                     columns: columns,
+                    // data: [], // 可選：初始化時不載入資料
                     search: true,
                     rowsPerPage: true,
                     navigatorStyle: 1,
@@ -179,7 +172,7 @@
 
             async function loadDataFromJSON() {
                 // 清除表格內容
-                const tbody = document.querySelector("#apyTable tbody");
+                const tbody = document.querySelector("#apyContainer tbody");
                 tbody.innerHTML = "<tr><td colspan='6'><span class='waiting'>資料載入中，請稍後。<span></td></tr>"; // 顯示載入提示
 
                 try {
@@ -202,7 +195,7 @@
 
             async function loadDataFromAdapter() {
                 // 清除表格內容
-                const tbody = document.querySelector("#apyTable tbody");
+                const tbody = document.querySelector("#apyContainer tbody");
                 tbody.innerHTML = "<tr><td colspan='6'><span class='waiting'>資料載入中，請稍後。<span></td></tr>"; // 顯示載入提示
 
                 try {
@@ -344,18 +337,15 @@
             <button id="fetchDataButton">讀取檔案</button>
         </div>
 
-        <table id="apyTable">
-            <thead>
-                <!-- 這裡將顯示表格標題 -->
-            </thead>
-            <tbody>
-                <!-- 這裡將填充數據 -->
-            </tbody>
-        </table>
+        <div id="apyContainer">
+            <!-- 表格將在這裡顯示 -->
+        </div>
 
-        <h3>日誌輸出</h3>
         <div class="active">
-            <button id="clearLogButton">清除日誌</button>
+            <h3>
+                日誌輸出
+                <button id="clearLogButton">清除日誌</button>
+            </h3>
         </div>
         <div id="logContainer">
             <!-- 日誌將在這裡顯示 -->

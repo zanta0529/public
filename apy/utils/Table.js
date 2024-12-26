@@ -8,7 +8,6 @@ export class Table {
         this.data = config.data;
         this.columns = config.columns;
         this.container = config.container;
-        this.lastUpdatedTime = new Date().toLocaleString();
 
         this.createFunctionalContainer(config);
         this.initializeSettings(config);
@@ -29,7 +28,6 @@ export class Table {
                 rowsPerPage: "每頁顯示筆數：",
                 displayAll: "== 全部顯示 ==",
                 totalRecords: "資料筆數：",
-                latestUpdateTime: "最後更新時間：",
             },
             eng: {
                 first: "First",
@@ -43,7 +41,6 @@ export class Table {
                 rowsPerPage: "Rows per page: ",
                 displayAll: "== ALL ==",
                 totalRecords: "Records: ",
-                latestUpdateTime: "Last Update: ",
             },
         };
     }
@@ -67,7 +64,7 @@ export class Table {
         let timeout;
         input.addEventListener("input", (event) => {
             clearTimeout(timeout);
-            timeout = setTimeout(() => this.setSearchTerm(event.target.value), 300); // 300ms 防抖
+            timeout = setTimeout(() => this.setSearchTerm(event.target.value), 500); // 500ms 防抖
         });
         container.appendChild(spanCtrl);
     }
@@ -89,7 +86,7 @@ export class Table {
         this.currentPage = 1;
         this.rowsPerPage = 10;
         this.searchTerm = "";
-        this.sortColumn = this.columns.find((col) => col.defaultSortColumn)?.field || "";
+        this.sortColumn = (this.columns && this.columns.find((col) => col.defaultSortColumn)?.field) || "";
         this.sortDirection = "▼";
     }
 
@@ -147,23 +144,10 @@ export class Table {
 
     generateOptions(selectObject) {
         const options = [
-            {
-                value: 99999999,
-                text: this.i18n[this.language].displayAll,
-            },
-            {
-                value: 5,
-                text: "5",
-            },
-            {
-                value: 10,
-                text: "10",
-                default: true,
-            },
-            {
-                value: 100,
-                text: "100",
-            },
+            { value: 99999999, text: this.i18n[this.language].displayAll },
+            { value: 5, text: "5" },
+            { value: 10, text: "10", default: true },
+            { value: 100, text: "100" },
         ];
 
         options.forEach(({ value, text, default: isDefault }) => {
@@ -181,8 +165,10 @@ export class Table {
         const startRow = (this.currentPage - 1) * this.rowsPerPage;
         const paginatedData = processedData.slice(startRow, startRow + this.rowsPerPage);
 
+        const fragment = document.createDocumentFragment();
+
         const table = document.createElement("table");
-        table.className = "ztTable";
+        table.className += "ztTable";
 
         const thead = this.createTableHead();
         const tbody = this.createTableBody(paginatedData, processedData.length);
@@ -192,28 +178,35 @@ export class Table {
         table.appendChild(tbody);
         table.appendChild(tfoot);
 
-        const fragment = document.createDocumentFragment();
         fragment.appendChild(table);
         fragment.appendChild(this.createPaginationContainer(processedData.length));
-        fragment.appendChild(this.createUpdateTimeContainer());
 
-        this.container.innerHTML = ""; // 清空容器
+        // 清空舊的表格和分頁
+        this.clearOldTableAndPagination();
+
         this.container.appendChild(fragment);
+    }
+
+    clearOldTableAndPagination() {
+        const oldTable = this.container.querySelector("table.ztTable");
+        const oldPagination = this.container.querySelector("div.ztPaginationContainer");
+        if (oldTable) this.container.removeChild(oldTable);
+        if (oldPagination) this.container.removeChild(oldPagination);
     }
 
     createTableHead() {
         const thead = document.createElement("thead");
-        thead.className = "ztTableHead";
+        thead.className += "ztTableHead";
         const tr = document.createElement("tr");
 
         // 新增 row number 欄位
         const rowNum = document.createElement("th");
-        rowNum.textContent = "#";
+        rowNum.innerText = "#"; // 使用 innerText 以避免 XSS
         tr.appendChild(rowNum);
 
         this.columns.forEach((column) => {
             const th = document.createElement("th");
-            th.textContent = `${column.label} ${column.field === this.sortColumn ? this.sortDirection : ""}`;
+            th.innerText = `${column.label} ${column.field === this.sortColumn ? this.sortDirection : ""}`;
             if (column.sortable) {
                 th.style.cursor = "pointer";
                 th.addEventListener("click", () => this.setSort(column.field));
@@ -227,28 +220,28 @@ export class Table {
 
     createTableBody(paginatedData, totalRecords) {
         const tbody = document.createElement("tbody");
-        tbody.className = "ztTableBody";
+        tbody.className += "ztTableBody";
 
         if (totalRecords === 0) {
             const tr = document.createElement("tr");
-            tr.innerHTML = `<td class="noRecords" colspan="${this.columns.length + 1}">${
-                this.i18n[this.language].noData
-            }</td>`;
+            const tdNoRecords = document.createElement("td");
+            tdNoRecords.className += "noRecords";
+            tdNoRecords.colSpan = this.columns.length + 1; // 設置 colspan
+            tdNoRecords.innerText = this.i18n[this.language].noData; // 使用 innerText 以避免 XSS
+            tr.appendChild(tdNoRecords);
             tbody.appendChild(tr);
         } else {
             paginatedData.forEach((row, index) => {
                 const tr = document.createElement("tr");
-
-                // 新增 row number 欄位
                 const rowNum = document.createElement("td");
-                rowNum.className = "alignCenter";
-                rowNum.textContent = (this.currentPage - 1) * this.rowsPerPage + index + 1;
+                rowNum.className += "alignCenter";
+                rowNum.innerText = (this.currentPage - 1) * this.rowsPerPage + index + 1;
                 tr.appendChild(rowNum);
 
                 this.columns.forEach(({ field, align }) => {
                     const td = document.createElement("td");
                     td.className = align;
-                    td.innerHTML = row[field];
+                    td.innerHTML = row[field]; // 如果需要 HTML，保持 innerHTML
                     tr.appendChild(td);
                 });
                 tbody.appendChild(tr);
@@ -260,17 +253,17 @@ export class Table {
 
     createTableFoot() {
         const tfoot = document.createElement("tfoot");
-        tfoot.className = "ztTableFoot";
+        tfoot.className += "ztTableFoot";
         const tr = document.createElement("tr");
 
         // 新增 row number 欄位
         const rowNum = document.createElement("td");
-        rowNum.textContent = "#";
+        rowNum.innerText = "#"; // 使用 innerText 以避免 XSS
         tr.appendChild(rowNum);
 
         this.columns.forEach((column) => {
             const td = document.createElement("td");
-            td.textContent = column.label;
+            td.innerText = column.label; // 使用 innerText 以避免 XSS
             tr.appendChild(td);
         });
 
@@ -280,10 +273,10 @@ export class Table {
 
     createPaginationContainer(totalRecords) {
         const paginationContainer = document.createElement("div");
-        paginationContainer.className = "ztPaginationContainer";
+        paginationContainer.className += "ztPaginationContainer";
 
         const spanNavigator = document.createElement("span");
-        spanNavigator.className = "ztPageNavigator";
+        spanNavigator.className += "ztPageNavigator";
         paginationContainer.appendChild(spanNavigator);
 
         const noData = totalRecords === 0;
@@ -291,69 +284,47 @@ export class Table {
 
         switch (this.navigatorStyle) {
             case 1:
-                // [按鈕樣式 1] 第一頁、上一頁、下一頁、最末頁
-                spanNavigator.innerHTML = `
-                <button>${this.i18n[this.language].first}</button>
-                <button>${this.i18n[this.language].prev}</button>
-                <button>${this.i18n[this.language].next}</button>
-                <button>${this.i18n[this.language].last}</button>
-            `;
-
-                const [firstPageButton, prevPageButton, nextPageButton, lastPageButton] =
-                    spanNavigator.querySelectorAll("button");
-
-                firstPageButton.disabled = noData || this.currentPage === 1;
-                firstPageButton.addEventListener("click", () => {
-                    this.currentPage = 1;
-                    this.render();
-                });
-
-                prevPageButton.disabled = noData || this.currentPage === 1;
-                prevPageButton.addEventListener("click", () => {
-                    this.currentPage--;
-                    this.render();
-                });
-
-                nextPageButton.disabled = noData || this.currentPage === totalPages;
-                nextPageButton.addEventListener("click", () => {
-                    this.currentPage++;
-                    this.render();
-                });
-
-                lastPageButton.disabled = noData || this.currentPage === totalPages;
-                lastPageButton.addEventListener("click", () => {
-                    this.currentPage = totalPages;
-                    this.render();
-                });
+                this.createNavigatorButtons(spanNavigator, noData, totalPages);
                 break;
-
             case 2:
-                // [按鈕樣式 2] 每一頁都有獨立按鈕
-                for (let i = 1; i <= totalPages; i++) {
-                    const button = document.createElement("button");
-                    button.textContent = i;
-                    button.disabled = noData || i === this.currentPage;
-                    button.addEventListener("click", () => {
-                        this.currentPage = i;
-                        this.render();
-                    });
-                    spanNavigator.appendChild(button);
-                }
+                this.createPageButtons(spanNavigator, noData, totalPages);
                 break;
-
             default:
                 break;
         }
 
-        // *************************************************************************************************************
         // 快速跳頁
-        // *************************************************************************************************************
         const spanGoToPage = document.createElement("span");
-        spanGoToPage.innerHTML = `<span class='ztPageCount'> |
-        <input type="number" min="1" max="${totalPages}" value="${this.currentPage}"> / ${totalPages}
-        <button>${this.i18n[this.language].goto}</button> | 
-        ${this.i18n[this.language].totalRecords}${totalRecords}</span>
-    `;
+        const pageCount = document.createElement("span");
+        pageCount.className += "ztPageCount";
+
+        // 創建輸入框
+        const inputPage = document.createElement("input");
+        inputPage.type = "number";
+        inputPage.className += "ztPageInput";
+        inputPage.min = 1;
+        inputPage.max = totalPages;
+        inputPage.value = this.currentPage;
+
+        // 創建按鈕
+        const buttonGoTo = document.createElement("button");
+        buttonGoTo.innerText = this.i18n[this.language].goto; // 使用 innerText 以避免 XSS
+
+        // 創建總記錄數的顯示
+        const totalRecordsText = document.createElement("span");
+        totalRecordsText.innerText = `${this.i18n[this.language].totalRecords}${totalRecords}`; // 使用 innerText 以避免 XSS
+
+        // 將所有元素添加到 pageCount 中
+        pageCount.appendChild(document.createTextNode(" | "));
+        pageCount.appendChild(inputPage);
+        pageCount.appendChild(document.createTextNode(` / ${totalPages}`));
+        pageCount.appendChild(buttonGoTo);
+        pageCount.appendChild(document.createTextNode(" | "));
+        pageCount.appendChild(totalRecordsText);
+
+        // 將 pageCount 添加到 spanGoToPage
+        spanGoToPage.appendChild(pageCount);
+
         paginationContainer.appendChild(spanGoToPage);
 
         const [gotoPageInput, gotoPageButton] = spanGoToPage.querySelectorAll("input, button");
@@ -369,11 +340,61 @@ export class Table {
         return paginationContainer;
     }
 
-    createUpdateTimeContainer() {
-        const updateTimeContainer = document.createElement("div");
-        updateTimeContainer.className = "ztUpdateTimeContainer";
-        updateTimeContainer.textContent = this.i18n[this.language].latestUpdateTime + this.lastUpdatedTime;
-        return updateTimeContainer;
+    createNavigatorButtons(spanNavigator, noData, totalPages) {
+        const buttonFirst = document.createElement("button");
+        buttonFirst.innerText = this.i18n[this.language].first;
+
+        const buttonPrev = document.createElement("button");
+        buttonPrev.innerText = this.i18n[this.language].prev;
+
+        const buttonNext = document.createElement("button");
+        buttonNext.innerText = this.i18n[this.language].next;
+
+        const buttonLast = document.createElement("button");
+        buttonLast.innerText = this.i18n[this.language].last;
+
+        // 將按鈕添加到 spanNavigator
+        spanNavigator.appendChild(buttonFirst);
+        spanNavigator.appendChild(buttonPrev);
+        spanNavigator.appendChild(buttonNext);
+        spanNavigator.appendChild(buttonLast);
+
+        buttonFirst.disabled = noData || this.currentPage === 1;
+        buttonFirst.addEventListener("click", () => {
+            this.currentPage = 1;
+            this.render();
+        });
+
+        buttonPrev.disabled = noData || this.currentPage === 1;
+        buttonPrev.addEventListener("click", () => {
+            this.currentPage--;
+            this.render();
+        });
+
+        buttonNext.disabled = noData || this.currentPage === totalPages;
+        buttonNext.addEventListener("click", () => {
+            this.currentPage++;
+            this.render();
+        });
+
+        buttonLast.disabled = noData || this.currentPage === totalPages;
+        buttonLast.addEventListener("click", () => {
+            this.currentPage = totalPages;
+            this.render();
+        });
+    }
+
+    createPageButtons(spanNavigator, noData, totalPages) {
+        for (let i = 1; i <= totalPages; i++) {
+            const button = document.createElement("button");
+            button.innerText = i.toString();
+            button.disabled = noData || i === this.currentPage;
+            button.addEventListener("click", () => {
+                this.currentPage = i;
+                this.render();
+            });
+            spanNavigator.appendChild(button);
+        }
     }
 }
 
