@@ -121,26 +121,25 @@
             import TokenInfo from "./info/TokenInfo.js"; // 導入代幣資訊類別
 
             const adapters = [
-                // 無法載入有 CORS 限制的平台，須考慮使用 Node.js 在後端產製檔案
-                // { name: "AaveV3WebAdapter", path: "./adapters/aave/aavev3_web_adapter.js" },
+                // 以下 Adapter 因 CORS 問題無法使用
+                /*
+                { name: "AaveV3WebAdapter", path: "./adapters/aave/aavev3_web_adapter.js" },
+                { name: "OndoWebAdapter", path: "./adapters/ondo/ondo_web_adapter.js" },
+                 */
                 { name: "BeefyWebAdapter", path: "./adapters/beefy/beefy_web_adapter.js" },
                 { name: "OriginProtocolWebAdapter", path: "./adapters/origin-protocol/origin_protocol_web_adapter.js" },
-                // { name: "OndoWebAdapter", path: "./adapters/ondo/ondo_web_adapter.js" },
             ];
 
             let container;
 
             async function initUI() {
                 try {
-                    log("網頁初始化..."); // 日誌記錄
+                    log("網頁初始化...");
                     container = await initTable();
-                    log("網頁初始化完成"); // 日誌記錄
+                    log("網頁初始化完成");
 
                     // 自動載入資料
-                    const fetchAdapterButton = document.getElementById("fetchAdapterButton");
-                    if (fetchAdapterButton) {
-                        fetchAdapterButton.click();
-                    }
+                    document.getElementById("fetchAdapterButton").click();
                 } catch (error) {
                     log("發生錯誤: " + error.message, true);
                 }
@@ -155,69 +154,27 @@
                     { label: "金庫", field: "vault", sortable: true, align: "alignCenter" },
                 ];
 
-                // 創建表格實例
-                const table = new Table({
+                return new Table({
                     language: "cht",
                     container: document.querySelector("#apyContainer"),
-                    columns: columns,
-                    // data: [], // 可選：初始化時不載入資料
+                    columns,
                     search: true,
                     rowsPerPage: true,
                     navigatorStyle: 1,
                 });
-
-                table.currentPage = 1;
-                return table;
             }
 
-            async function loadDataFromJSON() {
-                // 清除表格內容
+            async function loadData(url) {
                 const tbody = document.querySelector("#apyContainer tbody");
-                tbody.innerHTML = "<tr><td colspan='6'><span class='waiting'>資料載入中，請稍後。<span></td></tr>"; // 顯示載入提示
+                tbody.innerHTML = "<tr><td colspan='6'><span class='waiting'>資料載入中，請稍後。<span></td></tr>";
 
                 try {
-                    const response = await fetch("./apy_result.json"); // 讀取本機端的 JSON 檔案
-                    if (!response.ok) {
-                        throw new Error("網頁無法載入資料");
-                    }
-                    const allResults = await response.json(); // 解析 JSON 數據
-
-                    // 更新表格
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error("網頁無法載入資料");
+                    const allResults = await response.json();
                     const parsedData = parseData(allResults);
                     container.initializeData(parsedData);
-
-                    // 更新日誌
                     log(`擷取資料完成，總資料數量: ${allResults.length}`);
-                } catch (error) {
-                    log(`擷取資料失敗: ${error.message}`, true);
-                }
-            }
-
-            async function loadDataFromAdapter() {
-                // 清除表格內容
-                const tbody = document.querySelector("#apyContainer tbody");
-                tbody.innerHTML = "<tr><td colspan='6'><span class='waiting'>資料載入中，請稍後。<span></td></tr>"; // 顯示載入提示
-
-                try {
-                    const fetchPromises = adapters.map(async (adapter) => {
-                        const { name, path } = adapter;
-                        const module = await import(path);
-                        const adapterInstance = new module[name]();
-                        return adapterInstance.fetchData(); // 返回每個適配器的數據
-                    });
-
-                    // 使用 Promise.all 等待所有適配器的數據
-                    const allResults = await Promise.all(fetchPromises);
-
-                    // 將所有結果合併成一個數組
-                    const combinedResults = allResults.flat(); // 使用 flat() 以便將嵌套的數組展平
-
-                    // 更新表格
-                    const parsedData = parseData(combinedResults);
-                    container.initializeData(parsedData);
-
-                    // 更新日誌
-                    log(`擷取資料完成，總資料數量: ${combinedResults.length}`);
                 } catch (error) {
                     log(`擷取資料失敗: ${error.message}`, true);
                 }
@@ -226,37 +183,30 @@
             function parseData(rawdata) {
                 if (!rawdata) {
                     log("未接收到任何數據", true);
-                    return;
+                    return [];
                 }
 
-                return rawdata.map((singleData) => {
-                    const { platform, chain, coin, apy, vault, source } = singleData;
-
-                    return {
-                        platform: platform ? `<a href="${source}" target="_blank">${platform}</a>` : "-",
-                        chain: chain
-                            ? `<img src="${BlockChainInfo.getChainIconUrl(
-                                  chain.trim()
-                              )}" title="${chain}" alt="${chain}" width="20px" height="20px" />&nbsp;<span>${chain}</span>`
-                            : "",
-                        coin: coin
-                            ? `<img src="${TokenInfo.getTokenIconUrl(
-                                  coin.trim()
-                              )}" title="${coin}" alt="${coin}" width="20px" height="20px" />&nbsp;<span>${coin}</span>`
-                            : "",
-                        apy: apy ? apy.replaceAll("%", "") : "-",
-                        vault: vault || "-",
-                    };
-                });
+                return rawdata.map(({ platform, chain, coin, apy, vault, source }) => ({
+                    platform: platform ? `<a href="${source}" target="_blank">${platform}</a>` : "-",
+                    chain: chain
+                        ? `<img src="${BlockChainInfo.getChainIconUrl(
+                              chain.trim()
+                          )}" title="${chain}" alt="${chain}" width="20px" height="20px" />&nbsp;<span>${chain}</span>`
+                        : "",
+                    coin: coin
+                        ? `<img src="${TokenInfo.getTokenIconUrl(
+                              coin.trim()
+                          )}" title="${coin}" alt="${coin}" width="20px" height="20px" />&nbsp;<span>${coin}</span>`
+                        : "",
+                    apy: apy ? apy.replaceAll("%", "") : "-",
+                    vault: vault || "-",
+                }));
             }
 
-            // 清除日誌的函數
             function clearLog() {
-                const logContainer = document.getElementById("logContainer");
-                logContainer.innerHTML = ""; // 清空日誌
+                document.getElementById("logContainer").innerText = ""; // 清空日誌
             }
 
-            // 切換 Tab
             function switchTab(event) {
                 const target = event.target;
                 const tabs = document.querySelectorAll(".tab");
@@ -269,49 +219,38 @@
                 const contentId = target.getAttribute("data-content");
                 document.getElementById(contentId).classList.add("active");
 
-                // 根據選擇的 Tab 載入資料
                 if (contentId === "jsonContent") {
-                    loadDataFromJSON();
+                    loadData("./apy_result.json");
                 } else if (contentId === "adapterContent") {
                     loadDataFromAdapter();
                 }
             }
 
-            // 為 Tab 添加事件
+            async function loadDataFromAdapter() {
+                const fetchPromises = adapters.map(async ({ name, path }) => {
+                    const { [name]: Adapter } = await import(path); // 使用解構賦值來獲取正確的適配器
+                    const adapterInstance = new Adapter(); // 確保這是個構造函數
+                    return adapterInstance.fetchData();
+                });
+
+                const allResults = await Promise.all(fetchPromises);
+                const combinedResults = allResults.flat();
+                const parsedData = parseData(combinedResults);
+                container.initializeData(parsedData);
+                log(`擷取資料完成，總資料數量: ${combinedResults.length}`);
+            }
+
             document.addEventListener("DOMContentLoaded", () => {
-                const tabs = document.querySelectorAll(".tab");
-                tabs.forEach((tab) => {
+                document.querySelectorAll(".tab").forEach((tab) => {
                     tab.addEventListener("click", switchTab);
                 });
 
-                corsButton.addEventListener("click", (event) => {
-                    const baseUrl = document.querySelector("label").innerText; // 取得label中的網址
-                    const inputUrl = document.getElementById("destination").value; // 取得文字方塊中的網址
+                document.getElementById("fetchAdapterButton").addEventListener("click", loadDataFromAdapter);
+                document
+                    .getElementById("fetchDataButton")
+                    .addEventListener("click", () => loadData("./apy_result.json"));
+                document.getElementById("clearLogButton").addEventListener("click", clearLog);
 
-                    // 驗證網址格式的正則表達式
-                    const urlPattern = /^(https?:\/\/[^\s/$.?#].[^\s]*)$/;
-
-                    // 檢查網址格式
-                    if (!urlPattern.test(inputUrl)) {
-                        log("請輸入有效的網址格式！", true); // 顯示錯誤訊息
-                        document.getElementById("destination").focus(); // 將游標聚焦在文字方塊內
-                        return; // 結束函式
-                    }
-
-                    const fullUrl = baseUrl + inputUrl; // 組合完整的網址
-                    window.open(fullUrl, "_blank"); // 在新視窗中打開網址
-                });
-
-                const fetchAdapterButton = document.getElementById("fetchAdapterButton");
-                fetchAdapterButton.addEventListener("click", loadDataFromAdapter);
-
-                const fetchDataButton = document.getElementById("fetchDataButton");
-                fetchDataButton.addEventListener("click", loadDataFromJSON);
-
-                const clearLogButton = document.getElementById("clearLogButton");
-                clearLogButton.addEventListener("click", clearLog);
-
-                // 在頁面加載時加載數據
                 initUI();
             });
         </script>
