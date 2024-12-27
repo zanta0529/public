@@ -1,4 +1,4 @@
-// ./utils/TokenInfo.js
+// ./info/TokenInfo.js
 
 import log from "../utils/log.js";
 
@@ -61,6 +61,4 @@ export class TokenInfo {
 
 export default TokenInfo;
 
-(function () {
-    log("TokenInfo 已加載");
-})();
+log("TokenInfo 已加載");

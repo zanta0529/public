@@ -246,10 +246,12 @@
                 });
 
                 document.getElementById("fetchAdapterButton").addEventListener("click", loadDataFromAdapter);
-                document
-                    .getElementById("fetchDataButton")
-                    .addEventListener("click", () => loadData("./apy_result.json"));
+                document.getElementById("fetchDataButton").addEventListener("click", loadData("./apy_result.json"));
                 document.getElementById("clearLogButton").addEventListener("click", clearLog);
+                document.getElementById("corsButton").addEventListener("click", () => {
+                    const destination = document.getElementById("destination").value;
+                    window.open(`https://cors-anywhere.herokuapp.com/${destination}`);
+                });
 
                 initUI();
             });

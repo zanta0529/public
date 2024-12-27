@@ -1,4 +1,4 @@
-// ./utils/BlockchainInfo.js
+// ./info/BlockchainInfo.js
 
 import log from "../utils/log.js";
 
@@ -61,6 +61,4 @@ export class BlockchainInfo {
 
 export default BlockchainInfo;
 
-(function () {
-    log("BlockchainInfo 已加載");
-})();
+log("BlockchainInfo 已加載");
