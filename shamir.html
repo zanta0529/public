@@ -246,7 +246,10 @@
                             "Invalid parameters: n and k must be positive integers and k must be less than or equal to n."
                         );
                     }
-                    this.prime = 257;
+
+                    // this.prime = 257; // 8 位元的質數
+                    this.prime = 65537; // 16 位元的質數
+
                     this.secret = this._stringToNumbers(secret);
                     if (!this.secret.length) {
                         throw new Error("The secret could not be converted to numbers.");
