@@ -29,6 +29,25 @@ class AbstractOriginProtocolAdapter extends BaseAdapter {
         throw new Error("fetchConfigData must be implemented in subclasses");
     }
 
+    getGraphQLQuery(selector) {
+        return `
+        query MyQuery {
+            oTokenDailyStatsConnection(
+                orderBy: timestamp_DESC,
+                where: {otoken_eq: "${selector}"},
+                first: 1) {
+                    edges {
+                        node {
+                            apy
+                            date
+                            otoken
+                        }
+                    }
+            }
+        }
+    `;
+    }
+
     processResponseData(data, config) {
         if (data.data && data.data.oTokenDailyStatsConnection) {
             const edges = data.data.oTokenDailyStatsConnection.edges;

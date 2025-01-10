@@ -18,22 +18,7 @@ export class OriginProtocolWebAdapter extends AbstractOriginProtocolAdapter {
         const urlWithProxy = `${proxyUrl}${config.url}`; // 使用原始 URL
 
         try {
-            const graphQLQuery = `
-                query MyQuery {
-                    oTokenDailyStatsConnection(
-                        orderBy: timestamp_DESC,
-                        where: {otoken_eq: "${config.selector}"},
-                        first: 1) {
-                            edges {
-                                node {
-                                    apy
-                                    date
-                                    otoken
-                                }
-                            }
-                    }
-                }
-            `;
+            const graphQLQuery = this.getGraphQLQuery(config.selector);
             const response = await fetch(urlWithProxy, {
                 method: "POST",
                 headers: {
