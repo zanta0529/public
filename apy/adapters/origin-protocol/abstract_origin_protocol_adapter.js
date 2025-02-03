@@ -30,11 +30,19 @@ class AbstractOriginProtocolAdapter extends BaseAdapter {
     }
 
     getGraphQLQuery(selector) {
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0"); // 月份從 0 開始
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        };
+
+        // 返回 GraphQL 查詢字串，其中日期指定為前一天以避免取得不完整的數據
         return `
         query MyQuery {
             oTokenDailyStatsConnection(
                 orderBy: timestamp_DESC,
-                where: {otoken_eq: "${selector}"},
+                where: {otoken_eq: "${selector}", date_lt: "${formatDate(new Date())}"},
                 first: 1) {
                     edges {
                         node {
