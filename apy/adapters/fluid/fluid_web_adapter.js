@@ -1,11 +1,10 @@
-import AbstractBeefyAdapter from "./abstract_beefy_adapter.js";
-import log from "../../utils/log.js";
-import vaultConfig from "./beefy_vault_config.js";
+import AbstractFluidAdapter from "./abstract_fluid_adapter.js";
+import log from "../../utils/log.js"; // 引入 log 模組
+import vaultConfig from "./fluid_vault_config.js";
 
-export class BeefyWebAdapter extends AbstractBeefyAdapter {
+export class FluidWebAdapter extends AbstractFluidAdapter {
     constructor() {
-        // 使用靜態方法來載入配置
-        super(BeefyWebAdapter.loadVaultConfig());
+        super(FluidWebAdapter.loadVaultConfig());
         log(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
     }
 
@@ -21,12 +20,6 @@ export class BeefyWebAdapter extends AbstractBeefyAdapter {
                     "Cache-Control": "no-cache",
                 },
             });
-
-            // 檢查響應是否成功
-            if (!response.ok) {
-                throw new Error("網路回應異常");
-            }
-
             return await response.json(); // 解析 JSON 數據
         };
 
@@ -34,4 +27,4 @@ export class BeefyWebAdapter extends AbstractBeefyAdapter {
     }
 }
 
-export default BeefyWebAdapter;
+export default FluidWebAdapter;

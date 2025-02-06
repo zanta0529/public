@@ -1,5 +1,4 @@
-// adapters/ondo/ondo_vault_config.js
-const ondoVaultConfig = [
+export default [
     // --------------------------------------------
     // USDY
     // --------------------------------------------
@@ -9,7 +8,7 @@ const ondoVaultConfig = [
         chain: "Ethereum",
         coin: "USDY",
         url: "https://ondo.finance/usdy",
-        selector: "19:{\\\"symbol\\\":\\\"usdy\\\".*?}",
+        selector: '19:{\\"symbol\\":\\"usdy\\".*?}',
         source: "https://ondo.finance/usdy",
     },
     // --------------------------------------------
@@ -21,9 +20,7 @@ const ondoVaultConfig = [
         chain: "Ethereum",
         coin: "OUSG",
         url: "https://ondo.finance/ousg",
-        selector: "25:{\\\"symbol\\\":\\\"ousg\\\".*?}",
+        selector: '25:{\\"symbol\\":\\"ousg\\".*?}',
         source: "https://ondo.finance/ousg",
     },
 ];
-
-export default ondoVaultConfig;

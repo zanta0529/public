@@ -1,8 +1,7 @@
-// adapters/origin/abstract_origin_protocol_adapter.js
 import BaseAdapter from "../BaseAdapter.js";
 import log from "../../utils/log.js";
 
-class AbstractOriginProtocolAdapter extends BaseAdapter {
+export default class AbstractOriginProtocolAdapter extends BaseAdapter {
     constructor(vaultConfig) {
         super(vaultConfig);
         this.responseData = null; // 儲存響應數據
@@ -85,5 +84,3 @@ class AbstractOriginProtocolAdapter extends BaseAdapter {
         return null; // 返回 null 以便過濾
     }
 }
-
-export default AbstractOriginProtocolAdapter;

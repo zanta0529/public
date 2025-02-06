@@ -1,5 +1,4 @@
-// ./adapters/origin/ousd_vault_config.js
-const originProtocolVaultConfig = [
+export default [
     {
         enabled: 1,
         platform: "Origin Protocol",
@@ -28,5 +27,3 @@ const originProtocolVaultConfig = [
         source: "https://analytics.originprotocol.com/super/poy/",
     },
 ];
-
-export default originProtocolVaultConfig;

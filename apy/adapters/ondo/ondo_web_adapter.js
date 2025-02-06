@@ -1,7 +1,6 @@
-// adapters/ondo/ondo_web_adapter.js
 import AbstractOndoAdapter from "./abstract_ondo_adapter.js";
 import log from "../../utils/log.js"; // 引入 log 模組
-import ondoVaultConfig from "./ondo_vault_config.js";
+import vaultConfig from "./ondo_vault_config.js";
 
 export class OndoWebAdapter extends AbstractOndoAdapter {
     constructor() {
@@ -10,7 +9,7 @@ export class OndoWebAdapter extends AbstractOndoAdapter {
     }
 
     static loadVaultConfig() {
-        return ondoVaultConfig;
+        return vaultConfig;
     }
 
     async fetchData() {

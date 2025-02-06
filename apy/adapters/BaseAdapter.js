@@ -1,4 +1,4 @@
-export class BaseAdapter {
+export default class BaseAdapter {
     constructor(vaultConfig) {
         if (!Array.isArray(vaultConfig)) {
             throw new Error("vaultConfig must be an array.");
@@ -19,9 +19,6 @@ export class BaseAdapter {
         throw new Error("loadVaultConfig() should be implemented in subclass.");
     }
 }
-
-// 將 BaseAdapter 類別導出為模塊
-export default BaseAdapter;
 
 // 如果需要在瀏覽器中直接使用，可以將其包裝在一個立即執行的函數中
 (function () {

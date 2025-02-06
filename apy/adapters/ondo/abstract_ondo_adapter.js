@@ -1,8 +1,7 @@
-// adapters/ondo/abstract_ondo_adapter.js
 import BaseAdapter from "../BaseAdapter.js";
 import log from "../../utils/log.js"; // 引入 log 模組
 
-class AbstractOndoAdapter extends BaseAdapter {
+export default class AbstractOndoAdapter extends BaseAdapter {
     constructor(vaultConfig) {
         super(vaultConfig);
         this.responseData = null; // 儲存響應數據
@@ -94,5 +93,3 @@ class AbstractOndoAdapter extends BaseAdapter {
         }
     }
 }
-
-export default AbstractOndoAdapter;

@@ -1,7 +1,6 @@
-// adapters/origin-protocol/origin_protocol_web_adapter.js
 import AbstractOriginProtocolAdapter from "./abstract_origin_protocol_adapter.js";
 import log from "../../utils/log.js";
-import originProtocolVaultConfig from "./origin_protocol_vault_config.js";
+import vaultConfig from "./origin_protocol_vault_config.js";
 
 export class OriginProtocolWebAdapter extends AbstractOriginProtocolAdapter {
     constructor() {
@@ -10,7 +9,7 @@ export class OriginProtocolWebAdapter extends AbstractOriginProtocolAdapter {
     }
 
     static loadVaultConfig() {
-        return originProtocolVaultConfig;
+        return vaultConfig;
     }
 
     async fetchConfigData(config) {
@@ -48,4 +47,5 @@ export class OriginProtocolWebAdapter extends AbstractOriginProtocolAdapter {
         return null; // 返回 null 以便過濾
     }
 }
+
 export default OriginProtocolWebAdapter;

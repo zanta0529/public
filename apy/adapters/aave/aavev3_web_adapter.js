@@ -1,7 +1,6 @@
-// adapters/aave/aavev3_web_adapter.js
 import AbstractAaveV3Adapter from "./abstract_aavev3_adapter.js";
 import log from "../../utils/log.js"; // 引入 log 模組
-import aaveV3VaultConfig from "./aavev3_vault_config.js";
+import vaultConfig from "./aavev3_vault_config.js";
 
 export class AaveV3WebAdapter extends AbstractAaveV3Adapter {
     constructor() {
@@ -11,7 +10,7 @@ export class AaveV3WebAdapter extends AbstractAaveV3Adapter {
     }
 
     static loadVaultConfig() {
-        return aaveV3VaultConfig;
+        return vaultConfig;
     }
 
     async fetchConfigData(config) {

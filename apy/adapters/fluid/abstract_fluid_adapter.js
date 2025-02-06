@@ -1,7 +1,7 @@
 import BaseAdapter from "../BaseAdapter.js";
 import log from "../../utils/log.js"; // 引入 log 模組
 
-export default class AbstractBeefyAdapter extends BaseAdapter {
+export default class AbstractFluidAdapter extends BaseAdapter {
     constructor(vaultConfig) {
         super(vaultConfig);
         this.responseData = null; // 儲存響應數據
@@ -19,10 +19,9 @@ export default class AbstractBeefyAdapter extends BaseAdapter {
 
                 try {
                     const response = await fetchFunction(config, timestamp);
-                    this.responseData = response[config.selector];
-
-                    if (this.responseData && this.responseData.totalApy !== undefined) {
-                        const apy = (this.responseData.totalApy * 100).toFixed(2); // 轉為百分比並保留兩位小數
+                    const assetsData = response.data.find((asset) => asset.asset.symbol === `${config.selector}`);
+                    if (assetsData) {
+                        const apy = (assetsData.totalRate / 100).toFixed(2);
                         log(`\t* Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.selector}`);
                         return {
                             platform: config.platform,
@@ -30,7 +29,6 @@ export default class AbstractBeefyAdapter extends BaseAdapter {
                             coin: config.coin,
                             apy: `${apy}%`,
                             source: config.source,
-                            vault: config.selector, // Beefy Finance 特有屬性
                         };
                     } else {
                         log(`\t* No APY found for ${config.coin} (${config.chain})(${config.selector})`);

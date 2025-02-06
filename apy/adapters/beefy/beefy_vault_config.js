@@ -1,5 +1,4 @@
-// adapters/beefy/beefy_vault_config.js
-const beefyVaultConfig = [
+export default [
     // --------------------------------------------
     // Arbitrum
     // --------------------------------------------
@@ -140,5 +139,3 @@ const beefyVaultConfig = [
         source: "https://app.beefy.com/vault/compound-base-usdc",
     },
 ];
-
-export default beefyVaultConfig;

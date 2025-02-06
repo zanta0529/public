@@ -121,12 +121,11 @@
             import TokenInfo from "./info/TokenInfo.js"; // 導入代幣資訊類別
 
             const adapters = [
-                // 以下 Adapter 因 CORS 問題無法使用
-                /*
-                { name: "AaveV3WebAdapter", path: "./adapters/aave/aavev3_web_adapter.js" },
-                { name: "OndoWebAdapter", path: "./adapters/ondo/ondo_web_adapter.js" },
-                 */
+                // { name: "AaveV3WebAdapter", path: "./adapters/aave/aavev3_web_adapter.js" },
                 { name: "BeefyWebAdapter", path: "./adapters/beefy/beefy_web_adapter.js" },
+                { name: "FluidWebAdapter", path: "./adapters/fluid/fluid_web_adapter.js" },
+                // { name: "MorphoWebAdapter", path: "./adapters/morpho/morpho_web_adapter.js" },
+                // { name: "OndoWebAdapter", path: "./adapters/ondo/ondo_web_adapter.js" },
                 { name: "OriginProtocolWebAdapter", path: "./adapters/origin-protocol/origin_protocol_web_adapter.js" },
             ];
 
@@ -166,7 +165,25 @@
 
             async function loadData(url) {
                 const tbody = document.querySelector("#apyContainer tbody");
-                tbody.innerHTML = "<tr><td colspan='6'><span class='waiting'>資料載入中，請稍後。<span></td></tr>";
+                if (!tbody) {
+                    // console.error("找不到 #apyContainer tbody 元素");
+                    return; // 退出函數
+                }
+                tbody.innerHTML = ""; // 清空現有內容
+                const loadingRow = document.createElement("tr");
+                const loadingCell = document.createElement("td");
+                loadingCell.colSpan = 6; // 設定單元格跨越的列數
+
+                const waitingMessage = document.createElement("span");
+                waitingMessage.className = "waiting"; // 設定類名
+                waitingMessage.textContent = "資料載入中，請稍後。"; // 使用 textContent 以避免 XSS
+
+                // 將 span 添加到單元格中
+                loadingCell.appendChild(waitingMessage);
+                // 將單元格添加到行中
+                loadingRow.appendChild(loadingCell);
+                // 將行添加到 tbody 中
+                tbody.appendChild(loadingRow);
 
                 try {
                     const response = await fetch(url);
@@ -199,7 +216,7 @@
                           )}" title="${coin}" alt="${coin}" width="20px" height="20px" />&nbsp;<span>${coin}</span>`
                         : "",
                     apy: apy ? apy.replaceAll("%", "") : "-",
-                    vault: vault || "-",
+                    vault: vault ? `<a href="${source}" target="_blank">${vault}</a>` : "-",
                 }));
             }
 

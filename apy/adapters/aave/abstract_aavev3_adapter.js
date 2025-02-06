@@ -1,8 +1,7 @@
-// adapters/aave/abstract_aavev3_adapter.js
 import BaseAdapter from "../BaseAdapter.js";
 import log from "../../utils/log.js";
 
-class AbstractAaveV3Adapter extends BaseAdapter {
+export default class AbstractAaveV3Adapter extends BaseAdapter {
     constructor(vaultConfig) {
         super(vaultConfig);
         this.responseData = null; // 儲存響應數據
@@ -29,5 +28,3 @@ class AbstractAaveV3Adapter extends BaseAdapter {
         throw new Error("fetchConfigData must be implemented in subclasses");
     }
 }
-
-export default AbstractAaveV3Adapter;

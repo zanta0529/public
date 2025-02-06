@@ -1,5 +1,4 @@
-// ./adapters/aave/aavev3_vault_config.js
-const aaveV3VaultConfig = [
+export default [
     {
         enabled: 1,
         platform: "Aave",
@@ -64,5 +63,3 @@ const aaveV3VaultConfig = [
             "#__next > main > div.MuiBox-root.css-159pi92 > div > div.MuiBox-root.css-k008qs > div.MuiBox-root.css-14g9wgc > div > div:nth-child(3) > div > div.MuiBox-root.css-1dtnjt5 > div:nth-child(3) > div > p",
     },
 ];
-
-export default aaveV3VaultConfig;
