@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>APY 結果顯示</title>
+        <link rel="stylesheet" href="./utils/Table.css" />
+        <style>
+            body {
+                font-family: Tahoma, "Microsoft JhengHei", "Microsoft YaHei", "Heiti TC", "sans-serif";
+                margin: 0;
+                padding: 20px;
+                background-color: #f9f9f9;
+                display: flex;
+                flex-direction: column;
+            }
+
+            a {
+                color: #0000ff;
+                text-decoration: none;
+            }
+
+            a:hover {
+                background-color: #ea0000;
+                color: #fbfbff;
+            }
+
+            h1 {
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            #destination {
+                width: 400px;
+            }
+
+            #apyContainer thead th {
+                background-color: #003d79;
+                color: #fff;
+                padding: 12px;
+            }
+
+            #apyContainer tr:nth-child(even) {
+                background: #d2e9ff;
+            }
+
+            #logContainer {
+                border: 1px solid #ddd;
+                padding: 10px;
+                overflow-y: auto; /* 顯示垂直捲軸 */
+                background: #fff;
+                height: 300px; /* 設置固定高度 */
+                max-height: 300px; /* 可選：設置最大高度 */
+            }
+
+            button {
+                border-width: 1px;
+                margin: 10px;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+            #fetchDataButton,
+            #fetchAdapterButton {
+                background-color: rgb(39, 39, 107);
+                color: yellow;
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+
+            #clearLogButton {
+                background-color: #ff3333;
+                color: white;
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+
+            .waiting {
+                color: red;
+                font-weight: bold;
+                font-size: 18px;
+                text-align: center;
+            }
+
+            .tabs {
+                display: flex;
+                cursor: pointer;
+                margin-bottom: 10px;
+            }
+
+            .tab {
+                padding: 10px 20px;
+                background-color: #f0f0f0;
+                border: 1px solid #ddd;
+                border-radius: 5px 5px 0 0;
+                margin-right: 5px;
+            }
+
+            .tab.active {
+                background-color: #fff;
+                border-bottom: none;
+                font-weight: bold;
+            }
+
+            .tab-content {
+                display: none;
+                border: 1px solid #ddd;
+                border-radius: 0 0 5px 5px;
+                padding: 10px;
+            }
+
+            .tab-content.active {
+                display: block;
+            }
+        </style>
+
+        <script type="module">
+            import log from "./utils/log.js"; // 導入日誌模組
+            import Table from "./utils/Table.js"; // 導入 Table 類別
+            import BlockChainInfo from "./info/BlockchainInfo.js"; // 導入區塊鏈資訊類別
+            import TokenInfo from "./info/TokenInfo.js"; // 導入代幣資訊類別
+
+            const adapters = [
+                // { name: "AaveV3WebAdapter", path: "./adapters/aave/aavev3_web_adapter.js" },
+                { name: "BeefyWebAdapter", path: "./adapters/beefy/beefy_web_adapter.js" },
+                { name: "FluidWebAdapter", path: "./adapters/fluid/fluid_web_adapter.js" },
+                // { name: "MorphoWebAdapter", path: "./adapters/morpho/morpho_web_adapter.js" },
+                // { name: "OndoWebAdapter", path: "./adapters/ondo/ondo_web_adapter.js" },
+                { name: "OriginProtocolWebAdapter", path: "./adapters/origin-protocol/origin_protocol_web_adapter.js" },
+            ];
+
+            let container;
+
+            async function initUI() {
+                try {
+                    log("網頁初始化...");
+                    container = await initTable();
+                    log("網頁初始化完成");
+
+                    // 自動載入資料
+                    document.getElementById("fetchAdapterButton").click();
+                } catch (error) {
+                    log("發生錯誤: " + error.message, true);
+                }
+            }
+
+            async function initTable() {
+                const columns = [
+                    { label: "平台", field: "platform", sortable: true, align: "alignCenter" },
+                    { label: "區塊鏈", field: "chain", sortable: true, align: "alignLeft" },
+                    { label: "代幣", field: "coin", sortable: true, align: "alignLeft" },
+                    { label: "APY(%)", field: "apy", sortable: true, align: "alignRight", defaultSortColumn: true },
+                    { label: "金庫", field: "vault", sortable: true, align: "alignCenter" },
+                ];
+
+                return new Table({
+                    language: "cht",
+                    container: document.querySelector("#apyContainer"),
+                    columns,
+                    search: true,
+                    rowsPerPage: true,
+                    navigatorStyle: 1,
+                });
+            }
+
+            async function loadData(url) {
+                const tbody = document.querySelector("#apyContainer tbody");
+                if (!tbody) {
+                    // console.error("找不到 #apyContainer tbody 元素");
+                    return; // 退出函數
+                }
+                tbody.innerHTML = ""; // 清空現有內容
+                const loadingRow = document.createElement("tr");
+                const loadingCell = document.createElement("td");
+                loadingCell.colSpan = 6; // 設定單元格跨越的列數
+
+                const waitingMessage = document.createElement("span");
+                waitingMessage.className = "waiting"; // 設定類名
+                waitingMessage.textContent = "資料載入中，請稍後。"; // 使用 textContent 以避免 XSS
+
+                // 將 span 添加到單元格中
+                loadingCell.appendChild(waitingMessage);
+                // 將單元格添加到行中
+                loadingRow.appendChild(loadingCell);
+                // 將行添加到 tbody 中
+                tbody.appendChild(loadingRow);
+
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error("網頁無法載入資料");
+                    const allResults = await response.json();
+                    const parsedData = parseData(allResults);
+                    container.initializeData(parsedData);
+                    log(`擷取資料完成，總資料數量: ${allResults.length}`);
+                } catch (error) {
+                    log(`擷取資料失敗: ${error.message}`, true);
+                }
+            }
+
+            function parseData(rawdata) {
+                if (!rawdata) {
+                    log("未接收到任何數據", true);
+                    return [];
+                }
+
+                return rawdata.map(({ platform, chain, coin, apy, vault, source }) => ({
+                    platform: platform ? `<a href="${source}" target="_blank">${platform}</a>` : "-",
+                    chain: chain
+                        ? `<img src="${BlockChainInfo.getChainIconUrl(
+                              chain.trim()
+                          )}" title="${chain}" alt="${chain}" width="20px" height="20px" />&nbsp;<span>${chain}</span>`
+                        : "",
+                    coin: coin
+                        ? `<img src="${TokenInfo.getTokenIconUrl(
+                              coin.trim()
+                          )}" title="${coin}" alt="${coin}" width="20px" height="20px" />&nbsp;<span>${coin}</span>`
+                        : "",
+                    apy: apy ? apy.replaceAll("%", "") : "-",
+                    vault: vault ? `<a href="${source}" target="_blank">${vault}</a>` : "-",
+                }));
+            }
+
+            function clearLog() {
+                document.getElementById("logContainer").innerText = ""; // 清空日誌
+            }
+
+            function switchTab(event) {
+                const target = event.target;
+                const tabs = document.querySelectorAll(".tab");
+                const contents = document.querySelectorAll(".tab-content");
+
+                tabs.forEach((tab) => tab.classList.remove("active"));
+                contents.forEach((content) => content.classList.remove("active"));
+
+                target.classList.add("active");
+                const contentId = target.getAttribute("data-content");
+                document.getElementById(contentId).classList.add("active");
+
+                if (contentId === "jsonContent") {
+                    loadData("./apy_result.json");
+                } else if (contentId === "adapterContent") {
+                    loadDataFromAdapter();
+                }
+            }
+
+            async function loadDataFromAdapter() {
+                const fetchPromises = adapters.map(async ({ name, path }) => {
+                    const { [name]: Adapter } = await import(path); // 使用解構賦值來獲取正確的適配器
+                    const adapterInstance = new Adapter(); // 確保這是個構造函數
+                    return adapterInstance.fetchData();
+                });
+
+                const allResults = await Promise.all(fetchPromises);
+                const combinedResults = allResults.flat();
+                const parsedData = parseData(combinedResults);
+                container.initializeData(parsedData);
+                log(`擷取資料完成，總資料數量: ${combinedResults.length}`);
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelectorAll(".tab").forEach((tab) => {
+                    tab.addEventListener("click", switchTab);
+                });
+
+                document.getElementById("fetchAdapterButton").addEventListener("click", loadDataFromAdapter);
+                document.getElementById("fetchDataButton").addEventListener("click", loadData("./apy_result.json"));
+                document.getElementById("clearLogButton").addEventListener("click", clearLog);
+                document.getElementById("corsButton").addEventListener("click", () => {
+                    const destination = document.getElementById("destination").value;
+                    window.open(`https://cors-anywhere.herokuapp.com/${destination}`);
+                });
+
+                initUI();
+            });
+        </script>
+    </head>
+    <body>
+        <h1>APY</h1>
+        <div>
+            <label>https://cors-anywhere.herokuapp.com/</label>
+            <input type="text" id="destination" value="https://origin.squids.live/origin-squid:prod/api/graphql" />
+            <button id="corsButton">CORS 請求</button>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-content="adapterContent">從 Adapter 載入</div>
+            <div class="tab" data-content="jsonContent">從檔案載入</div>
+        </div>
+
+        <div id="adapterContent" class="tab-content active">
+            <button id="fetchAdapterButton">重新連線</button>
+        </div>
+
+        <div id="jsonContent" class="tab-content">
+            <button id="fetchDataButton">讀取檔案</button>
+        </div>
+
+        <div id="apyContainer">
+            <!-- 表格將在這裡顯示 -->
+        </div>
+
+        <div class="active">
+            <h3>
+                日誌輸出
+                <button id="clearLogButton">清除日誌</button>
+            </h3>
+        </div>
+        <div id="logContainer">
+            <!-- 日誌將在這裡顯示 -->
+        </div>
+    </body>
+</html>
