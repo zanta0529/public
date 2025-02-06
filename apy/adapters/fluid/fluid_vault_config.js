@@ -20,4 +20,25 @@ export default [
         selector: "USDT",
         source: "https://fluid.instadapp.io/stats/1/lendings",
     },
+    // --------------------------------------------
+    // Arbitrum
+    // --------------------------------------------
+    {
+        enabled: 1,
+        platform: "Fluid",
+        chain: "Arbitrum",
+        coin: "USDC",
+        url: "https://api.fluid.instadapp.io/42161/tokens",
+        selector: "USDC",
+        source: "https://fluid.instadapp.io/stats/42161/lendings",
+    },
+    {
+        enabled: 1,
+        platform: "Fluid",
+        chain: "Arbitrum",
+        coin: "USDT",
+        url: "https://api.fluid.instadapp.io/42161/tokens",
+        selector: "USDT",
+        source: "https://fluid.instadapp.io/stats/42161/lendings",
+    },
 ];
