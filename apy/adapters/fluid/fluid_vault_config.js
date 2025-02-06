@@ -41,4 +41,16 @@ export default [
         selector: "USDT",
         source: "https://fluid.instadapp.io/stats/42161/lendings",
     },
+    // --------------------------------------------
+    // Base
+    // --------------------------------------------
+    {
+        enabled: 1,
+        platform: "Fluid",
+        chain: "Base",
+        coin: "USDC",
+        url: "https://api.fluid.instadapp.io/8453/tokens",
+        selector: "USDC",
+        source: "https://fluid.instadapp.io/stats/8453/lendings",
+    },
 ];
