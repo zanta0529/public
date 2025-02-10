@@ -28,6 +28,7 @@ export default class AbstractMorphoAdapter extends BaseAdapter {
                             apy: `${apy}%`,
                             source: config.source,
                             vault: config.vault,
+                            favorite: config.favorite || 0,
                         };
                     } else {
                         log(`\t* No APY found for ${config.coin} (${config.chain})(${config.vault})`);

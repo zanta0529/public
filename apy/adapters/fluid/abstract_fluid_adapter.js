@@ -29,6 +29,7 @@ export default class AbstractFluidAdapter extends BaseAdapter {
                             coin: config.coin,
                             apy: `${apy}%`,
                             source: config.source,
+                            favorite: config.favorite || 0,
                         };
                     } else {
                         log(`\t* No APY found for ${config.coin} (${config.chain})(${config.selector})`);

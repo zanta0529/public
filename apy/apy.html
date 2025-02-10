@@ -126,7 +126,7 @@
                 { name: "FluidWebAdapter", path: "./adapters/fluid/fluid_web_adapter.js" },
                 // { name: "MorphoWebAdapter", path: "./adapters/morpho/morpho_web_adapter.js" },
                 // { name: "OndoWebAdapter", path: "./adapters/ondo/ondo_web_adapter.js" },
-                { name: "OriginProtocolWebAdapter", path: "./adapters/origin-protocol/origin_protocol_web_adapter.js" },
+                // { name: "OriginProtocolWebAdapter", path: "./adapters/origin-protocol/origin_protocol_web_adapter.js" },
             ];
 
             let container;
@@ -146,6 +146,7 @@
 
             async function initTable() {
                 const columns = [
+                    { label: "關注", field: "favorite", sortable: true, align: "alignCenter" },
                     { label: "平台", field: "platform", sortable: true, align: "alignCenter" },
                     { label: "區塊鏈", field: "chain", sortable: true, align: "alignLeft" },
                     { label: "代幣", field: "coin", sortable: true, align: "alignLeft" },
@@ -203,7 +204,8 @@
                     return [];
                 }
 
-                return rawdata.map(({ platform, chain, coin, apy, vault, source }) => ({
+                return rawdata.map(({ favorite, platform, chain, coin, apy, vault, source }) => ({
+                    favorite: favorite ? "❤️" : "",
                     platform: platform ? `<a href="${source}" target="_blank">${platform}</a>` : "-",
                     chain: chain
                         ? `<img src="${BlockChainInfo.getChainIconUrl(

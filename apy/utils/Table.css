@@ -60,7 +60,7 @@ table.ztTable tr:nth-child(odd) {
 }
 
 .ztPaginationContainer button {
-    width: 60px;    
+    width: 60px;
     height: 30px;
     margin: var(--margin);
 }

@@ -31,6 +31,7 @@ export default class AbstractBeefyAdapter extends BaseAdapter {
                             apy: `${apy}%`,
                             source: config.source,
                             vault: config.selector, // Beefy Finance 特有屬性
+                            favorite: config.favorite || 0,
                         };
                     } else {
                         log(`\t* No APY found for ${config.coin} (${config.chain})(${config.selector})`);

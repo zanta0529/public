@@ -35,6 +35,7 @@ export class AaveV3WebAdapter extends AbstractAaveV3Adapter {
                     coin: config.coin,
                     apy: apyText,
                     source: config.url,
+                    favorite: config.favorite || 0,
                 };
             } else {
                 log(`\t* No APY found for ${config.coin} (${config.chain}).`);

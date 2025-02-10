@@ -10,6 +10,7 @@ export default [
         url: "https://api.beefy.finance/apy/breakdown",
         selector: "compound-arbitrum-usdc",
         source: "https://app.beefy.com/vault/compound-arbitrum-usdc",
+        favorite: 1,
     },
     {
         enabled: 1,
