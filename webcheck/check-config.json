@@ -17,7 +17,7 @@
     { "enabled": 1, "url": "https://openapi.twse.com.tw/#/" },
     { "enabled": 1, "url": "https://webpro.twse.com.tw/webportal/schedule/" },
     { "enabled": 1, "url": "https://webproserver.twse.com.tw/ContentServer/" },
-    { "enabled": 1, "url": "https://data.twse.com.tw/" },
+    { "enabled": 0, "url": "https://data.twse.com.tw/" },
     { "enabled": 0, "url": "https://act.twse.com.tw/qualifiedinvestor/" },
     { "enabled": 0, "url": "https://act.twse.com.tw/qr/auth/login" },
     { "enabled": 0, "url": "https://act.twse.com.tw/qr_back/auth/login" },
