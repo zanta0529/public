@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>網站檢查</title>
+        <style>
+            body {
+                font-family: Tahoma, "Microsoft JhengHei", "Microsoft YaHei", "Heiti TC", "sans-serif";
+                margin: 0;
+                padding: 10px;
+                background-color: #f9f9f9;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh; /* 確保頁面最小高度為100%視口高度 */
+            }
+            a {
+                color: #0000ff;
+                text-decoration: none;
+            }
+            a:hover {
+                background-color: #ea0000;
+                color: #fbfbff;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 50px; /* 表格與執行紀錄之間的間距 */
+            }
+            th,
+            td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+                cursor: pointer; /* 鼠標懸停時顯示為可點擊 */
+            }
+            th {
+                background-color: #bbabf1;
+                position: sticky; /* 固定表格標題 */
+                top: 0; /* 當捲動時，標題固定在頂部 */
+                z-index: 1; /* 確保標題在其他內容之上 */
+            }
+            button {
+                margin-bottom: 20px;
+                height: 40px;
+            }
+            #log {
+                margin-top: auto; /* 將執行紀錄區塊推至頁面底部 */
+                border: 1px solid #ddd;
+                padding: 10px;
+                background-color: #f9f9f9;
+                max-height: 200px;
+                overflow-y: auto;
+            }
+            .status-success {
+                background-color: green;
+                color: yellow;
+                font-weight: bold;
+                padding: 5px;
+                border-radius: 5px;
+            }
+            .status-failure {
+                background-color: darkred;
+                color: yellow;
+                font-weight: bold;
+                padding: 5px;
+                border-radius: 5px;
+            }
+            .sort-arrow {
+                margin-left: 5px;
+                font-size: 0.8em;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 id="resultTitle">網站檢查結果</h1>
+        <button id="checkButton">執行網站檢查</button>
+        <button id="clearLogButton">清除執行紀錄</button>
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">網站<span class="sort-arrow" id="arrow-0"></span></th>
+                    <th onclick="sortTable(1)">狀態<span class="sort-arrow" id="arrow-1"></span></th>
+                    <th onclick="sortTable(2)">錯誤訊息<span class="sort-arrow" id="arrow-2"></span></th>
+                    <th onclick="sortTable(3)">時間戳記<span class="sort-arrow" id="arrow-3"></span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 檢查結果將顯示在這裡 -->
+            </tbody>
+        </table>
+
+        <div id="log">
+            <h3>執行紀錄</h3>
+            <div id="logMessages"></div>
+        </div>
+
+        <script>
+            const getCurrentTimestamp = () => {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, "0"); // 月份從0開始，所以加1
+                const day = String(now.getDate()).padStart(2, "0");
+                const hours = String(now.getHours()).padStart(2, "0");
+                const minutes = String(now.getMinutes()).padStart(2, "0");
+                const seconds = String(now.getSeconds()).padStart(2, "0");
+                return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+            };
+
+            const log = (status, message) => {
+                const msg = `[${getCurrentTimestamp()}] [${status}] ${message}`;
+                console.log(msg);
+                document.getElementById("logMessages").innerHTML += `<div>${msg}</div>`;
+            };
+
+            // 隨機延遲函數
+            const randomDelay = (min = 10, max = 10 * 1000) => {
+                return new Promise((resolve) => {
+                    const delay = Math.floor(Math.random() * (max - min + 1)) + min;
+                    setTimeout(resolve, delay);
+                });
+            };
+
+            const performCheck = async (url) => {
+                const proxyUrl = "https://api.allorigins.win/get?url=";
+                const targetUrl = proxyUrl + encodeURIComponent(url);
+                log("INFO", `檢查網站: ${url}`);
+
+                await randomDelay(); // 隨機延遲
+
+                try {
+                    const response = await fetch(targetUrl);
+                    if (!response.ok) throw new Error(`網頁響應不正常: ${response.status} ${response.statusText}`);
+                    await response.json(); // 假設返回的是 JSON 格式
+                    log("INFO", `成功：${url}`);
+                    return { url, status: "成功", timestamp: getCurrentTimestamp() };
+                } catch (error) {
+                    log("WARN", `連線失敗！網址：${url}，原因：${error.message}`);
+                    return { url, status: "失敗", error: error.message, timestamp: getCurrentTimestamp() };
+                }
+            };
+
+            const checkWebsites = async (websites) => {
+                const batchSize = 10; // 每批請求的網站數量
+                const results = [];
+
+                const startTime = Date.now(); // 記錄開始時間
+
+                for (let i = 0; i < websites.length; i += batchSize) {
+                    const batch = websites.slice(i, i + batchSize);
+                    const batchResults = await Promise.all(batch.map((site) => checkWebsiteWithRetry(site)));
+                    results.push(...batchResults);
+
+                    await randomDelay(50, 100);
+                }
+
+                // 每批請求之間增加延遲
+                await randomDelay(100, 500);
+
+                const endTime = Date.now(); // 記錄結束時間
+                const totalTime = ((endTime - startTime) / 1000).toFixed(2); // 計算總時間（秒數）
+
+                log("INFO", `總共花費時間：${totalTime} 秒`);
+
+                return results;
+            };
+
+            const checkWebsiteWithRetry = async (site, retries = 2) => {
+                for (let attempt = 0; attempt < retries; attempt++) {
+                    const result = await performCheck(site.url);
+
+                    // 如果請求成功，返回結果
+                    if (result.status === "成功") {
+                        return result;
+                    }
+
+                    // 如果請求失敗，記錄並等待一段時間再重試
+                    log("WARN", `重試請求：${site.url}，嘗試次數：${attempt + 1}`);
+                    await randomDelay(3000, 5000);
+                }
+
+                // 如果所有重試都失敗，返回最後的結果
+                return { url: site.url, status: "失敗", error: "多次請求失敗", timestamp: getCurrentTimestamp() };
+            };
+
+            document.getElementById("checkButton").addEventListener("click", async () => {
+                // 清除前次檢查結果
+                document.getElementById("resultTitle").textContent = "網站檢查結果";
+                const websites = await loadConfig();
+                const enabledWebsites = websites.filter((site) => site.enabled === 1); // 只檢查 enabled 為 1 的網站
+                const results = await checkWebsites(enabledWebsites);
+                const tbody = document.querySelector("#resultsTable tbody");
+                tbody.innerHTML = results
+                    .map(
+                        (result) => `
+            <tr>
+                <td><a href="${result.url}" target="_blank">${result.url}</a></td>
+                <td>${result.status}</td>
+                <td>${result.error || ""}</td>
+                <td>${result.timestamp}</td>
+            </tr>`
+                    )
+                    .join("");
+
+                // 檢查結果彙整
+                const hasFailure = results.some((result) => result.status === "失敗");
+                document.getElementById("resultTitle").textContent = `網站檢查結果：${hasFailure ? "失敗" : "成功"}`;
+                document.getElementById("resultTitle").className = hasFailure ? "status-failure" : "status-success";
+            });
+
+            document.getElementById("clearLogButton").addEventListener("click", () => {
+                document.getElementById("logMessages").innerHTML = ""; // 清空日誌區域
+            });
+
+            const loadConfig = async () => {
+                try {
+                    const response = await fetch("./check-config.json");
+                    const config = await response.json();
+                    log("INFO", "配置文件加載成功");
+                    return config;
+                } catch (error) {
+                    log("ERROR", `讀取配置文件時出錯：${error.message}`);
+                    return [];
+                }
+            };
+
+            // 排序功能
+            let sortOrder = [null, null, null, null]; // 儲存每列的排序狀態
+
+            const sortTable = (columnIndex) => {
+                const table = document.getElementById("resultsTable");
+                const tbody = table.querySelector("tbody");
+                const rows = Array.from(tbody.querySelectorAll("tr"));
+
+                // 切換排序方向
+                sortOrder[columnIndex] = sortOrder[columnIndex] === "asc" ? "desc" : "asc";
+
+                rows.sort((a, b) => {
+                    const aText = a.children[columnIndex].textContent.trim();
+                    const bText = b.children[columnIndex].textContent.trim();
+
+                    if (columnIndex === 0) {
+                        // 網站列
+                        return sortOrder[columnIndex] === "asc"
+                            ? aText.localeCompare(bText)
+                            : bText.localeCompare(aText);
+                    } else if (columnIndex === 1) {
+                        // 狀態列
+                        return sortOrder[columnIndex] === "asc"
+                            ? aText.localeCompare(bText)
+                            : bText.localeCompare(aText);
+                    } else if (columnIndex === 3) {
+                        // 時間戳記列
+                        return sortOrder[columnIndex] === "asc"
+                            ? Date.parse(aText) - Date.parse(bText)
+                            : Date.parse(bText) - Date.parse(aText);
+                    } else {
+                        // 錯誤訊息列
+                        return sortOrder[columnIndex] === "asc"
+                            ? aText.localeCompare(bText)
+                            : bText.localeCompare(aText);
+                    }
+                });
+
+                // 重新附加排序後的行
+                rows.forEach((row) => tbody.appendChild(row));
+
+                // 更新排序箭頭顯示
+                updateSortArrows(columnIndex);
+            };
+
+            const updateSortArrows = (columnIndex) => {
+                const arrows = document.querySelectorAll(".sort-arrow");
+                arrows.forEach((arrow, index) => {
+                    arrow.textContent = ""; // 清除所有箭頭
+                });
+
+                const arrow = document.getElementById(`arrow-${columnIndex}`);
+                arrow.textContent = sortOrder[columnIndex] === "asc" ? " ▲" : " ▼"; // 根據排序方向顯示箭頭
+            };
+        </script>
+    </body>
+</html>
