@@ -27,7 +27,7 @@ export default [
             "#__next > main > div.MuiBox-root.css-159pi92 > div > div.MuiBox-root.css-k008qs > div.MuiBox-root.css-14g9wgc > div > div:nth-child(3) > div > div.MuiBox-root.css-1dtnjt5 > div:nth-child(3) > div > p",
     },
     {
-        enabled: 1,
+        enabled: 0,
         platform: "Aave",
         chain: "Polygon",
         coin: "USDC",
@@ -54,7 +54,7 @@ export default [
             "#__next > main > div.MuiBox-root.css-159pi92 > div > div.MuiBox-root.css-k008qs > div.MuiBox-root.css-14g9wgc > div > div:nth-child(3) > div > div.MuiBox-root.css-1dtnjt5 > div:nth-child(3) > div > p",
     },
     {
-        enabled: 1,
+        enabled: 0,
         platform: "Aave",
         chain: "Polygon",
         coin: "USDT",

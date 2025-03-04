@@ -30,6 +30,11 @@ export class TokenInfo {
             icon: "https://basescan.org/token/images/superoeth_base_32.png",
         },
         {
+            symbol: "OS",
+            contract: "0xb1e25689d55734fd3fffc939c4c3eb52dff8a794",
+            icon: "https://sonicscan.org/token/images/os_64.svg",
+        },
+        {
             symbol: "USDY",
             contract: "0x96f6ef951840721adbf46ac996b59e0235cb985c",
             icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/29256.png",

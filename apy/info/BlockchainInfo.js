@@ -39,6 +39,11 @@ export class BlockchainInfo {
             explorer: "https://etherscan.io",
             icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
         },
+        {
+            symbol: "Sonic",
+            explorer: "https://sonicscan.org",
+            icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/32684.png",
+        },
     ];
 
     // 獲取所有區塊鏈的符號列表

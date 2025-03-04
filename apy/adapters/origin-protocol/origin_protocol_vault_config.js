@@ -27,4 +27,13 @@ export default [
         selector: "0xdbfefd2e8460a6ee4955a68582f85708baea60a3",
         source: "https://analytics.originprotocol.com/super/poy/",
     },
+    {
+        enabled: 1,
+        platform: "Origin Protocol",
+        chain: "Sonic",
+        coin: "OS",
+        url: "https://origin.squids.live/origin-squid:prod/api/graphql",
+        selector: "0xb1e25689d55734fd3fffc939c4c3eb52dff8a794",
+        source: "https://analytics.originprotocol.com/os/poy/",
+    },
 ];

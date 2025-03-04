@@ -32,6 +32,7 @@ export default [
         url: "https://api.fluid.instadapp.io/42161/tokens",
         selector: "USDC",
         source: "https://fluid.instadapp.io/stats/42161/lendings",
+        favorite: 1,
     },
     {
         enabled: 1,
