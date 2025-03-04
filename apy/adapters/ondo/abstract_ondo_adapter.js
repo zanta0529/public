@@ -35,6 +35,7 @@ export default class AbstractOndoAdapter extends BaseAdapter {
                             apy: `${apy}%`,
                             source: config.source,
                             vault: assetData.name,
+                            favorite: config.favorite || 0,
                         };
                     } else {
                         log(`\t* No asset data found for ${config.coin} (${config.chain})`);
@@ -57,16 +58,10 @@ export default class AbstractOndoAdapter extends BaseAdapter {
 
     // 提取資產信息的函數
     extractAssetData(response, config) {
-        let cleaned = response
-            .replace(/\\n/g, "") // 去掉所有換行符
-            .replace(/\\t/g, "") // 去掉所有制表符
-            .replace(/\\r/g, "") // 去掉所有回車符
-            .replace(/\\/g, ""); // 去掉所有反斜杠
-
         // 提取包含資產信息的部分
         const regexString = `${config.selector}`; // 使用配置中的 selector
         const jsonPattern = new RegExp(regexString); // 用這個字符串創建正則表達式對象
-        const jsonMatch = cleaned.match(jsonPattern); // 使用正則匹配第一個符合條件的匹配項
+        const jsonMatch = response.match(jsonPattern); // 使用正則匹配第一個符合條件的匹配項
 
         if (!jsonMatch) {
             return null; // 如果沒有匹配的資產資料，返回 null
@@ -74,8 +69,12 @@ export default class AbstractOndoAdapter extends BaseAdapter {
 
         // 處理匹配的 JSON 字符串
         try {
-            // 去掉前綴詞（19:）
-            let cleanJsonStr = jsonMatch[0].substring(3);
+            // 清理 JSON 字符串
+            let cleanJsonStr = jsonMatch[0]
+                .replace(/\\n/g, "") // 去掉所有換行符
+                .replace(/\\t/g, "") // 去掉所有制表符
+                .replace(/\\r/g, "") // 去掉所有回車符
+                .replace(/\\/g, ""); // 去掉所有反斜杠
 
             // 嘗試解析 JSON
             const assetData = JSON.parse(cleanJsonStr);

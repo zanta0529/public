@@ -10,7 +10,7 @@ export default [
         url: "https://api.beefy.finance/apy/breakdown",
         selector: "compound-arbitrum-usdc",
         source: "https://app.beefy.com/vault/compound-arbitrum-usdc",
-        favorite: 1,
+        favorite: 0,
     },
     {
         enabled: 1,
@@ -22,7 +22,7 @@ export default [
         source: "https://app.beefy.com/vault/compound-arbitrum-usdt",
     },
     {
-        enabled: 1,
+        enabled: 0,
         platform: "Beefy Finance",
         chain: "Arbitrum",
         coin: "USDC",
@@ -31,7 +31,7 @@ export default [
         source: "https://app.beefy.com/vault/stargate-v2-arb-usdc",
     },
     {
-        enabled: 1,
+        enabled: 0,
         platform: "Beefy Finance",
         chain: "Arbitrum",
         coin: "USDT",
@@ -80,7 +80,7 @@ export default [
         source: "https://app.beefy.com/vault/compound-mainnet-usdc",
     },
     {
-        enabled: 1,
+        enabled: 0,
         platform: "Beefy Finance",
         chain: "Ethereum",
         coin: "USDC",
@@ -89,7 +89,7 @@ export default [
         source: "https://app.beefy.com/vault/stargate-v2-eth-usdc",
     },
     {
-        enabled: 1,
+        enabled: 0,
         platform: "Beefy Finance",
         chain: "Ethereum",
         coin: "USDT",
@@ -101,7 +101,7 @@ export default [
     // Polygon
     // --------------------------------------------
     {
-        enabled: 1,
+        enabled: 0,
         platform: "Beefy Finance",
         chain: "Polygon",
         coin: "USDC",
@@ -110,7 +110,7 @@ export default [
         source: "https://app.beefy.com/vault/stargate-v2-polygon-usdc",
     },
     {
-        enabled: 1,
+        enabled: 0,
         platform: "Beefy Finance",
         chain: "Polygon",
         coin: "USDT",
@@ -119,7 +119,7 @@ export default [
         source: "https://app.beefy.com/vault/stargate-v2-polygon-usdt",
     },
     {
-        enabled: 1,
+        enabled: 0,
         platform: "Beefy Finance",
         chain: "Polygon",
         coin: "USDT",
