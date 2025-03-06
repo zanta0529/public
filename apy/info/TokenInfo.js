@@ -44,6 +44,11 @@ export class TokenInfo {
             contract: "0x1b19c19393e2d034d8ff31ff34c81252fcbbee92",
             icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23463.png",
         },
+        {
+            symbol: "eUSD",
+            contract: "0xCfA3Ef56d303AE4fAabA0592388F19d7C3399FB4",
+            icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/22933.png",
+        },
     ];
 
     // 獲取所有代幣的符號列表
