@@ -87,6 +87,7 @@ export default [
         url: "https://api.beefy.finance/apy/breakdown",
         selector: "morpho-smokehouse-usdc",
         source: "https://app.beefy.com/vault/morpho-smokehouse-usdc",
+        favorite: 1,
     },
     {
         enabled: 1,
