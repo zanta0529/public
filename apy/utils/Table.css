@@ -8,8 +8,10 @@
     --highlight-color: #6f70bb;
     --no-records-color: red;
     --input-bg: #ecf7ef;
-    --font-size-normal: 100%;
+    --inner-padding: 5px;
     --font-size-large: 120%;
+    --font-size-normal: 100%;
+    --font-size-small: 75%;
     --margin: 10px 3px;
 }
 
@@ -49,6 +51,21 @@ table.ztTable caption {
 
 table.ztTable tr:nth-child(odd) {
     background: #fff; /* 奇數列背景色 */
+}
+
+.ztSearchTerm {
+    padding: var(--inner-padding); /* 設定內邊距 */
+    margin: var(--margin);
+
+    height: 40px; /* 設定輸入框的高度 */
+    line-height: 40px; /* 設定行高，使文字垂直居中 */
+    box-sizing: border-box; /* 確保內邊距不影響總寬度 */
+}
+
+/* 改變 placeholder 的樣式 */
+.ztSearchTerm::placeholder {
+    color: #888;
+    font-size: var(--font-size-small);
 }
 
 .ztFunctionalContainer input[type="text"],

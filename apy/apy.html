@@ -60,8 +60,14 @@
                 cursor: pointer;
             }
 
-            #fetchDataButton,
-            #fetchAdapterButton {
+            #fetchDataButtonAdapter {
+                background-color: rgb(39, 39, 107);
+                color: yellow;
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+
+            #fetchDataButtonJson {
                 background-color: rgb(39, 39, 107);
                 color: yellow;
                 font-size: 16px;
@@ -138,7 +144,7 @@
                     log("網頁初始化完成");
 
                     // 自動載入資料
-                    document.getElementById("fetchAdapterButton").click();
+                    document.getElementById("fetchDataButtonAdapter").click();
                 } catch (error) {
                     log("發生錯誤: " + error.message, true);
                 }
@@ -164,12 +170,45 @@
                 });
             }
 
+            /**
+             * 從 Adapter 界面載入資料
+             */
+            async function loadDataFromAdapter() {
+                if (!container) {
+                    log("表格尚未初始化", true);
+                    return;
+                }
+                container.clearData(); // 清除舊資料
+
+                const fetchPromises = adapters.map(async ({ name, path }) => {
+                    const { [name]: Adapter } = await import(path); // 使用解構賦值來獲取正確的適配器
+                    const adapterInstance = new Adapter(); // 確保這是個構造函數
+                    return adapterInstance.fetchData();
+                });
+
+                const allResults = await Promise.all(fetchPromises);
+                const combinedResults = allResults.flat();
+                const parsedData = parseData(combinedResults);
+                container.initializeData(parsedData);
+                log(`擷取資料完成，總資料數量: ${combinedResults.length}`);
+            }
+
+            /**
+             * 從 JSON 檔案載入資料
+             * @param {string} url JSON 檔案的 URL
+             */
             async function loadData(url) {
+                if (!container) {
+                    log("表格尚未初始化", true);
+                    return;
+                }
+                container.clearData(); // 清除舊資料
+
                 const tbody = document.querySelector("#apyContainer tbody");
                 if (!tbody) {
-                    // console.error("找不到 #apyContainer tbody 元素");
                     return; // 退出函數
                 }
+
                 tbody.innerHTML = ""; // 清空現有內容
                 const loadingRow = document.createElement("tr");
                 const loadingCell = document.createElement("td");
@@ -179,11 +218,8 @@
                 waitingMessage.className = "waiting"; // 設定類名
                 waitingMessage.textContent = "資料載入中，請稍後。"; // 使用 textContent 以避免 XSS
 
-                // 將 span 添加到單元格中
                 loadingCell.appendChild(waitingMessage);
-                // 將單元格添加到行中
                 loadingRow.appendChild(loadingCell);
-                // 將行添加到 tbody 中
                 tbody.appendChild(loadingRow);
 
                 try {
@@ -238,25 +274,18 @@
                 const contentId = target.getAttribute("data-content");
                 document.getElementById(contentId).classList.add("active");
 
-                if (contentId === "jsonContent") {
-                    loadData("./apy_result.json");
-                } else if (contentId === "adapterContent") {
-                    loadDataFromAdapter();
-                }
+                updateFetchButton(contentId);
             }
 
-            async function loadDataFromAdapter() {
-                const fetchPromises = adapters.map(async ({ name, path }) => {
-                    const { [name]: Adapter } = await import(path); // 使用解構賦值來獲取正確的適配器
-                    const adapterInstance = new Adapter(); // 確保這是個構造函數
-                    return adapterInstance.fetchData();
-                });
+            function updateFetchButton(contentId) {
+                const fetchDataButtonAdapter = document.getElementById("fetchDataButtonAdapter");
+                const fetchDataButtonJson = document.getElementById("fetchDataButtonJson");
 
-                const allResults = await Promise.all(fetchPromises);
-                const combinedResults = allResults.flat();
-                const parsedData = parseData(combinedResults);
-                container.initializeData(parsedData);
-                log(`擷取資料完成，總資料數量: ${combinedResults.length}`);
+                if (contentId === "jsonContent") {
+                    fetchDataButtonJson.onclick = () => loadData("./apy_result.json");
+                } else if (contentId === "adapterContent") {
+                    fetchDataButtonAdapter.onclick = loadDataFromAdapter;
+                }
             }
 
             document.addEventListener("DOMContentLoaded", () => {
@@ -264,8 +293,18 @@
                     tab.addEventListener("click", switchTab);
                 });
 
-                document.getElementById("fetchAdapterButton").addEventListener("click", loadDataFromAdapter);
-                document.getElementById("fetchDataButton").addEventListener("click", loadData("./apy_result.json"));
+                const fetchDataButtonAdapter = document.getElementById("fetchDataButtonAdapter");
+                fetchDataButtonAdapter.addEventListener("click", () => {
+                    const activeTab = document.querySelector(".tab.active").getAttribute("data-content");
+                    updateFetchButton(activeTab);
+                });
+
+                const fetchDataButtonJson = document.getElementById("fetchDataButtonJson");
+                fetchDataButtonJson.addEventListener("click", () => {
+                    const activeTab = document.querySelector(".tab.active").getAttribute("data-content");
+                    updateFetchButton(activeTab);
+                });
+
                 document.getElementById("clearLogButton").addEventListener("click", clearLog);
                 document.getElementById("corsButton").addEventListener("click", () => {
                     const destination = document.getElementById("destination").value;
@@ -290,11 +329,13 @@
         </div>
 
         <div id="adapterContent" class="tab-content active">
-            <button id="fetchAdapterButton">重新連線</button>
+            <button id="fetchDataButtonAdapter">重新連線</button>
+            <!-- 唯一的按鈕 ID -->
         </div>
 
         <div id="jsonContent" class="tab-content">
-            <button id="fetchDataButton">讀取檔案</button>
+            <button id="fetchDataButtonJson">讀取檔案</button>
+            <!-- 唯一的按鈕 ID -->
         </div>
 
         <div id="apyContainer">

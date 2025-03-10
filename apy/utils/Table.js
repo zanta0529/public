@@ -28,6 +28,7 @@ export class Table {
                 rowsPerPage: "每頁顯示筆數：",
                 displayAll: "== 全部顯示 ==",
                 totalRecords: "資料筆數：",
+                inputKeyword: "請輸入關鍵字",
             },
             eng: {
                 first: "First",
@@ -41,6 +42,7 @@ export class Table {
                 rowsPerPage: "Rows per page: ",
                 displayAll: "== ALL ==",
                 totalRecords: "Records: ",
+                inputKeyword: "Please input keyword",
             },
         };
     }
@@ -58,7 +60,7 @@ export class Table {
         const spanCtrl = document.createElement("span");
         spanCtrl.innerHTML = `
         <span>${this.i18n[this.language].search}</span>
-        <input type="text" class="ztSearchTerm">
+        <input type="text" class="ztSearchTerm" placeholder="${this.i18n[this.language].inputKeyword}" />
     `;
         const input = spanCtrl.querySelector("input");
         let timeout;
@@ -181,17 +183,22 @@ export class Table {
         fragment.appendChild(table);
         fragment.appendChild(this.createPaginationContainer(processedData.length));
 
-        // 清空舊的表格和分頁
-        this.clearOldTableAndPagination();
+        // 清空舊的表格和分頁物件
+        this.resetAll();
 
         this.container.appendChild(fragment);
     }
 
-    clearOldTableAndPagination() {
+    resetAll() {
         const oldTable = this.container.querySelector("table.ztTable");
         const oldPagination = this.container.querySelector("div.ztPaginationContainer");
         if (oldTable) this.container.removeChild(oldTable);
         if (oldPagination) this.container.removeChild(oldPagination);
+    }
+
+    clearData() {
+        this.data = [];
+        this.render();
     }
 
     createTableHead() {
