@@ -125,6 +125,7 @@
             import Table from "./utils/Table.js"; // 導入 Table 類別
             import BlockChainInfo from "./info/BlockchainInfo.js"; // 導入區塊鏈資訊類別
             import TokenInfo from "./info/TokenInfo.js"; // 導入代幣資訊類別
+            import PlatformInfo from "./info/PlatformInfo.js"; // 導入平台資訊類別
 
             const adapters = [
                 // { name: "AaveV3WebAdapter", path: "./adapters/aave/aavev3_web_adapter.js" },
@@ -153,7 +154,7 @@
             async function initTable() {
                 const columns = [
                     { label: "關注", field: "favorite", sortable: true, align: "alignCenter" },
-                    { label: "平台", field: "platform", sortable: true, align: "alignCenter" },
+                    { label: "平台", field: "platform", sortable: true, align: "alignLeft" },
                     { label: "區塊鏈", field: "chain", sortable: true, align: "alignLeft" },
                     { label: "代幣", field: "coin", sortable: true, align: "alignLeft" },
                     { label: "APY(%)", field: "apy", sortable: true, align: "alignRight", defaultSortColumn: true },
@@ -242,7 +243,12 @@
 
                 return rawdata.map(({ favorite, platform, chain, coin, apy, vault, source }) => ({
                     favorite: favorite ? "❤️" : "",
-                    platform: platform ? `<a href="${source}" target="_blank">${platform}</a>` : "-",
+                    platform: platform
+                        ? `<img src="${PlatformInfo.getPlatformIconUrl(
+                              platform.trim()
+                          )}" title="${platform}" alt="${platform}" width="20px" height="20px" />&nbsp;
+                          <a href="${source}" target="_blank">${platform}</a>`
+                        : "-",
                     chain: chain
                         ? `<img src="${BlockChainInfo.getChainIconUrl(
                               chain.trim()

@@ -116,6 +116,15 @@ export default [
         selector: "stargate-v2-eth-usdt",
         source: "https://app.beefy.com/vault/stargate-v2-eth-usdt",
     },
+    {
+        enabled: 1,
+        platform: "Beefy Finance",
+        chain: "Ethereum",
+        coin: "USDS",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "sky-usds",
+        source: "https://app.beefy.com/vault/sky-usds",
+    },
     // --------------------------------------------
     // Polygon
     // --------------------------------------------

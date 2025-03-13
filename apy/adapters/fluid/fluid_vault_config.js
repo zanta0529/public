@@ -55,4 +55,16 @@ export default [
         selector: "USDC",
         source: "https://fluid.instadapp.io/stats/8453/lendings",
     },
+    // --------------------------------------------
+    // Polygon
+    // --------------------------------------------
+    {
+        enabled: 1,
+        platform: "Fluid",
+        chain: "Polygon",
+        coin: "USDC",
+        url: "https://api.fluid.instadapp.io/137/tokens",
+        selector: "USDC",
+        source: "https://fluid.instadapp.io/stats/137/lendings",
+    },
 ];

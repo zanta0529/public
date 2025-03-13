@@ -37,17 +37,22 @@ export class TokenInfo {
         {
             symbol: "USDY",
             contract: "0x96f6ef951840721adbf46ac996b59e0235cb985c",
-            icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/29256.png",
+            icon: "https://etherscan.io/token/images/ondofinanceusdy_32.png",
         },
         {
             symbol: "OUSG",
             contract: "0x1b19c19393e2d034d8ff31ff34c81252fcbbee92",
-            icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23463.png",
+            icon: "https://etherscan.io/token/images/ondofinance2_32.png",
         },
         {
             symbol: "eUSD",
             contract: "0xCfA3Ef56d303AE4fAabA0592388F19d7C3399FB4",
             icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/22933.png",
+        },
+        {
+            symbol: "USDS",
+            contract: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",
+            icon: "https://etherscan.io/token/images/skyusds_32.svg",
         },
     ];
 
