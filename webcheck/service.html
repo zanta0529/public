@@ -121,7 +121,7 @@
 
             async function runCheck() {
                 try {
-                    const response = await fetch("http://localhost:10000/run-check"); // 呼叫 /run-check 路由
+                    const response = await fetch("/run-check"); // 呼叫 /run-check 路由
                     if (response.ok) {
                         await fetchResults(); // 重新獲取檢查結果
                     } else {

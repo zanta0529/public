@@ -65,6 +65,9 @@ async function checkWebsites(websites) {
     return Promise.all(checks);
 }
 
+// 提供 'webcheck' 文件夾中的靜態文件
+app.use(express.static(path.join(__dirname, "webcheck")));
+
 // 檢查網站的路由
 app.get("/run-check", async (req, res) => {
     try {
