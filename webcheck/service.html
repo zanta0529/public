@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>網站檢查（完整版）</title>
+        <style>
+            body {
+                font-family: Tahoma, "Microsoft JhengHei", "Microsoft YaHei", "Heiti TC", "sans-serif";
+                margin: 0;
+                padding: 10px;
+                background-color: #f9f9f9;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh; /* 確保頁面最小高度為100%視口高度 */
+            }
+            a {
+                color: #0000ff;
+                text-decoration: none;
+            }
+            a:hover {
+                background-color: #ea0000;
+                color: #fbfbff;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 50px; /* 表格與執行紀錄之間的間距 */
+            }
+            th,
+            td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+                cursor: pointer; /* 鼠標懸停時顯示為可點擊 */
+            }
+            th {
+                background-color: #bbabf1;
+                position: sticky; /* 固定表格標題 */
+                top: 0; /* 當捲動時，標題固定在頂部 */
+                z-index: 1; /* 確保標題在其他內容之上 */
+            }
+            button {
+                margin-bottom: 20px;
+                height: 40px;
+                font-size: 16px;
+            }
+            #log {
+                margin-top: auto; /* 將執行紀錄區塊推至頁面底部 */
+                border: 1px solid #ddd;
+                padding: 10px;
+                background-color: #f9f9f9;
+                max-height: 200px;
+                overflow-y: auto;
+            }
+            .status-success {
+                background-color: green;
+                color: yellow;
+                font-weight: bold;
+                padding: 5px;
+                border-radius: 5px;
+            }
+            .status-failure {
+                background-color: darkred;
+                color: yellow;
+                font-weight: bold;
+                padding: 5px;
+                border-radius: 5px;
+            }
+            .sort-arrow {
+                margin-left: 5px;
+                font-size: 0.8em;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 id="resultTitle">網站檢查結果</h1>
+        <button id="checkButton">執行網站檢查</button>
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">網站<span class="sort-arrow" id="arrow-0"></span></th>
+                    <th onclick="sortTable(1)">狀態<span class="sort-arrow" id="arrow-1"></span></th>
+                    <th onclick="sortTable(2)">錯誤訊息<span class="sort-arrow" id="arrow-2"></span></th>
+                    <th onclick="sortTable(3)">時間戳記<span class="sort-arrow" id="arrow-3"></span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 檢查結果將顯示在這裡 -->
+            </tbody>
+        </table>
+
+        <script>
+            async function fetchResults() {
+                try {
+                    const response = await fetch("./check-results.json"); // 更新為正確的 API 路徑
+                    const results = await response.json();
+                    const tbody = document.querySelector("#resultsTable tbody");
+                    tbody.innerHTML = ""; // 清空之前的結果
+                    results.forEach((result) => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                        <td><a href="${result.url}" target="_blank">${result.url}</a></td>
+                        <td>${result.status}</td>
+                        <td>${result.status === "ERROR" ? result.message : ""}</td>
+                        <td>${result.timestamp || "N/A"}</td> <!-- 顯示時間戳記 -->
+                    `;
+                        tbody.appendChild(row);
+                    });
+
+                    // 檢查結果彙整
+                    const hasFailure = results.some((result) => result.status === "ERROR");
+                    document.getElementById("resultTitle").textContent = `網站檢查結果：${
+                        hasFailure ? "失敗" : "成功"
+                    }`;
+                    document.getElementById("resultTitle").className = hasFailure ? "status-failure" : "status-success";
+                } catch (error) {
+                    console.error("Error fetching results:", error);
+                }
+            }
+
+            async function runCheck() {
+                try {
+                    const response = await fetch("http://localhost:3000/run-check"); // 呼叫 /run-check 路由
+                    if (response.ok) {
+                        await fetchResults(); // 重新獲取檢查結果
+                    } else {
+                        console.error("Error running check:", response.statusText);
+                    }
+                } catch (error) {
+                    console.error("Error running check:", error);
+                }
+            }
+
+            // 頁面加載時獲取初始檢查結果
+            window.onload = fetchResults;
+
+            document.getElementById("checkButton").addEventListener("click", runCheck); // 修改為呼叫 runCheck
+
+            // 排序功能
+            let sortOrder = [null, null, null, null]; // 儲存每列的排序狀態
+
+            const sortTable = (columnIndex) => {
+                const table = document.getElementById("resultsTable");
+                const tbody = table.querySelector("tbody");
+                const rows = Array.from(tbody.querySelectorAll("tr"));
+
+                // 切換排序方向
+                sortOrder[columnIndex] = sortOrder[columnIndex] === "asc" ? "desc" : "asc";
+
+                rows.sort((a, b) => {
+                    const aText = a.children[columnIndex].textContent.trim();
+                    const bText = b.children[columnIndex].textContent.trim();
+
+                    if (columnIndex === 0) {
+                        // 網站列
+                        return sortOrder[columnIndex] === "asc"
+                            ? aText.localeCompare(bText)
+                            : bText.localeCompare(aText);
+                    } else if (columnIndex === 1) {
+                        // 狀態列
+                        return sortOrder[columnIndex] === "asc"
+                            ? aText.localeCompare(bText)
+                            : bText.localeCompare(aText);
+                    } else if (columnIndex === 3) {
+                        // 時間戳記列
+                        return sortOrder[columnIndex] === "asc"
+                            ? Date.parse(aText) - Date.parse(bText)
+                            : Date.parse(bText) - Date.parse(aText);
+                    } else {
+                        // 錯誤訊息列
+                        return sortOrder[columnIndex] === "asc"
+                            ? aText.localeCompare(bText)
+                            : bText.localeCompare(aText);
+                    }
+                });
+
+                // 重新附加排序後的行
+                rows.forEach((row) => tbody.appendChild(row));
+
+                // 更新排序箭頭顯示
+                updateSortArrows(columnIndex);
+            };
+
+            const updateSortArrows = (columnIndex) => {
+                const arrows = document.querySelectorAll(".sort-arrow");
+                arrows.forEach((arrow, index) => {
+                    arrow.textContent = ""; // 清除所有箭頭
+                });
+
+                const arrow = document.getElementById(`arrow-${columnIndex}`);
+                arrow.textContent = sortOrder[columnIndex] === "asc" ? " ▲" : " ▼"; // 根據排序方向顯示箭頭
+            };
+        </script>
+    </body>
+</html>
