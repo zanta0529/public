@@ -4,11 +4,16 @@ import https from "https";
 import fetch from "node-fetch";
 import pLimit from "p-limit";
 import path from "path"; // 引入 path 模組
+import { fileURLToPath } from "url"; // 引入 fileURLToPath 函數
 
 const app = express();
 const port = process.env.PORT || 3000;
 const configFilePath = "./check-config.json";
 const limit = pLimit(10); // 設定同時請求的最大數量
+
+// 獲取當前模組的路徑
+const __filename = fileURLToPath(import.meta.url); // 獲取當前文件的完整路徑
+const __dirname = path.dirname(__filename); // 獲取當前文件的目錄
 
 function getCurrentTimestamp() {
     const now = new Date();
