@@ -1,4 +1,5 @@
 import express from "express";
+import { stat } from "fs";
 import fs from "fs/promises";
 import https from "https";
 import fetch from "node-fetch";
@@ -28,7 +29,11 @@ function getCurrentTimestamp() {
 
 const log = (status, message) => {
     const msg = `[${getCurrentTimestamp()}] [${status}] ${message}`;
-    console.log(msg);
+    if (status === "ERROR") {
+        console.error(msg);
+    } else {
+        console.log(msg);
+    }
 };
 
 async function loadConfig() {
@@ -36,7 +41,7 @@ async function loadConfig() {
         const data = await fs.readFile(configFilePath, "utf-8");
         return JSON.parse(data);
     } catch (error) {
-        console.error("Error reading config file:", error);
+        log("ERROR", "Error reading config file: " + error.message);
         return [];
     }
 }
@@ -74,10 +79,13 @@ app.get("/run-check", async (req, res) => {
         const websites = await loadConfig();
         const results = await checkWebsites(websites);
         const jsonResult = JSON.stringify(results, null, 2);
+        const filePath = path.join(__dirname, "check-results.json"); // 獲取絕對路徑
 
         // 將結果寫入檔案
-        await fs.writeFile("./check-results.json", jsonResult, { flush: true });
-        res.send("Check completed and results saved to check-results.json");
+        await fs.writeFile(filePath, jsonResult, { flush: true });
+
+        log("INFO", `Check results saved to: ${filePath}`); // 在控制台中顯示路徑
+        res.send(`Check completed and results saved to check-results.json at ${filePath}`);
     } catch (error) {
         res.status(500).send(`An error occurred: ${error.message}`);
     }
@@ -109,5 +117,5 @@ app.get("/check-results.json", async (req, res) => {
 app.use(express.static("public"));
 
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}/`);
+    log("INFO", `Server running at http://localhost:${port}/`);
 });
