@@ -1,8 +1,9 @@
-import express from 'express';
-import fs from 'fs/promises';
-import https from 'https';
-import fetch from 'node-fetch';
-import pLimit from 'p-limit';
+import express from "express";
+import fs from "fs/promises";
+import https from "https";
+import fetch from "node-fetch";
+import pLimit from "p-limit";
+import path from "path"; // 引入 path 模組
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -60,33 +61,44 @@ async function checkWebsites(websites) {
 }
 
 // 檢查網站的路由
-app.get('/run-check', async (req, res) => {
+app.get("/run-check", async (req, res) => {
     try {
         const websites = await loadConfig();
         const results = await checkWebsites(websites);
         const jsonResult = JSON.stringify(results, null, 2);
-        
+
         // 將結果寫入檔案
         await fs.writeFile("./check-results.json", jsonResult, { flush: true });
-        res.send('Check completed and results saved to check-results.json');
+        res.send("Check completed and results saved to check-results.json");
     } catch (error) {
         res.status(500).send(`An error occurred: ${error.message}`);
     }
 });
 
-// 提供靜態文件
-app.use(express.static('public'));
+// 動態提供 HTML 文件的路由
+app.get("/:page", (req, res) => {
+    const page = req.params.page;
+    const filePath = path.join(__dirname, `${page}.html`);
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            res.status(err.status).end(); // 如果文件不存在，返回錯誤
+        }
+    });
+});
 
 // 提供 JSON 檔案的路由
-app.get('/check-results.json', async (req, res) => {
+app.get("/check-results.json", async (req, res) => {
     try {
-        const data = await fs.readFile('./check-results.json', 'utf-8');
-        res.setHeader('Content-Type', 'application/json');
+        const data = await fs.readFile("./check-results.json", "utf-8");
+        res.setHeader("Content-Type", "application/json");
         res.send(data);
     } catch (error) {
-        res.status(500).send({ error: 'Could not read JSON file' });
+        res.status(500).send({ error: "Could not read JSON file" });
     }
 });
+
+// 提供靜態文件
+app.use(express.static("public"));
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}/`);
