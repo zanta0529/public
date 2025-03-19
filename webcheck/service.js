@@ -16,6 +16,9 @@ const limit = pLimit(10); // 設定同時請求的最大數量
 const __filename = fileURLToPath(import.meta.url); // 獲取當前文件的完整路徑
 const __dirname = path.dirname(__filename); // 獲取當前文件的目錄
 
+const resultFileName = "check-results.json";
+const filePath = path.join(__dirname, resultFileName); // 獲取絕對路徑
+
 function getCurrentTimestamp() {
     const now = new Date();
     const year = now.getFullYear();
@@ -79,13 +82,12 @@ app.get("/run-check", async (req, res) => {
         const websites = await loadConfig();
         const results = await checkWebsites(websites);
         const jsonResult = JSON.stringify(results, null, 2);
-        const filePath = path.join(__dirname, "check-results.json"); // 獲取絕對路徑
 
         // 將結果寫入檔案
         await fs.writeFile(filePath, jsonResult, { flush: true });
 
         log("INFO", `Check results saved to: ${filePath}`); // 在控制台中顯示路徑
-        res.send(`Check completed and results saved to check-results.json at ${filePath}`);
+        res.send(`Check completed and results saved to ${resultFileName} at ${filePath}`);
     } catch (error) {
         res.status(500).send(`An error occurred: ${error.message}`);
     }
