@@ -64,7 +64,7 @@ export default class AbstractOriginProtocolAdapter extends BaseAdapter {
 
                 if (apyData && apyData.apy !== undefined) {
                     const apy = (apyData.apy * 100).toFixed(2); // 轉換為百分比並保留兩位小數
-                    log(`\t* Fetched APY for ${config.coin}: ${apy}% (${config.chain})`);
+                    log(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain})`);
                     return {
                         platform: config.platform,
                         chain: config.chain,

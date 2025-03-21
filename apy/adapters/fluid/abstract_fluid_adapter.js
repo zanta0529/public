@@ -22,7 +22,7 @@ export default class AbstractFluidAdapter extends BaseAdapter {
                     const assetsData = response.data.find((asset) => asset.asset.symbol === `${config.selector}`);
                     if (assetsData) {
                         const apy = (assetsData.totalRate / 100).toFixed(2);
-                        log(`\t* Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.selector}`);
+                        log(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.selector}`);
                         return {
                             platform: config.platform,
                             chain: config.chain,

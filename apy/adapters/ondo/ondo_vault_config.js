@@ -5,7 +5,7 @@ export default [
         chain: "Ethereum",
         coin: "USDY",
         url: "https://ondo.finance/usdy",
-        selector: `{\\\\"assetSymbol\\\\":\\\\"USDY\\\\".*?}`,
+        selector: `{\\"symbol\\":\\"usdy\\".*?}`,
         source: "https://ondo.finance/usdy",
     },
     {
@@ -14,7 +14,7 @@ export default [
         chain: "Ethereum",
         coin: "OUSG",
         url: "https://ondo.finance/ousg",
-        selector: `{\\\\"assetSymbol\\\\":\\\\"OUSG\\\\".*?}`,
+        selector: `{\\"symbol\\":\\"ousg\\".*?}`,
         source: "https://ondo.finance/ousg",
     },
 ];

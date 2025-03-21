@@ -23,7 +23,7 @@ export default class AbstractBeefyAdapter extends BaseAdapter {
 
                     if (this.responseData && this.responseData.totalApy !== undefined) {
                         const apy = (this.responseData.totalApy * 100).toFixed(2); // 轉為百分比並保留兩位小數
-                        log(`\t* Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.selector}`);
+                        log(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.selector}`);
                         return {
                             platform: config.platform,
                             chain: config.chain,

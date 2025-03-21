@@ -26,7 +26,7 @@ export default class MorphoAdapter extends AbstractMorphoAdapter {
                 const apyText = await page.$eval(config.selector, (el) => el.textContent.trim());
 
                 if (apyText) {
-                    log(`\t* Fetched APY for ${config.coin}: ${apyText} (${config.chain}) from ${config.vault}`);
+                    log(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apyText} (${config.chain}) from ${config.vault}`);
                     const waitTime = this.getRandomWaitTime(10, 50); // 隨機等待毫秒數
                     await new Promise((resolve) => setTimeout(resolve, waitTime));
                     await page.close();

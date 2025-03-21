@@ -26,7 +26,7 @@ export default class ApyChecker {
         try {
             log("Checking available adapters...");
             const enabledAdapters = appConfig.adapters.filter(({ enabled }) => enabled === 1);
-            log(`Enabled adapters: ${JSON.stringify(enabledAdapters)}`); // 添加日誌查看啟用的適配器
+            log(`Enabled adapters: ${enabledAdapters.map(({ name }) => name).join(", ")}`);
 
             const fetchPromises = enabledAdapters.map(async ({ name, adapter }) => {
                 const adapterInstance = new adapter(browser);
@@ -35,7 +35,7 @@ export default class ApyChecker {
                     return data;
                 } catch (adapterError) {
                     log("ERROR", `Adapter ${name} failed: ${adapterError.message}`);
-                    return []; // 返回空數組以避免 Promise.all 失敗
+                    return []; // 返回空陣列以避免 Promise.all 失敗
                 }
             });
 
