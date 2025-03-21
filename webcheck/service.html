@@ -75,7 +75,8 @@
     </head>
     <body>
         <h1 id="resultTitle">網站檢查結果</h1>
-        <button id="checkButton">執行網站檢查</button>
+        <button id="checkButtonExternal">執行網站檢查（外網）</button>
+        <button id="checkButtonInternal">執行網站檢查（內網）</button>
         <table id="resultsTable">
             <thead>
                 <tr>
@@ -151,7 +152,7 @@
             // 頁面加載時獲取初始檢查結果
             // window.onload = runCheck;
 
-            document.getElementById("checkButton").addEventListener("click", runCheck); // 修改為呼叫 runCheck
+            document.getElementById("checkButtonExternal").addEventListener("click", runCheck);
 
             const getCurrentTimestamp = () => {
                 const now = new Date();
