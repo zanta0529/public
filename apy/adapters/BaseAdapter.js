@@ -19,9 +19,3 @@ export default class BaseAdapter {
         throw new Error("loadVaultConfig() should be implemented in subclass.");
     }
 }
-
-// 如果需要在瀏覽器中直接使用，可以將其包裝在一個立即執行的函數中
-(function () {
-    // 這裡可以添加其他邏輯或初始化代碼
-    console.log("BaseAdapter 已加載");
-})();

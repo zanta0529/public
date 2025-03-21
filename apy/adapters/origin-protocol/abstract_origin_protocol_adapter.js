@@ -71,6 +71,7 @@ export default class AbstractOriginProtocolAdapter extends BaseAdapter {
                         coin: config.coin,
                         apy: `${apy}%`, // 格式化為百分比
                         source: config.source,
+                        favorite: config.favorite || 0,
                     };
                 } else {
                     log(`\t* No APY found for ${config.coin} (${config.chain})`);

@@ -1,4 +1,3 @@
-// ./utils/ArraySortUtils.js
 class ArraySortUtils {
     // 根據 APY 排序 (降序)
     static sortByApy(data) {

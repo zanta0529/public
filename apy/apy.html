@@ -30,10 +30,6 @@
                 margin-bottom: 10px;
             }
 
-            #destination {
-                width: 400px;
-            }
-
             #apyContainer thead th {
                 background-color: #003d79;
                 color: #fff;
@@ -44,15 +40,6 @@
                 background: #d2e9ff;
             }
 
-            #logContainer {
-                border: 1px solid #ddd;
-                padding: 10px;
-                overflow-y: auto; /* 顯示垂直捲軸 */
-                background: #fff;
-                height: 300px; /* 設置固定高度 */
-                max-height: 300px; /* 可選：設置最大高度 */
-            }
-
             button {
                 border-width: 1px;
                 margin: 10px;
@@ -60,23 +47,9 @@
                 cursor: pointer;
             }
 
-            #fetchDataButtonAdapter {
+            .button-fetch {
                 background-color: rgb(39, 39, 107);
                 color: yellow;
-                font-size: 16px;
-                margin-bottom: 10px;
-            }
-
-            #fetchDataButtonJson {
-                background-color: rgb(39, 39, 107);
-                color: yellow;
-                font-size: 16px;
-                margin-bottom: 10px;
-            }
-
-            #clearLogButton {
-                background-color: #ff3333;
-                color: white;
                 font-size: 16px;
                 margin-bottom: 10px;
             }
@@ -87,37 +60,6 @@
                 font-size: 18px;
                 text-align: center;
             }
-
-            .tabs {
-                display: flex;
-                cursor: pointer;
-                margin-bottom: 10px;
-            }
-
-            .tab {
-                padding: 10px 20px;
-                background-color: #f0f0f0;
-                border: 1px solid #ddd;
-                border-radius: 5px 5px 0 0;
-                margin-right: 5px;
-            }
-
-            .tab.active {
-                background-color: #fff;
-                border-bottom: none;
-                font-weight: bold;
-            }
-
-            .tab-content {
-                display: none;
-                border: 1px solid #ddd;
-                border-radius: 0 0 5px 5px;
-                padding: 10px;
-            }
-
-            .tab-content.active {
-                display: block;
-            }
         </style>
 
         <script type="module">
@@ -127,15 +69,6 @@
             import TokenInfo from "./info/TokenInfo.js"; // 導入代幣資訊類別
             import PlatformInfo from "./info/PlatformInfo.js"; // 導入平台資訊類別
 
-            const adapters = [
-                // { name: "AaveV3WebAdapter", path: "./adapters/aave/aavev3_web_adapter.js" },
-                { name: "BeefyWebAdapter", path: "./adapters/beefy/beefy_web_adapter.js" },
-                { name: "FluidWebAdapter", path: "./adapters/fluid/fluid_web_adapter.js" },
-                // { name: "MorphoWebAdapter", path: "./adapters/morpho/morpho_web_adapter.js" },
-                // { name: "OndoWebAdapter", path: "./adapters/ondo/ondo_web_adapter.js" },
-                // { name: "OriginProtocolWebAdapter", path: "./adapters/origin-protocol/origin_protocol_web_adapter.js" },
-            ];
-
             let container;
 
             async function initUI() {
@@ -143,9 +76,6 @@
                     log("網頁初始化...");
                     container = await initTable();
                     log("網頁初始化完成");
-
-                    // 自動載入資料
-                    document.getElementById("fetchDataButtonAdapter").click();
                 } catch (error) {
                     log("發生錯誤: " + error.message, true);
                 }
@@ -171,34 +101,7 @@
                 });
             }
 
-            /**
-             * 從 Adapter 界面載入資料
-             */
-            async function loadDataFromAdapter() {
-                if (!container) {
-                    log("表格尚未初始化", true);
-                    return;
-                }
-                container.clearData(); // 清除舊資料
-
-                const fetchPromises = adapters.map(async ({ name, path }) => {
-                    const { [name]: Adapter } = await import(path); // 使用解構賦值來獲取正確的適配器
-                    const adapterInstance = new Adapter(); // 確保這是個構造函數
-                    return adapterInstance.fetchData();
-                });
-
-                const allResults = await Promise.all(fetchPromises);
-                const combinedResults = allResults.flat();
-                const parsedData = parseData(combinedResults);
-                container.initializeData(parsedData);
-                log(`擷取資料完成，總資料數量: ${combinedResults.length}`);
-            }
-
-            /**
-             * 從 JSON 檔案載入資料
-             * @param {string} url JSON 檔案的 URL
-             */
-            async function loadData(url) {
+            async function loadData() {
                 if (!container) {
                     log("表格尚未初始化", true);
                     return;
@@ -224,14 +127,15 @@
                 tbody.appendChild(loadingRow);
 
                 try {
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error("網頁無法載入資料");
+                    const response = await fetch("/run-check");
+                    if (!response.ok) throw new Error("無法載入資料");
                     const allResults = await response.json();
                     const parsedData = parseData(allResults);
                     container.initializeData(parsedData);
                     log(`擷取資料完成，總資料數量: ${allResults.length}`);
                 } catch (error) {
                     log(`擷取資料失敗: ${error.message}`, true);
+                    alert(`擷取資料失敗: ${error.message}`); // 在 UI 上顯示錯誤
                 }
             }
 
@@ -247,7 +151,7 @@
                         ? `<img src="${PlatformInfo.getPlatformIconUrl(
                               platform.trim()
                           )}" title="${platform}" alt="${platform}" width="20px" height="20px" />&nbsp;
-                          <a href="${source}" target="_blank">${platform}</a>`
+                      <a href="${source}" target="_blank">${platform}</a>`
                         : "-",
                     chain: chain
                         ? `<img src="${BlockChainInfo.getChainIconUrl(
@@ -264,98 +168,17 @@
                 }));
             }
 
-            function clearLog() {
-                document.getElementById("logContainer").innerText = ""; // 清空日誌
-            }
-
-            function switchTab(event) {
-                const target = event.target;
-                const tabs = document.querySelectorAll(".tab");
-                const contents = document.querySelectorAll(".tab-content");
-
-                tabs.forEach((tab) => tab.classList.remove("active"));
-                contents.forEach((content) => content.classList.remove("active"));
-
-                target.classList.add("active");
-                const contentId = target.getAttribute("data-content");
-                document.getElementById(contentId).classList.add("active");
-
-                updateFetchButton(contentId);
-            }
-
-            function updateFetchButton(contentId) {
-                const fetchDataButtonAdapter = document.getElementById("fetchDataButtonAdapter");
-                const fetchDataButtonJson = document.getElementById("fetchDataButtonJson");
-
-                if (contentId === "jsonContent") {
-                    fetchDataButtonJson.onclick = () => loadData("./apy_result.json");
-                } else if (contentId === "adapterContent") {
-                    fetchDataButtonAdapter.onclick = loadDataFromAdapter;
-                }
-            }
-
             document.addEventListener("DOMContentLoaded", () => {
-                document.querySelectorAll(".tab").forEach((tab) => {
-                    tab.addEventListener("click", switchTab);
-                });
-
-                const fetchDataButtonAdapter = document.getElementById("fetchDataButtonAdapter");
-                fetchDataButtonAdapter.addEventListener("click", () => {
-                    const activeTab = document.querySelector(".tab.active").getAttribute("data-content");
-                    updateFetchButton(activeTab);
-                });
-
-                const fetchDataButtonJson = document.getElementById("fetchDataButtonJson");
-                fetchDataButtonJson.addEventListener("click", () => {
-                    const activeTab = document.querySelector(".tab.active").getAttribute("data-content");
-                    updateFetchButton(activeTab);
-                });
-
-                document.getElementById("clearLogButton").addEventListener("click", clearLog);
-                document.getElementById("corsButton").addEventListener("click", () => {
-                    const destination = document.getElementById("destination").value;
-                    window.open(`https://cors-anywhere.herokuapp.com/${destination}`);
-                });
-
                 initUI();
+                document.getElementById("btnFetch").addEventListener("click", loadData);
             });
         </script>
     </head>
     <body>
-        <h1>APY</h1>
-        <div>
-            <label>https://cors-anywhere.herokuapp.com/</label>
-            <input type="text" id="destination" value="https://origin.squids.live/origin-squid:prod/api/graphql" />
-            <button id="corsButton">CORS 請求</button>
-        </div>
-
-        <div class="tabs">
-            <div class="tab active" data-content="adapterContent">從 Adapter 載入</div>
-            <div class="tab" data-content="jsonContent">從檔案載入</div>
-        </div>
-
-        <div id="adapterContent" class="tab-content active">
-            <button id="fetchDataButtonAdapter">重新連線</button>
-            <!-- 唯一的按鈕 ID -->
-        </div>
-
-        <div id="jsonContent" class="tab-content">
-            <button id="fetchDataButtonJson">讀取檔案</button>
-            <!-- 唯一的按鈕 ID -->
-        </div>
-
+        <h1>APY Retriever</h1>
+        <button id="btnFetch" class="button-fetch" aria-label="重新連線">重新連線</button>
         <div id="apyContainer">
             <!-- 表格將在這裡顯示 -->
-        </div>
-
-        <div class="active">
-            <h3>
-                日誌輸出
-                <button id="clearLogButton">清除日誌</button>
-            </h3>
-        </div>
-        <div id="logContainer">
-            <!-- 日誌將在這裡顯示 -->
         </div>
     </body>
 </html>

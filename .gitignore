@@ -1,2 +1,3 @@
 *.log
+apy/node_modules/
 webcheck/node_modules/
