@@ -31,6 +31,10 @@ for /d %%D in (*) do (
             REM echo.
             echo * Running [npm prune]...
             call npm prune
+            echo.
+            echo * Running [depcheck]...
+            call depcheck
+            echo.
             popd
         ) else (
             echo.
@@ -50,4 +54,5 @@ echo ****************************************
 echo All updates completed.
 echo ****************************************
 echo.
+pause
 endlocal
