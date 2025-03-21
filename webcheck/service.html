@@ -12,7 +12,7 @@
                 background-color: #f9f9f9;
                 display: flex;
                 flex-direction: column;
-                min-height: 100vh; /* 確保頁面最小高度為100%視口高度 */
+                min-height: 100vh;
             }
             a {
                 color: #0000ff;
@@ -25,28 +25,48 @@
             table {
                 width: 100%;
                 border-collapse: collapse;
-                margin-bottom: 50px; /* 表格與執行紀錄之間的間距 */
+                margin-bottom: 50px;
             }
             th,
             td {
                 border: 1px solid #ddd;
                 padding: 8px;
                 text-align: left;
-                cursor: pointer; /* 鼠標懸停時顯示為可點擊 */
+                cursor: pointer;
             }
             th {
                 background-color: #bbabf1;
-                position: sticky; /* 固定表格標題 */
-                top: 0; /* 當捲動時，標題固定在頂部 */
-                z-index: 1; /* 確保標題在其他內容之上 */
+                position: sticky;
+                top: 0;
+                z-index: 1;
             }
             button {
                 margin-bottom: 20px;
                 height: 40px;
                 font-size: 16px;
+                border: none; /* 移除邊框 */
+                color: white; /* 按鈕文字顏色 */
+                cursor: pointer; /* 鼠標懸停時顯示為可點擊 */
+                transition: background-color 0.3s, transform 0.3s; /* 添加過渡效果 */
+                border-radius: 8px; /* 添加圓角 */
+            }
+            .button-external {
+                background-color: #007bff; /* 外網按鈕顏色 */
+            }
+            .button-internal {
+                background-color: #ca8326; /* 內網按鈕顏色 */
+            }
+            /* 懸停效果 */
+            .button-external:hover {
+                background-color: #0056b3; /* 外網按鈕懸停顏色 */
+                transform: scale(1.01); /* 按鈕放大效果 */
+            }
+            .button-internal:hover {
+                background-color: #6e450e; /* 內網按鈕懸停顏色 */
+                transform: scale(1.01); /* 按鈕放大效果 */
             }
             #log {
-                margin-top: auto; /* 將執行紀錄區塊推至頁面底部 */
+                margin-top: auto;
                 border: 1px solid #ddd;
                 padding: 10px;
                 background-color: #f9f9f9;
@@ -75,8 +95,8 @@
     </head>
     <body>
         <h1 id="resultTitle">網站檢查結果</h1>
-        <button id="checkButtonExternal">執行網站檢查（外網）</button>
-        <button id="checkButtonInternal">執行網站檢查（內網）</button>
+        <button class="button-external" id="checkButtonExternal">執行網站檢查（外網）</button>
+        <button class="button-internal" id="checkButtonInternal">執行網站檢查（內網）</button>
         <table id="resultsTable">
             <thead>
                 <tr>
@@ -97,137 +117,99 @@
         </div>
 
         <script>
-            async function runCheck() {
+            const runCheck = async (direction) => {
                 log("INFO", "開始執行網站狀態檢查");
-                const tbody = document.querySelector("#resultsTable tbody");
-                if (!tbody) {
-                    return; // 退出函數
-                }
-                tbody.innerHTML = ""; // 清空之前的結果
+                reset();
                 try {
-                    const response = await fetch("/run-check"); // 呼叫 /run-check 路由
+                    const response = await fetch(`/run-check?direction=${direction}`);
                     if (response.ok) {
                         const results = await response.json();
-                        parseResult(results); // 解析檢查結果
+                        parseResult(results);
                     } else {
                         log("ERROR", "Error running check:", response.statusText);
                     }
                 } catch (error) {
                     log("ERROR", "Error running check: " + error.message);
                 }
-            }
+            };
 
-            async function parseResult(results) {
-                if (results === null) {
+            const parseResult = (results) => {
+                if (!results) {
                     log("ERROR", "Error fetching results: results is null");
                     return;
                 }
 
-                try {
-                    const tbody = document.querySelector("#resultsTable tbody");
-                    tbody.innerHTML = ""; // 清空之前的結果
-                    results.forEach((result) => {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `
-                        <td><a href="${result.url}" target="_blank">${result.url}</a></td>
-                        <td>${result.status}</td>
-                        <td>${result.status === "ERROR" ? result.message : ""}</td>
-                        <td>${result.timestamp || "N/A"}</td> <!-- 顯示時間戳記 -->
-                    `;
-                        tbody.appendChild(row);
-                        log("INFO", `網站：${result.url}, 檢查結果：${result.status}`);
-                    });
+                const tbody = document.querySelector("#resultsTable tbody");
+                tbody.innerHTML = ""; // 清空之前的結果
 
-                    // 檢查結果彙整
-                    const hasFailure = results.some((result) => result.status === "ERROR");
-                    document.getElementById("resultTitle").textContent = `網站檢查結果：${
-                        hasFailure ? "失敗" : "成功"
-                    }`;
-                    document.getElementById("resultTitle").className = hasFailure ? "status-failure" : "status-success";
-                } catch (error) {
-                    log("ERROR", "Error fetching results: " + error.message);
-                }
-            }
+                results.forEach(({ url, status, message, timestamp }) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                    <td><a href="${url}" target="_blank">${url}</a></td>
+                    <td>${status}</td>
+                    <td>${status === "ERROR" ? message : ""}</td>
+                    <td>${timestamp || "N/A"}</td>
+                `;
+                    tbody.appendChild(row);
+                    log("INFO", `網站：${url}, 檢查結果：${status}`);
+                });
 
-            // 頁面加載時獲取初始檢查結果
-            // window.onload = runCheck;
+                const hasFailure = results.some((result) => result.status === "ERROR");
+                const resultTitle = document.getElementById("resultTitle");
+                resultTitle.textContent = `網站檢查結果：${hasFailure ? "失敗" : "成功"}`;
+                resultTitle.className = hasFailure ? "status-failure" : "status-success";
+            };
 
-            document.getElementById("checkButtonExternal").addEventListener("click", runCheck);
-
-            const getCurrentTimestamp = () => {
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = String(now.getMonth() + 1).padStart(2, "0"); // 月份從0開始，所以加1
-                const day = String(now.getDate()).padStart(2, "0");
-                const hours = String(now.getHours()).padStart(2, "0");
-                const minutes = String(now.getMinutes()).padStart(2, "0");
-                const seconds = String(now.getSeconds()).padStart(2, "0");
-                return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+            const reset = () => {
+                document.getElementById("resultTitle").className = "";
+                document.getElementById("resultTitle").textContent = "網站檢查結果";
+                document.getElementById("logMessages").innerHTML = "";
+                document.querySelector("#resultsTable tbody").innerHTML = ""; // 清空之前的結果
             };
 
             const log = (status, message) => {
                 const msg = `[${getCurrentTimestamp()}] [${status}] ${message}`;
-                if (status === "ERROR") {
-                    console.error(msg);
-                } else {
-                    console.log(msg);
-                }
+                status === "ERROR" ? console.error(msg) : console.log(msg);
                 document.getElementById("logMessages").innerHTML += `<div>${msg}</div>`;
             };
 
+            const getCurrentTimestamp = () => {
+                const now = new Date();
+                return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(
+                    now.getDate()
+                ).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(
+                    2,
+                    "0"
+                )}:${String(now.getSeconds()).padStart(2, "0")}`;
+            };
+
+            document.getElementById("checkButtonExternal").addEventListener("click", () => runCheck("E"));
+            document.getElementById("checkButtonInternal").addEventListener("click", () => runCheck("I"));
+
             // 排序功能
-            let sortOrder = [null, null, null, null]; // 儲存每列的排序狀態
+            let sortOrder = [null, null, null, null];
 
             const sortTable = (columnIndex) => {
-                const table = document.getElementById("resultsTable");
-                const tbody = table.querySelector("tbody");
+                const tbody = document.querySelector("#resultsTable tbody");
                 const rows = Array.from(tbody.querySelectorAll("tr"));
-
-                // 切換排序方向
                 sortOrder[columnIndex] = sortOrder[columnIndex] === "asc" ? "desc" : "asc";
 
                 rows.sort((a, b) => {
                     const aText = a.children[columnIndex].textContent.trim();
                     const bText = b.children[columnIndex].textContent.trim();
-
-                    if (columnIndex === 0) {
-                        // 網站列
-                        return sortOrder[columnIndex] === "asc"
-                            ? aText.localeCompare(bText)
-                            : bText.localeCompare(aText);
-                    } else if (columnIndex === 1) {
-                        // 狀態列
-                        return sortOrder[columnIndex] === "asc"
-                            ? aText.localeCompare(bText)
-                            : bText.localeCompare(aText);
-                    } else if (columnIndex === 3) {
-                        // 時間戳記列
-                        return sortOrder[columnIndex] === "asc"
-                            ? Date.parse(aText) - Date.parse(bText)
-                            : Date.parse(bText) - Date.parse(aText);
-                    } else {
-                        // 錯誤訊息列
-                        return sortOrder[columnIndex] === "asc"
-                            ? aText.localeCompare(bText)
-                            : bText.localeCompare(aText);
-                    }
+                    return sortOrder[columnIndex] === "asc" ? aText.localeCompare(bText) : bText.localeCompare(aText);
                 });
 
-                // 重新附加排序後的行
                 rows.forEach((row) => tbody.appendChild(row));
-
-                // 更新排序箭頭顯示
                 updateSortArrows(columnIndex);
             };
 
             const updateSortArrows = (columnIndex) => {
-                const arrows = document.querySelectorAll(".sort-arrow");
-                arrows.forEach((arrow, index) => {
-                    arrow.textContent = ""; // 清除所有箭頭
+                document.querySelectorAll(".sort-arrow").forEach((arrow, index) => {
+                    arrow.textContent = "";
                 });
-
-                const arrow = document.getElementById(`arrow-${columnIndex}`);
-                arrow.textContent = sortOrder[columnIndex] === "asc" ? " ▲" : " ▼"; // 根據排序方向顯示箭頭
+                document.getElementById(`arrow-${columnIndex}`).textContent =
+                    sortOrder[columnIndex] === "asc" ? " ▲" : " ▼";
             };
         </script>
     </body>

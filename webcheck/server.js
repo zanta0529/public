@@ -45,7 +45,8 @@ app.use(express.static(path.join(__dirname, serverConfig.staticPath)));
 // 檢查網站的路由
 app.get("/run-check", async (req, res) => {
     try {
-        const results = await checkWebsites(appConfig);
+        const direction = req.query.direction; // 獲取請求中的 direction 參數
+        const results = await checkWebsites(appConfig, direction);
         const jsonResult = JSON.stringify(results, null, 2);
 
         log("INFO", `Check results: ${jsonResult}`); // 在控制台中顯示檢查結果
@@ -62,17 +63,22 @@ const agent = new https.Agent({
 
 async function performCheck(url) {
     const timestamp = getCurrentTimestamp(); // 獲取當前時間戳
+    const isHttps = url.trim().startsWith("https://"); // 檢查 URL 是否為 HTTPS 協議
+
     try {
-        const response = await fetch(url, { agent });
+        const response = await fetch(url, {
+            agent: isHttps ? agent : undefined, // 根據協議選擇是否使用 HTTPS 代理
+        });
         return { url, status: response.status, message: response.statusText, timestamp };
     } catch (error) {
         return { url, status: "ERROR", message: error.message, timestamp };
     }
 }
 
-async function checkWebsites(websites) {
+// 根據 direction 參數過濾網站
+async function checkWebsites(websites, direction) {
     const checks = websites
-        .filter((site) => site.enabled === 1)
+        .filter((site) => site.enabled === 1 && (direction === "E" ? site.direction === "E" : true)) // 根據 direction 過濾
         .map(
             (site) => limit(() => performCheck(site.url)) // 使用 p-limit 來限制並發請求
         );
