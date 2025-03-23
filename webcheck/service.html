@@ -126,10 +126,10 @@
                         const results = await response.json();
                         parseResult(results);
                     } else {
-                        log("ERROR", "Error running check:", response.statusText);
+                        log("ERROR", `Error running check: ${response.statusText}`);
                     }
                 } catch (error) {
-                    log("ERROR", "Error running check: " + error.message);
+                    log("ERROR", `Error running check: ${error.message}`);
                 }
             };
 

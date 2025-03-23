@@ -77,22 +77,36 @@ async function performCheck(url) {
 
 // 根據 direction 參數過濾網站
 async function checkWebsites(websites, direction) {
+    if (
+        !Array.isArray(websites) ||
+        !websites.every((site) => site && typeof site.url === "string" && typeof site.enabled === "number")
+    ) {
+        throw new Error("Invalid input: websites must be an array of objects with valid properties");
+    }
+
     const checks = websites
         .filter((site) => site.enabled === 1 && (direction === "E" ? site.direction === "E" : true)) // 根據 direction 過濾
         .map(
             (site) => limit(() => performCheck(site.url)) // 使用 p-limit 來限制並發請求
         );
-    return Promise.all(checks);
+
+    try {
+        return await Promise.all(checks);
+    } catch (error) {
+        log("ERROR", `Error during website checks: ${error.message}`);
+        return [];
+    }
 }
 // END --------------------------------------------------------------------
 
 // 動態提供 HTML 文件的路由
 app.get("/:page", (req, res) => {
     const page = req.params.page;
-    const filePath = path.join(__dirname, `${page}.html`);
+    const safePage = path.basename(page); // Sanitize the page parameter
+    const filePath = path.join(__dirname, `${safePage}.html`);
     res.sendFile(filePath, (err) => {
         if (err) {
-            res.status(err.status).end(); // 如果文件不存在，返回錯誤
+            res.status(err.status || 500).end(); // 如果文件不存在，返回錯誤
         }
     });
 });
