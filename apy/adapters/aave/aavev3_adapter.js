@@ -23,10 +23,9 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
                 const page = await this.browser.newPage();
                 await page.goto(urlWithTimestamp, { waitUntil: "networkidle0", timeout: 10000 }); // 增加超時時間
 
-                const apyText = await page.$eval(config.selector, (el) => el.textContent.trim());
-
-                if (apyText) {
-                    log(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apyText}`);
+                const apy = await page.$eval(config.selector, (el) => el.textContent.trim());
+                if (apy) {
+                    log(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy} (${config.chain})`);
                     const waitTime = this.getRandomWaitTime(10, 50); // 隨機等待毫秒數
                     await new Promise((resolve) => setTimeout(resolve, waitTime));
                     await page.close();
@@ -34,7 +33,7 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
                         platform: config.platform,
                         chain: config.chain,
                         coin: config.coin,
-                        apy: apyText,
+                        apy: apy,
                         source: config.url,
                         favorite: config.favorite || 0,
                     };
