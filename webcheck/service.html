@@ -55,6 +55,7 @@
             }
             .button-internal {
                 background-color: #ca8326; /* 內網按鈕顏色 */
+                display: none; /* 隱藏內網按鈕 */
             }
             /* 懸停效果 */
             .button-external:hover {
@@ -95,8 +96,8 @@
     </head>
     <body>
         <h1 id="resultTitle">網站檢查結果</h1>
-        <button class="button-external" id="checkButtonExternal">執行網站檢查（外網）</button>
-        <button class="button-internal" id="checkButtonInternal">執行網站檢查（內網）</button>
+        <button class="button-external" id="checkButtonExternal">執行網站檢查（從外網）</button>
+        <button class="button-internal" id="checkButtonInternal">執行網站檢查（從內網）</button>
         <table id="resultsTable">
             <thead>
                 <tr>
@@ -183,8 +184,18 @@
                 )}:${String(now.getSeconds()).padStart(2, "0")}`;
             };
 
-            document.getElementById("checkButtonExternal").addEventListener("click", () => runCheck("E"));
-            document.getElementById("checkButtonInternal").addEventListener("click", () => runCheck("I"));
+            // 判斷是否為本機運行
+            function checkEnvironment() {
+                const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+                document.getElementById("checkButtonInternal").style.display = isLocal ? "block" : "none";
+            }
+
+            // 在網頁載入時執行
+            window.onload = () => {
+                document.getElementById("checkButtonExternal").addEventListener("click", () => runCheck("external"));
+                document.getElementById("checkButtonInternal").addEventListener("click", () => runCheck("internal"));
+                checkEnvironment();
+            };
 
             // 排序功能
             let sortOrder = [null, null, null, null];
