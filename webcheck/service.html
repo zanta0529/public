@@ -108,14 +108,21 @@
             }
             /* 響應式設計 */
             @media (max-width: 600px) {
-                body {
-                    padding: 5px;
-                }
-                button {
-                    width: 100%; /* 按鈕全寬 */
-                }
                 table {
                     font-size: 14px; /* 調整表格字體大小 */
+                }
+                th,
+                td {
+                    padding: 4px; /* 減少內邊距 */
+                }
+                td {
+                    word-wrap: break-word; /* 強制換行 */
+                    max-width: 150px; /* 設定最大寬度 */
+                }
+                th:nth-child(3),
+                td:nth-child(3) {
+                    /* 隱藏狀態列 */
+                    display: none;
                 }
             }
         </style>
@@ -124,20 +131,22 @@
         <h1 id="resultTitle">網站檢查結果</h1>
         <button id="checkButton">執行網站檢查</button>
         <div id="loadingMessage">檢查中，請稍等...</div>
-        <table id="resultsTable">
-            <thead>
-                <tr>
-                    <th onclick="sortTable(0)">行號<span class="sort-arrow" id="arrow-0"></span></th>
-                    <th onclick="sortTable(1)">網站<span class="sort-arrow" id="arrow-1"></span></th>
-                    <th onclick="sortTable(2)">狀態<span class="sort-arrow" id="arrow-2"></span></th>
-                    <th onclick="sortTable(3)">錯誤訊息<span class="sort-arrow" id="arrow-3"></span></th>
-                    <th onclick="sortTable(4)">時間戳記<span class="sort-arrow" id="arrow-4"></span></th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- 檢查結果將顯示在這裡 -->
-            </tbody>
-        </table>
+        <div style="overflow-x: auto">
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">行號<span class="sort-arrow" id="arrow-0"></span></th>
+                        <th onclick="sortTable(1)">網站<span class="sort-arrow" id="arrow-1"></span></th>
+                        <th onclick="sortTable(2)">狀態<span class="sort-arrow" id="arrow-2"></span></th>
+                        <th onclick="sortTable(3)">錯誤訊息<span class="sort-arrow" id="arrow-3"></span></th>
+                        <th onclick="sortTable(4)">時間戳記<span class="sort-arrow" id="arrow-4"></span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 檢查結果將顯示在這裡 -->
+                </tbody>
+            </table>
+        </div>
 
         <h3>執行紀錄</h3>
         <div id="log">
