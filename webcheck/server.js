@@ -37,6 +37,7 @@ const appConfig = JSON.parse(await fs.readFile(path.resolve(`${__dirname}/app-co
 const app = express();
 const port = serverConfig.port || 10000;
 const limit = pLimit(serverConfig.maxProcess); // 設定同時請求的最大數量
+const timeout = serverConfig.timeout || 3000; // 設定請求超時時間，預設為 3000 毫秒
 
 // 將 'public' 文件夾中的靜態文件對外提供服務
 app.use(express.static(path.join(__dirname, serverConfig.staticPath)));
@@ -65,13 +66,21 @@ async function performCheck(url) {
     const timestamp = getCurrentTimestamp(); // 獲取當前時間戳
     const isHttps = url.trim().startsWith("https://"); // 檢查 URL 是否為 HTTPS 協議
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout); // 使用配置的超時時間
+
     try {
+        new URL(url); // Validate URL
         const response = await fetch(url, {
             agent: isHttps ? agent : undefined, // 根據協議選擇是否使用 HTTPS 代理
+            signal: controller.signal,
         });
         return { url, status: response.status, message: response.statusText, timestamp };
     } catch (error) {
+        log("ERROR", `Error during performing website "${url}" checks. Error mseeage: ${error.message}`);
         return { url, status: "ERROR", message: error.message, timestamp };
+    } finally {
+        clearTimeout(timeoutId);
     }
 }
 
