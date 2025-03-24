@@ -228,25 +228,15 @@
             function checkEnvironment() {
                 const hostname = window.location.hostname;
                 const isInternalIP =
-                    hostname === "localhost" ||
-                    hostname === "127.0.0.1" ||
+                    ["localhost", "127.0.0.1"].includes(hostname) ||
                     hostname.startsWith("192.168.") ||
-                    (hostname.startsWith("10.") &&
-                        parseInt(hostname.split(".")[1]) >= 0 &&
-                        parseInt(hostname.split(".")[1]) <= 255) ||
-                    (hostname.startsWith("172.") &&
-                        parseInt(hostname.split(".")[1]) >= 16 &&
-                        parseInt(hostname.split(".")[1]) <= 31);
+                    hostname.match(/^10\.\d{1,3}\./) ||
+                    hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./);
+
                 const button = document.getElementById("checkButton");
-                if (isInternalIP) {
-                    button.textContent = "執行網站檢查（從內網）";
-                    button.className = "button-internal"; // 設定內網按鈕樣式
-                    button.onclick = () => runCheck("I"); // 設定內網檢查的呼叫
-                } else {
-                    button.textContent = "執行網站檢查（從外網）";
-                    button.className = "button-external"; // 設定外網按鈕樣式
-                    button.onclick = () => runCheck("E"); // 設定外網檢查的呼叫
-                }
+                button.textContent = isInternalIP ? "執行網站檢查（從內網）" : "執行網站檢查（從外網）";
+                button.className = isInternalIP ? "button-internal" : "button-external";
+                button.onclick = () => runCheck(isInternalIP ? "I" : "E");
             }
 
             // 在網頁載入時執行
