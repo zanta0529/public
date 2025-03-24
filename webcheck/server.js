@@ -50,7 +50,7 @@ app.get("/run-check", async (req, res) => {
         const results = await checkWebsites(appConfig, direction);
         const jsonResult = JSON.stringify(results, null, 2);
 
-        log("INFO", `Check results: ${jsonResult}`); // 在控制台中顯示檢查結果
+        // log("INFO", `Check results: ${jsonResult}`); // 在控制台中顯示檢查結果
         res.send(jsonResult);
     } catch (error) {
         res.status(500).send(`An error occurred: ${error.message}`);
@@ -66,19 +66,24 @@ async function performCheck(url) {
     const timestamp = getCurrentTimestamp(); // 獲取當前時間戳
     const isHttps = url.trim().startsWith("https://"); // 檢查 URL 是否為 HTTPS 協議
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout); // 使用配置的超時時間
-
     let attempts = 0; // 計數重試次數
     while (attempts <= serverConfig.retry) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout); // 使用配置的超時時間
+
         try {
-            new URL(url); // Validate URL
-            const response = await fetch(url, {
+            const validUrl = new URL(url); // Validate URL
+            log("INFO", `Checking URL: ${validUrl}`); // 記錄請求的 URL
+
+            const response = await fetch(validUrl, {
                 agent: isHttps ? agent : undefined, // 根據協議選擇是否使用 HTTPS 代理
                 signal: controller.signal,
             });
+
+            clearTimeout(timeoutId); // 請求成功後清理超時
             return { url, status: response.status, message: response.statusText, timestamp };
         } catch (error) {
+            clearTimeout(timeoutId); // 確保在捕獲錯誤時也清理超時
             attempts++;
             log(
                 "ERROR",
@@ -88,8 +93,6 @@ async function performCheck(url) {
                 return { url, status: "ERROR", message: error.message, timestamp };
             }
             await new Promise((resolve) => setTimeout(resolve, serverConfig.retryInterval)); // 等待重試間隔
-        } finally {
-            clearTimeout(timeoutId);
         }
     }
 }

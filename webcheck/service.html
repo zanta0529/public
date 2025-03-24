@@ -54,7 +54,7 @@
                 background-color: #007bff; /* 外網按鈕顏色 */
             }
             .button-internal {
-                background-color: #ca8326; /* 內網按鈕顏色 */
+                background-color: #d18119; /* 內網按鈕顏色 */
             }
             /* 懸停效果 */
             .button-external:hover {
@@ -90,6 +90,9 @@
             .sort-arrow {
                 margin-left: 5px;
                 font-size: 0.8em;
+            }
+            #resultsTable th {
+                text-align: center;
             }
             /* 檢查中提示 */
             #loadingMessage {
@@ -139,7 +142,7 @@
                         <th onclick="sortTable(1)">網站<span class="sort-arrow" id="arrow-1"></span></th>
                         <th onclick="sortTable(2)">狀態<span class="sort-arrow" id="arrow-2"></span></th>
                         <th onclick="sortTable(3)">錯誤訊息<span class="sort-arrow" id="arrow-3"></span></th>
-                        <th onclick="sortTable(4)">檢查時間（GMT+0）<span class="sort-arrow" id="arrow-4"></span></th>
+                        <th onclick="sortTable(4)">檢查時間<span class="sort-arrow" id="arrow-4"></span></th>
                     </tr>
                 </thead>
                 <tbody>
