@@ -21,7 +21,7 @@ export default class MorphoAdapter extends AbstractMorphoAdapter {
         while (attempt < maxRetries) {
             try {
                 const page = await this.browser.newPage();
-                await page.goto(urlWithTimestamp, { waitUntil: "networkidle0", timeout: 20000 }); // 增加超時時間
+                await page.goto(urlWithTimestamp, { waitUntil: "networkidle0", timeout: 10000 }); // 增加超時時間
 
                 const apyText = await page.$eval(config.selector, (el) => el.textContent.trim());
 
