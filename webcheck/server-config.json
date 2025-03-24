@@ -2,5 +2,7 @@
   "port": 80,
   "staticPath": ".",
   "maxProcess": 10,
-  "timeout": 3000
+  "timeout": 3000,
+  "retry": 2,
+  "retryInterval": 1000
 }

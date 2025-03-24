@@ -55,7 +55,6 @@
             }
             .button-internal {
                 background-color: #ca8326; /* 內網按鈕顏色 */
-                display: none; /* 隱藏內網按鈕 */
             }
             /* 懸停效果 */
             .button-external:hover {
@@ -92,19 +91,47 @@
                 margin-left: 5px;
                 font-size: 0.8em;
             }
+            /* 檢查中提示 */
+            #loadingMessage {
+                display: none; /* 初始隱藏 */
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: rgb(156, 6, 6);
+                color: yellow;
+                padding: 20px;
+                border-radius: 8px;
+                font-size: 20px;
+                font-weight: bold;
+                z-index: 1000; /* 確保在最上層 */
+            }
+            /* 響應式設計 */
+            @media (max-width: 600px) {
+                body {
+                    padding: 5px;
+                }
+                button {
+                    width: 100%; /* 按鈕全寬 */
+                }
+                table {
+                    font-size: 14px; /* 調整表格字體大小 */
+                }
+            }
         </style>
     </head>
     <body>
         <h1 id="resultTitle">網站檢查結果</h1>
-        <button class="button-external" id="checkButtonExternal">執行網站檢查（從外網）</button>
-        <button class="button-internal" id="checkButtonInternal">執行網站檢查（從內網）</button>
+        <button id="checkButton">執行網站檢查</button>
+        <div id="loadingMessage">檢查中，請稍等...</div>
         <table id="resultsTable">
             <thead>
                 <tr>
-                    <th onclick="sortTable(0)">網站<span class="sort-arrow" id="arrow-0"></span></th>
-                    <th onclick="sortTable(1)">狀態<span class="sort-arrow" id="arrow-1"></span></th>
-                    <th onclick="sortTable(2)">錯誤訊息<span class="sort-arrow" id="arrow-2"></span></th>
-                    <th onclick="sortTable(3)">時間戳記<span class="sort-arrow" id="arrow-3"></span></th>
+                    <th onclick="sortTable(0)">行號<span class="sort-arrow" id="arrow-0"></span></th>
+                    <th onclick="sortTable(1)">網站<span class="sort-arrow" id="arrow-1"></span></th>
+                    <th onclick="sortTable(2)">狀態<span class="sort-arrow" id="arrow-2"></span></th>
+                    <th onclick="sortTable(3)">錯誤訊息<span class="sort-arrow" id="arrow-3"></span></th>
+                    <th onclick="sortTable(4)">時間戳記<span class="sort-arrow" id="arrow-4"></span></th>
                 </tr>
             </thead>
             <tbody>
@@ -121,16 +148,24 @@
             const runCheck = async (direction) => {
                 log("INFO", "開始執行網站狀態檢查");
                 reset();
+                const button = document.getElementById("checkButton");
+                const loadingMessage = document.getElementById("loadingMessage");
+
+                button.disabled = true; // 禁用按鈕
+                loadingMessage.style.display = "block"; // 顯示檢查中提示
+
                 try {
                     const response = await fetch(`/run-check?direction=${direction}`);
-                    if (response.ok) {
-                        const results = await response.json();
-                        parseResult(results);
-                    } else {
-                        log("ERROR", `Error running check: ${response.statusText}`);
+                    if (!response.ok) {
+                        throw new Error(`Error running check: ${response.statusText}`);
                     }
+                    const results = await response.json();
+                    parseResult(results);
                 } catch (error) {
-                    log("ERROR", `Error running check: ${error.message}`);
+                    log("ERROR", error.message); // 錯誤處理
+                } finally {
+                    button.disabled = false; // 檢查結束後啟用按鈕
+                    loadingMessage.style.display = "none"; // 隱藏檢查中提示
                 }
             };
 
@@ -143,14 +178,19 @@
                 const tbody = document.querySelector("#resultsTable tbody");
                 tbody.innerHTML = ""; // 清空之前的結果
 
-                results.forEach(({ url, status, message, timestamp }) => {
+                const totalResults = results.length;
+                const digits = totalResults > 0 ? Math.floor(Math.log10(totalResults)) + 1 : 1; // 根據結果數量決定顯示的位數
+
+                results.forEach(({ url, status, message, timestamp }, index) => {
                     const row = document.createElement("tr");
+                    const formattedIndex = String(index + 1).padStart(digits, "0"); // 格式化行號
                     row.innerHTML = `
-                    <td><a href="${url}" target="_blank">${url}</a></td>
-                    <td>${status}</td>
-                    <td>${status === "ERROR" ? message : ""}</td>
-                    <td>${timestamp || "N/A"}</td>
-                `;
+            <td>${formattedIndex}</td> <!-- 顯示行號 -->
+            <td><a href="${url}" target="_blank">${url}</a></td>
+            <td>${status}</td>
+            <td>${status === "ERROR" ? message : ""}</td>
+            <td>${timestamp || "N/A"}</td>
+        `;
                     tbody.appendChild(row);
                     log("INFO", `網站：${url}, 檢查結果：${status}`);
                 });
@@ -184,21 +224,38 @@
                 )}:${String(now.getSeconds()).padStart(2, "0")}`;
             };
 
-            // 判斷是否為本機運行
+            // 判斷是否為內網
             function checkEnvironment() {
-                const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-                document.getElementById("checkButtonInternal").style.display = isLocal ? "block" : "none";
+                const hostname = window.location.hostname;
+                const isInternalIP =
+                    hostname === "localhost" ||
+                    hostname === "127.0.0.1" ||
+                    hostname.startsWith("192.168.") ||
+                    (hostname.startsWith("10.") &&
+                        parseInt(hostname.split(".")[1]) >= 0 &&
+                        parseInt(hostname.split(".")[1]) <= 255) ||
+                    (hostname.startsWith("172.") &&
+                        parseInt(hostname.split(".")[1]) >= 16 &&
+                        parseInt(hostname.split(".")[1]) <= 31);
+                const button = document.getElementById("checkButton");
+                if (isInternalIP) {
+                    button.textContent = "執行網站檢查（從內網）";
+                    button.className = "button-internal"; // 設定內網按鈕樣式
+                    button.onclick = () => runCheck("I"); // 設定內網檢查的呼叫
+                } else {
+                    button.textContent = "執行網站檢查（從外網）";
+                    button.className = "button-external"; // 設定外網按鈕樣式
+                    button.onclick = () => runCheck("E"); // 設定外網檢查的呼叫
+                }
             }
 
             // 在網頁載入時執行
             window.onload = () => {
-                document.getElementById("checkButtonExternal").addEventListener("click", () => runCheck("E"));
-                document.getElementById("checkButtonInternal").addEventListener("click", () => runCheck("I"));
-                checkEnvironment();
+                checkEnvironment(); // 檢查環境並設定按鈕
             };
 
             // 排序功能
-            let sortOrder = [null, null, null, null];
+            let sortOrder = [null, null, null, null, null];
 
             const sortTable = (columnIndex) => {
                 const tbody = document.querySelector("#resultsTable tbody");

@@ -69,18 +69,28 @@ async function performCheck(url) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout); // 使用配置的超時時間
 
-    try {
-        new URL(url); // Validate URL
-        const response = await fetch(url, {
-            agent: isHttps ? agent : undefined, // 根據協議選擇是否使用 HTTPS 代理
-            signal: controller.signal,
-        });
-        return { url, status: response.status, message: response.statusText, timestamp };
-    } catch (error) {
-        log("ERROR", `Error during performing website "${url}" checks. Error mseeage: ${error.message}`);
-        return { url, status: "ERROR", message: error.message, timestamp };
-    } finally {
-        clearTimeout(timeoutId);
+    let attempts = 0; // 計數重試次數
+    while (attempts <= serverConfig.retry) {
+        try {
+            new URL(url); // Validate URL
+            const response = await fetch(url, {
+                agent: isHttps ? agent : undefined, // 根據協議選擇是否使用 HTTPS 代理
+                signal: controller.signal,
+            });
+            return { url, status: response.status, message: response.statusText, timestamp };
+        } catch (error) {
+            attempts++;
+            log(
+                "ERROR",
+                `Attempt ${attempts}: Error during performing website "${url}" checks. Error message: ${error.message}`
+            );
+            if (attempts > serverConfig.retry) {
+                return { url, status: "ERROR", message: error.message, timestamp };
+            }
+            await new Promise((resolve) => setTimeout(resolve, serverConfig.retryInterval)); // 等待重試間隔
+        } finally {
+            clearTimeout(timeoutId);
+        }
     }
 }
 
