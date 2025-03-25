@@ -11,7 +11,7 @@ const appConfig = {
         {
             name: "Aave V3 Adapter",
             adapter: AaveV3Adapter,
-            enabled: 1,
+            enabled: 0,
         },
         {
             name: "Beefy Finance Adapter",
@@ -31,7 +31,7 @@ const appConfig = {
         {
             name: "Origin Protocol Adapter",
             adapter: OriginProtocolAdapter,
-            enabled: 1,
+            enabled: 0,
         },
         {
             name: "Ondo Finance Adapter",
