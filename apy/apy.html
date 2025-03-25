@@ -41,10 +41,20 @@
             }
 
             button {
-                border-width: 1px;
-                margin: 10px;
-                border-radius: 5px;
-                cursor: pointer;
+                margin-bottom: 20px;
+                height: 40px;
+                font-size: 16px;
+                border: none; /* 移除邊框 */
+                color: white; /* 按鈕文字顏色 */
+                cursor: pointer; /* 鼠標懸停時顯示為可點擊 */
+                transition: background-color 0.3s, transform 0.3s; /* 添加過渡效果 */
+                border-radius: 8px; /* 添加圓角 */
+                background-color: #007bff; /* 外網按鈕顏色 */
+            }
+            /* 懸停效果 */
+            .button:hover {
+                background-color: #0056b3; /* 按鈕懸停顏色 */
+                transform: scale(1.01); /* 按鈕放大效果 */
             }
 
             .button-fetch {
@@ -53,12 +63,39 @@
                 font-size: 16px;
                 margin-bottom: 10px;
             }
-
-            .waiting {
-                color: red;
+            /* 檢查中提示 */
+            #loadingMessage {
+                display: none; /* 初始隱藏 */
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: rgb(156, 6, 6);
+                color: yellow;
+                padding: 10px;
+                border-radius: 8px;
+                font-size: 16px;
                 font-weight: bold;
-                font-size: 18px;
-                text-align: center;
+                z-index: 1000; /* 確保在最上層 */
+            }
+            /* 響應式設計 */
+            @media (max-width: 600px) {
+                table {
+                    font-size: 14px; /* 調整表格字體大小 */
+                }
+                th,
+                td {
+                    padding: 4px; /* 減少內邊距 */
+                }
+                td {
+                    word-wrap: break-word; /* 強制換行 */
+                    max-width: 150px; /* 設定最大寬度 */
+                }
+                th:nth-child(3),
+                td:nth-child(3) {
+                    /* 隱藏狀態列 */
+                    display: none;
+                }
             }
         </style>
 
@@ -106,6 +143,12 @@
                     log("表格尚未初始化", true);
                     return;
                 }
+                const button = document.getElementById("btnFetch");
+                button.disabled = true; // 禁用按鈕
+
+                const loadingMessage = document.getElementById("loadingMessage");
+                loadingMessage.style.display = "block"; // 顯示檢查中提示
+
                 container.clearData(); // 清除舊資料
 
                 const tbody = document.querySelector("#apyContainer tbody");
@@ -114,17 +157,6 @@
                 }
 
                 tbody.innerHTML = ""; // 清空現有內容
-                const loadingRow = document.createElement("tr");
-                const loadingCell = document.createElement("td");
-                loadingCell.colSpan = 6; // 設定單元格跨越的列數
-
-                const waitingMessage = document.createElement("span");
-                waitingMessage.className = "waiting"; // 設定類名
-                waitingMessage.textContent = "資料載入中，請稍後。"; // 使用 textContent 以避免 XSS
-
-                loadingCell.appendChild(waitingMessage);
-                loadingRow.appendChild(loadingCell);
-                tbody.appendChild(loadingRow);
 
                 try {
                     const response = await fetch("/run-check");
@@ -136,6 +168,9 @@
                 } catch (error) {
                     log(`擷取資料失敗: ${error.message}`, true);
                     alert(`擷取資料失敗: ${error.message}`); // 在 UI 上顯示錯誤
+                } finally {
+                    button.disabled = false; // 檢查結束後啟用按鈕
+                    loadingMessage.style.display = "none"; // 隱藏檢查中提示
                 }
             }
 
@@ -177,8 +212,11 @@
     <body>
         <h1>APY Retriever</h1>
         <button id="btnFetch" class="button-fetch" aria-label="重新連線">重新連線</button>
-        <div id="apyContainer">
-            <!-- 表格將在這裡顯示 -->
+        <div id="loadingMessage">執行中，請稍等...</div>
+        <div style="overflow-x: auto">
+            <div id="apyContainer">
+                <!-- 表格將在這裡顯示 -->
+            </div>
         </div>
     </body>
 </html>
