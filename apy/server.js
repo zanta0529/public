@@ -41,11 +41,11 @@ app.get("/run-check", async (req, res) => {
 });
 
 app.get("/:page", (req, res) => {
-    const page = req.params.page;
-    const filePath = path.join(__dirname, `${page}.html`);
+    const safePage = path.basename(req.params.page);
+    const filePath = path.join(__dirname, `${safePage}.html`);
     res.sendFile(filePath, (err) => {
         if (err) {
-            res.status(err.status).end();
+            res.status(err.status || 500).end();
         }
     });
 });

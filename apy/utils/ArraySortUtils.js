@@ -2,9 +2,7 @@ class ArraySortUtils {
     // 根據 APY 排序 (降序)
     static sortByApy(data) {
         return data.sort((a, b) => {
-            const apyA = parseFloat(a.apy.replace("%", ""));
-            const apyB = parseFloat(b.apy.replace("%", ""));
-            return apyB - apyA; // 降序排列
+            return parseFloat(b.apy) - parseFloat(a.apy); // 降序排列
         });
     }
 
