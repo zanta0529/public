@@ -142,7 +142,8 @@
                         <th onclick="sortTable(1)">網站<span class="sort-arrow" id="arrow-1"></span></th>
                         <th onclick="sortTable(2)">狀態<span class="sort-arrow" id="arrow-2"></span></th>
                         <th onclick="sortTable(3)">錯誤訊息<span class="sort-arrow" id="arrow-3"></span></th>
-                        <th onclick="sortTable(4)">檢查時間<span class="sort-arrow" id="arrow-4"></span></th>
+                        <th onclick="sortTable(4)">回應時間<span class="sort-arrow" id="arrow-4"></span></th>
+                        <th onclick="sortTable(5)">執行秒數<span class="sort-arrow" id="arrow-5"></span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -168,9 +169,8 @@
 
                 try {
                     const response = await fetch(`/run-check?direction=${direction}`);
-                    if (!response.ok) {
-                        throw new Error(`Error running check: ${response.statusText}`);
-                    }
+                    if (!response.ok) throw new Error(`Error running check: ${response.statusText}`);
+
                     const results = await response.json();
                     parseResult(results);
                 } catch (error) {
@@ -193,19 +193,24 @@
                 const totalResults = results.length;
                 const digits = totalResults > 0 ? Math.floor(Math.log10(totalResults)) + 1 : 1; // 根據結果數量決定顯示的位數
 
-                results.forEach(({ url, status, message, timestamp }, index) => {
+                const fragment = document.createDocumentFragment(); // 使用 DocumentFragment
+
+                results.forEach(({ url, status, message, timestamp, executionTime }, index) => {
                     const row = document.createElement("tr");
                     const formattedIndex = String(index + 1).padStart(digits, "0"); // 格式化行號
                     row.innerHTML = `
-            <td>${formattedIndex}</td> <!-- 顯示行號 -->
-            <td><a href="${url}" target="_blank">${url}</a></td>
-            <td>${status}</td>
-            <td>${status === "ERROR" ? message : ""}</td>
-            <td>${timestamp || "N/A"}</td>
-        `;
-                    tbody.appendChild(row);
+                        <td>${formattedIndex}</td> <!-- 顯示行號 -->
+                        <td><a href="${url}" target="_blank">${url}</a></td>
+                        <td>${status}</td>
+                        <td>${status === "ERROR" ? message : ""}</td>
+                        <td>${timestamp || "N/A"}</td>
+                        <td>${executionTime || "N/A"}</td>
+                    `;
+                    fragment.appendChild(row); // 將行添加到 DocumentFragment
                     log("INFO", `網站：${url}, 檢查結果：${status}`);
                 });
+
+                tbody.appendChild(fragment); // 一次性將所有行添加到表格
 
                 const hasFailure = results.some((result) => result.status === "ERROR");
                 const resultTitle = document.getElementById("resultTitle");
