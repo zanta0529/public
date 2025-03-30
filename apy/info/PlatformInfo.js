@@ -30,7 +30,7 @@ export default class PlatformInfo {
         {
             id: "Euler",
             website: "https://www.euler.finance/",
-            icon: "https://www.euler.finance/favicon.ico",
+            icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/14280.png",
         },
         {
             id: "Ondo Finance",

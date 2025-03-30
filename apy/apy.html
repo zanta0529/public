@@ -99,8 +99,8 @@
         }
 
         .filter-option img {
-            width: 16px;
-            height: 16px;
+            width: 24px;
+            height: 24px;
             transition: all 0.2s ease;
             filter: grayscale(100%) opacity(0.5);
         }
@@ -128,7 +128,8 @@
 
         .filter-option:hover {
             transform: translateY(-1px);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1),
+                       0 0 0 2px rgba(251, 146, 60, 0.3);
         }
 
         button.button-fetch {
@@ -433,8 +434,8 @@
 
 <body>
     <div class="page-header">
-        <h1>APY Retriever</h1>
-        <button id="btnFetch" class="button-fetch" aria-label="重新連線">重新連線</button>
+        <h1>DeFi APY Retriever</h1>
+        <button id="btnFetch" class="button-fetch" aria-label="擷取最新資料">擷取最新資料</button>
     </div>
 
     <div class="filter-container">
