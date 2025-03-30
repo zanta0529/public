@@ -1,4 +1,3 @@
-import puppeteer from "puppeteer";
 import appConfig from "./app-config.js";
 import log from "./utils/log.js";
 import ArraySortUtils from "./utils/ArraySortUtils.js";
@@ -26,13 +25,6 @@ export default class ApyChecker {
 
     async performCheck() {
         log("\n★★★ Program started.");
-        let browser;
-        try {
-            browser = await puppeteer.launch({ headless: true, timeout: DEFAULT_TIMEOUT });
-        } catch (launchError) {
-            log(`Failed to launch browser: ${launchError.message}`);
-            throw launchError;
-        }
         const results = [];
 
         try {
