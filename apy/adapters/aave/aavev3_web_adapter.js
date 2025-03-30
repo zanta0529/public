@@ -13,7 +13,7 @@ export class AaveV3WebAdapter extends AbstractAaveV3Adapter {
         return vaultConfig;
     }
 
-    async fetchConfigData(config) {
+    async fetchDataImpl(config) {
         const urlWithTimestamp = `${config.url}&_=${Date.now()}`; // 加上 timestamp 防止快取
         try {
             const response = await fetch(urlWithTimestamp, { method: "GET" });

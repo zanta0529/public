@@ -7,7 +7,7 @@ export default class AbstractBeefyAdapter extends BaseAdapter {
         this.responseData = null; // 儲存響應數據
     }
 
-    async fetchData(fetchFunction) {
+    async fetchData() {
         const startTime = performance.now(); // 開始計時
         const timestamp = Date.now();
         const fetchPromises = this.vaultConfig
@@ -18,7 +18,7 @@ export default class AbstractBeefyAdapter extends BaseAdapter {
                 }
 
                 try {
-                    const response = await fetchFunction(config, timestamp);
+                    const response = await this.fetchDataImpl(config, timestamp);
                     this.responseData = response[config.selector];
 
                     if (this.responseData && this.responseData.totalApy !== undefined) {

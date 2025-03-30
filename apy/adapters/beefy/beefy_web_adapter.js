@@ -14,7 +14,7 @@ export class BeefyWebAdapter extends AbstractBeefyAdapter {
     }
 
     async fetchData() {
-        const fetchFunction = async (config, timestamp) => {
+        const fetchDataImpl = async (config, timestamp) => {
             // 使用 fetch 發送請求，並設置 cache control headers
             const response = await fetch(config.url + "?_=" + timestamp, {
                 headers: {
@@ -30,7 +30,7 @@ export class BeefyWebAdapter extends AbstractBeefyAdapter {
             return await response.json(); // 解析 JSON 數據
         };
 
-        return await super.fetchData(fetchFunction);
+        return await super.fetchData(fetchDataImpl);
     }
 }
 

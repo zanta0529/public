@@ -7,7 +7,7 @@ export default class AbstractFluidAdapter extends BaseAdapter {
         this.responseData = null; // 儲存響應數據
     }
 
-    async fetchData(fetchFunction) {
+    async fetchData() {
         const startTime = performance.now(); // 開始計時
         const timestamp = Date.now();
         const fetchPromises = this.vaultConfig
@@ -18,7 +18,7 @@ export default class AbstractFluidAdapter extends BaseAdapter {
                 }
 
                 try {
-                    const response = await fetchFunction(config, timestamp);
+                    const response = await this.fetchDataImpl(config, timestamp);
                     const assetsData = response.data.find((asset) => asset.asset.symbol === `${config.selector}`);
                     if (assetsData) {
                         const apy = (assetsData.totalRate / 100).toFixed(2);

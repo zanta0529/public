@@ -9,7 +9,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 // const __dirname = dirname(__filename);
 
-const DEFAULT_TIMEOUT = 10 * 1000;
+const DEFAULT_TIMEOUT = 5 * 1000;
 
 export default class ApyChecker {
     formatOutput(result) {
@@ -28,7 +28,7 @@ export default class ApyChecker {
         log("\n★★★ Program started.");
         let browser;
         try {
-            browser = await puppeteer.launch({ headless: "new", timeout: DEFAULT_TIMEOUT });
+            browser = await puppeteer.launch({ headless: true, timeout: DEFAULT_TIMEOUT });
         } catch (launchError) {
             log(`Failed to launch browser: ${launchError.message}`);
             throw launchError;
@@ -41,7 +41,7 @@ export default class ApyChecker {
             log(`Enabled adapters: ${enabledAdapters.map(({ name }) => name).join(", ")}`);
 
             const fetchPromises = enabledAdapters.map(async ({ name, adapter }) => {
-                const adapterInstance = new adapter(browser);
+                const adapterInstance = new adapter();
                 try {
                     return await adapterInstance.fetchData();
                 } catch (adapterError) {

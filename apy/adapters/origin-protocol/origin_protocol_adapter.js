@@ -5,9 +5,8 @@ import log from "../../utils/log.js";
 import vaultConfig from "./origin_protocol_vault_config.js";
 
 export default class OriginProtocolAdapter extends AbstractOriginProtocolAdapter {
-    constructor(browser) {
+    constructor() {
         super(OriginProtocolAdapter.loadVaultConfig());
-        this.browser = browser; // 儲存 browser 物件
         log(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
     }
 
@@ -15,7 +14,7 @@ export default class OriginProtocolAdapter extends AbstractOriginProtocolAdapter
         return vaultConfig;
     }
 
-    async fetchConfigData(config) {
+    async fetchDataImpl(config) {
         const urlWithTimestamp = `${config.url}?_=${Date.now()}`; // 加上 timestamp 防止快取
         try {
             const graphQLQuery = this.getGraphQLQuery(config.selector);
@@ -48,6 +47,5 @@ export default class OriginProtocolAdapter extends AbstractOriginProtocolAdapter
         } catch (error) {
             log(`Error fetching data for ${config.coin}: ${error.message}`);
         }
-        return null; // 返回 null 以便過濾
     }
 }

@@ -1,16 +1,32 @@
+import puppeteer from "puppeteer";
 import AbstractAaveV3Adapter from "./abstract_aavev3_adapter.js";
 import vaultConfig from "./aavev3_vault_config.js";
 import log from "../../utils/log.js";
 
+const DEFAULT_TIMEOUT = 10 * 1000;
+
 export default class AaveV3Adapter extends AbstractAaveV3Adapter {
-    constructor(browser) {
+    constructor() {
         super(AaveV3Adapter.loadVaultConfig());
-        this.browser = browser; // 儲存 browser 物件
+        this.initialize();
         log(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
+    }
+
+    async initialize() {
+        await this.init(); // 初始化瀏覽器
     }
 
     static loadVaultConfig() {
         return vaultConfig;
+    }
+
+    async init() {
+        try {
+            this.browser = await puppeteer.launch({ headless: true, timeout: DEFAULT_TIMEOUT });
+        } catch (launchError) {
+            log(`Failed to launch browser: ${launchError.message}`);
+            throw launchError;
+        }
     }
 
     async fetchConfigData(config) {
@@ -22,7 +38,7 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
             try {
                 const page = await this.browser.newPage();
                 await page.goto(urlWithTimestamp, { waitUntil: "networkidle0", timeout: 10000 }); // 增加超時時間
-
+                log("fetching...")
                 const apy = await page.$eval(config.selector, (el) => el.textContent.trim());
                 if (apy) {
                     log(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy} (${config.chain})`);
@@ -38,7 +54,9 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
                         favorite: config.favorite || 0,
                     };
                 }
-            } catch (error) {}
+            } catch (error) {
+                log(`Error fetching data for ${config.coin}: ${error.message}`);
+            }
             attempt++;
         }
         return null; // 返回 null 以便過濾
