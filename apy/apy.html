@@ -8,9 +8,10 @@
     <link rel="stylesheet" href="./utils/Table.css" />
     <style>
         body {
-            font-family: Tahoma, "Microsoft JhengHei", "Microsoft YaHei", "Heiti TC", "sans-serif";
-            margin: 0;
-            padding: 20px;
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 8px;
             background-color: #f9f9f9;
             display: flex;
             flex-direction: column;
@@ -27,8 +28,23 @@
         }
 
         h1 {
-            text-align: center;
+            margin: 0;
+            color: #003d79;
+            font-size: 1.4em;
+        }
+
+        .page-header {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
             margin-bottom: 10px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .page-header h1 {
+            text-align: center;
         }
 
         #apyContainer thead th {
@@ -44,60 +60,61 @@
         .filter-container {
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
         .filter-group {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 4px;
         }
 
         .filter-group-label {
             font-weight: bold;
             color: #003d79;
-            font-size: 1.1em;
+            font-size: 0.85em;
+            margin-bottom: 0;
         }
 
         .filter-options {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            padding: 10px;
-            border-radius: 8px;
+            gap: 4px;
+            padding: 4px;
+            border-radius: 4px;
             background: #f5f5f5;
         }
 
         .filter-option {
             cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
+            padding: 3px 6px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
             background: white;
-            border: 2px solid transparent;
+            border: 1px solid transparent;
         }
 
         .filter-option img {
-            width: 24px;
-            height: 24px;
-            transition: all 0.3s ease;
+            width: 16px;
+            height: 16px;
+            transition: all 0.2s ease;
             filter: grayscale(100%) opacity(0.5);
         }
 
         .filter-option span {
             color: #666;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
+            font-size: 0.8em;
+            transition: all 0.2s ease;
         }
 
         .filter-option.selected {
-            border-color: #007bff;
+            border-color: #2563eb;
             background: #f0f7ff;
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
+            box-shadow: 0 0 4px rgba(37, 99, 235, 0.2);
         }
 
         .filter-option.selected img {
@@ -105,55 +122,82 @@
         }
 
         .filter-option.selected span {
-            color: #003d79;
-            font-weight: bold;
+            color: #1e40af;
+            font-weight: 500;
         }
 
         .filter-option:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
         }
 
-        button {
-            margin-bottom: 20px;
-            height: 40px;
+        button.button-fetch {
+            padding: 8px 16px;
+            height: 36px;
             font-size: 16px;
-            border: none;
+            background-color: #2563eb;
             color: white;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.3s;
-            border-radius: 8px;
-            background-color: #007bff;
+            transition: all 0.2s ease;
+            align-self: center;
+            min-width: 120px;
         }
 
-        .button:hover {
-            background-color: #0056b3;
-            transform: scale(1.01);
-        }
-
-        .button-fetch {
-            background-color: rgb(39, 39, 107);
-            color: yellow;
-            font-size: 16px;
-            margin-bottom: 10px;
+        button.button-fetch:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         #loadingMessage {
+            padding: 6px 12px;
+            font-size: 20px;
+            background: rgba(202, 2, 2, 0.8);
+            color: yellow;
             display: none;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: rgb(156, 6, 6);
-            color: yellow;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
             z-index: 1000;
         }
 
+        #apyContainer {
+            margin-top: 5px;
+        }
+
         @media (max-width: 600px) {
+            body {
+                padding: 4px;
+            }
+
+            .page-header {
+                padding: 4px 8px;
+            }
+
+            h1 {
+                font-size: 1.2em;
+            }
+
+            .filter-options {
+                padding: 2px;
+            }
+
+            .filter-option {
+                padding: 2px 4px;
+            }
+
+            .filter-option img {
+                width: 14px;
+                height: 14px;
+            }
+
+            .filter-option span {
+                font-size: 0.75em;
+            }
+
             table {
                 font-size: 14px;
             }
@@ -388,8 +432,10 @@
 </head>
 
 <body>
-    <h1>APY Retriever</h1>
-    <button id="btnFetch" class="button-fetch" aria-label="重新連線">重新連線</button>
+    <div class="page-header">
+        <h1>APY Retriever</h1>
+        <button id="btnFetch" class="button-fetch" aria-label="重新連線">重新連線</button>
+    </div>
 
     <div class="filter-container">
         <div class="filter-group">
@@ -407,7 +453,7 @@
     </div>
 
     <div id="apyContainer"></div>
-    <div id="loadingMessage">檢查中...</div>
+    <div id="loadingMessage">連線中...</div>
 </body>
 
 </html>
