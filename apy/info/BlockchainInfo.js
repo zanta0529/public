@@ -1,8 +1,6 @@
-// ./info/BlockchainInfo.js
+import * as log from "../utils/log.js";
 
-import log from "../utils/log.js";
-
-export class BlockchainInfo {
+export default class BlockchainInfo {
     static chains = [
         {
             symbol: "Ethereum",
@@ -64,6 +62,4 @@ export class BlockchainInfo {
     }
 }
 
-export default BlockchainInfo;
-
-log("BlockchainInfo 已加載");
+log.info("BlockchainInfo 已加載");

@@ -1,6 +1,6 @@
-import log from "../utils/log.js";
+import * as log from "../utils/log.js";
 
-export class PlatformInfo {
+export default class PlatformInfo {
     static platforms = [
         {
             id: "Aave",
@@ -51,6 +51,4 @@ export class PlatformInfo {
     }
 }
 
-export default PlatformInfo;
-
-log("PlatformInfo 已加載");
+log.info("PlatformInfo 已加載");

@@ -1,8 +1,6 @@
-// ./info/TokenInfo.js
+import * as log from "../utils/log.js";
 
-import log from "../utils/log.js";
-
-export class TokenInfo {
+export default class TokenInfo {
     static tokens = [
         {
             symbol: "USDC",
@@ -74,6 +72,4 @@ export class TokenInfo {
     }
 }
 
-export default TokenInfo;
-
-log("TokenInfo 已加載");
+log.info("TokenInfo 已加載");
