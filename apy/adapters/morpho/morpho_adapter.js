@@ -1,12 +1,12 @@
 import AbstractMorphoAdapter from "./abstract_morpho_adapter.js";
 import vaultConfig from "./morpho_vault_config.js";
-import log from "../../utils/log.js";
+import * as log from "../../utils/log.js";
 
 export default class MorphoAdapter extends AbstractMorphoAdapter {
     constructor(browser) {
         super(MorphoAdapter.loadVaultConfig());
         this.browser = browser; // 儲存 browser 物件
-        log(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
+        log.info(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
     }
 
     static loadVaultConfig() {
@@ -25,7 +25,7 @@ export default class MorphoAdapter extends AbstractMorphoAdapter {
 
                 const apy = await page.$eval(config.selector, (el) => el.textContent.trim());
                 if (apy) {
-                    log(
+                    log.info(
                         `\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy} (${config.chain}) from ${config.vault}`
                     );
                     const waitTime = this.getRandomWaitTime(10, 50); // 隨機等待毫秒數
@@ -41,7 +41,7 @@ export default class MorphoAdapter extends AbstractMorphoAdapter {
                         favorite: config.favorite || 0,
                     };
                 }
-            } catch (error) {}
+            } catch (error) { }
             attempt++;
         }
         return null; // 返回 null 以便過濾

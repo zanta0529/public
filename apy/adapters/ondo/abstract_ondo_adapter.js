@@ -1,5 +1,5 @@
 import BaseAdapter from "../BaseAdapter.js";
-import log from "../../utils/log.js"; // 引入 log 模組
+import * as log from "../../utils/log.js";
 
 export default class AbstractOndoAdapter extends BaseAdapter {
     constructor(vaultConfig) {
@@ -26,7 +26,7 @@ export default class AbstractOndoAdapter extends BaseAdapter {
                     if (assetData) {
                         // 步驟3: 提取並格式化資產信息
                         const apy = assetData.apy.toFixed(2); // 轉換為百分比並保留兩位小數
-                        log(`\t* Fetched APY for ${config.coin}: ${apy}% (${config.chain})`);
+                        log.info(`\t* Fetched APY for ${config.coin}: ${apy}% (${config.chain})`);
 
                         return {
                             platform: config.platform,
@@ -38,10 +38,10 @@ export default class AbstractOndoAdapter extends BaseAdapter {
                             favorite: config.favorite || 0,
                         };
                     } else {
-                        log(`\t* No asset data found for ${config.coin} (${config.chain})`);
+                        log.warn(`\t* No asset data found for ${config.coin} (${config.chain})`);
                     }
                 } catch (error) {
-                    log(`Error fetching data for ${config.coin}: ${error.message}`);
+                    log.error(`Error fetching data for ${config.coin}: ${error.message}`);
                 }
                 return null; // 返回 null 以便過濾
             });
@@ -51,7 +51,7 @@ export default class AbstractOndoAdapter extends BaseAdapter {
 
         const endTime = performance.now(); // 結束計時
         const executionTime = ((endTime - startTime) / 1000).toFixed(2); // 計算執行時間（秒）
-        log(`${this.constructor.name} executed in ${executionTime} seconds`); // 記錄執行時間
+        log.info(`${this.constructor.name} executed in ${executionTime} seconds`); // 記錄執行時間
 
         return results;
     }
@@ -87,7 +87,7 @@ export default class AbstractOndoAdapter extends BaseAdapter {
                 priceUsd: parseFloat(assetData.priceUsd), // 價格（轉換為數字）
             };
         } catch (error) {
-            log("Error parsing asset data: " + error.message);
+            log.error("Error parsing asset data: " + error.message);
             return null; // 若解析失敗，返回 null
         }
     }

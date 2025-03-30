@@ -1,5 +1,5 @@
 import BaseAdapter from "../BaseAdapter.js";
-import log from "../../utils/log.js"; // 引入 log 模組
+import * as log from "../../utils/log.js";
 
 export default class AbstractBeefyAdapter extends BaseAdapter {
     constructor(vaultConfig) {
@@ -23,7 +23,7 @@ export default class AbstractBeefyAdapter extends BaseAdapter {
 
                     if (this.responseData && this.responseData.totalApy !== undefined) {
                         const apy = (this.responseData.totalApy * 100).toFixed(2); // 轉為百分比並保留兩位小數
-                        log(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.selector}`);
+                        log.info(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.selector}`);
                         return {
                             platform: config.platform,
                             chain: config.chain,
@@ -34,10 +34,10 @@ export default class AbstractBeefyAdapter extends BaseAdapter {
                             favorite: config.favorite || 0,
                         };
                     } else {
-                        log(`\t* No APY found for ${config.coin} (${config.chain})(${config.selector})`);
+                        log.warn(`\t* No APY found for ${config.coin} (${config.chain})(${config.selector})`);
                     }
                 } catch (error) {
-                    log(`Error fetching data for ${config.coin}: ${error.message}`);
+                    log.error(`Error fetching data for ${config.coin}: ${error.message}`);
                 }
                 return null; // 返回 null 以便過濾
             });
@@ -46,7 +46,7 @@ export default class AbstractBeefyAdapter extends BaseAdapter {
 
         const endTime = performance.now(); // 結束計時
         const executionTime = ((endTime - startTime) / 1000).toFixed(2); // 計算執行時間（秒）
-        log(`${this.constructor.name} executed in ${executionTime} seconds`); // 記錄執行時間
+        log.info(`${this.constructor.name} executed in ${executionTime} seconds`); // 記錄執行時間
 
         return results;
     }

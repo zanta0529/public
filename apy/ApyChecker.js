@@ -1,5 +1,5 @@
 import appConfig from "./app-config.js";
-import log from "./utils/log.js";
+import * as log from "./utils/log.js";
 import ArraySortUtils from "./utils/ArraySortUtils.js";
 import { fileURLToPath } from "url";
 // import { dirname, join } from "path";
@@ -13,31 +13,31 @@ const DEFAULT_TIMEOUT = 5 * 1000;
 export default class ApyChecker {
     formatOutput(result) {
         if (!result || !result.coin || !result.apy || !result.chain || !result.platform) {
-            log("Invalid result data");
+            log.error("Invalid result data");
             return;
         }
         const { coin, apy, chain, platform, vault } = result;
         const msg = vault
             ? `${coin} ==> apy: ${apy} | chain: ${chain} | platform: ${platform} | vault: ${vault}`
             : `${coin} ==> apy: ${apy} | chain: ${chain} | platform: ${platform}`;
-        log(msg);
+        log.info(msg);
     }
 
     async performCheck() {
-        log("\n★★★ Program started");
+        log.info("★★★ Program started");
         const results = [];
 
         try {
-            log("Checking available adapters...");
+            log.info("Checking available adapters...");
             const enabledAdapters = appConfig.adapters.filter(({ enabled }) => enabled === 1);
-            log(`Enabled adapters: ${enabledAdapters.map(({ name }) => name).join(", ")}`);
+            log.info(`Enabled adapters: ${enabledAdapters.map(({ name }) => name).join(", ")}`);
 
             const fetchPromises = enabledAdapters.map(async ({ name, adapter }) => {
                 const adapterInstance = new adapter();
                 try {
                     return await adapterInstance.fetchData();
                 } catch (adapterError) {
-                    log(`Adapter ${name} failed: ${adapterError.message}`);
+                    log.warn(`Adapter ${name} failed: ${adapterError.message}`);
                     return []; // 返回空陣列以避免 Promise.all 失敗
                 }
             });
@@ -46,13 +46,13 @@ export default class ApyChecker {
             if (Array.isArray(fetchedResults)) {
                 results.push(...fetchedResults.flat());
             } else {
-                log("Fetched results is not an array.");
+                log.warn("Fetched results is not an array, skipping flattening.");
             }
-            log(`Fetched results: ${JSON.stringify(results)}`); // 添加日誌
+            log.info(`Fetched results: ${JSON.stringify(results)}`); // 添加日誌
         } finally {
         }
 
-        log("\n★★★ Program finished.");
+        log.info("★★★ Program finished.");
         return ArraySortUtils.sortByApy(results);
     }
 }
@@ -63,15 +63,14 @@ if (__filename === process.argv[1]) {
     apyChecker
         .performCheck()
         .then((results) => {
-            log("檢查結果:");
+            log.info("檢查結果:");
             if (results.length === 0) {
-                log("沒有獲取到任何結果。");
+                log.warn("沒有獲取到任何結果。");
             } else {
                 results.forEach((result) => apyChecker.formatOutput(result));
             }
         })
         .catch((error) => {
-            console.error("發生錯誤:", error.message);
-            log("檢查失敗: " + error.message, true);
+            log.error("檢查失敗: " + error.message);
         });
 }

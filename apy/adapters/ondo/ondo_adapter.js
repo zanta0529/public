@@ -1,7 +1,7 @@
 import AbstractOndoAdapter from "./abstract_ondo_adapter.js";
 import axios from "axios";
 import https from "https"; // 引入 https 模組
-import log from "../../utils/log.js"; // 引入 log 模組
+import * as log from "../../utils/log.js";
 import vaultConfig from "./ondo_vault_config.js";
 
 export default class OndoAdapter extends AbstractOndoAdapter {

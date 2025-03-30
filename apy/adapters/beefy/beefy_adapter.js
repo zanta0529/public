@@ -1,13 +1,13 @@
 import AbstractBeefyAdapter from "./abstract_beefy_adapter.js";
 import axios from "axios";
 import https from "https"; // 引入 https 模組
-import log from "../../utils/log.js"; // 引入 log 模組
+import * as log from "../../utils/log.js";
 import vaultConfig from "./beefy_vault_config.js";
 
 export default class BeefyAdapter extends AbstractBeefyAdapter {
     constructor() {
         super(BeefyAdapter.loadVaultConfig());
-        log(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
+        log.info(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
     }
 
     static loadVaultConfig() {

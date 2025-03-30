@@ -1,5 +1,5 @@
 import BaseAdapter from "../BaseAdapter.js";
-import log from "../../utils/log.js";
+import * as log from "../../utils/log.js";
 
 export default class AbstractOriginProtocolAdapter extends BaseAdapter {
     constructor(vaultConfig) {
@@ -19,7 +19,7 @@ export default class AbstractOriginProtocolAdapter extends BaseAdapter {
 
         const endTime = performance.now(); // 結束計時
         const executionTime = ((endTime - startTime) / 1000).toFixed(2); // 計算執行時間（秒）
-        log(`${this.constructor.name} executed in ${executionTime} seconds`); // 記錄執行時間
+        log.info(`${this.constructor.name} executed in ${executionTime} seconds`); // 記錄執行時間
 
         return results;
     }
@@ -60,7 +60,7 @@ export default class AbstractOriginProtocolAdapter extends BaseAdapter {
 
                 if (apyData && apyData.apy !== undefined) {
                     const apy = (apyData.apy * 100).toFixed(2); // 轉換為百分比並保留兩位小數
-                    log(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain})`);
+                    log.info(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain})`);
                     return {
                         platform: config.platform,
                         chain: config.chain,
@@ -70,13 +70,13 @@ export default class AbstractOriginProtocolAdapter extends BaseAdapter {
                         favorite: config.favorite || 0,
                     };
                 } else {
-                    log(`\t* No APY found for ${config.coin} (${config.chain})`);
+                    log.warn(`\t* No APY found for ${config.coin} (${config.chain})`);
                 }
             } else {
-                log(`\t* No data available in response for ${config.coin} (${config.chain})`);
+                log.warn(`\t* No data available in response for ${config.coin} (${config.chain})`);
             }
         } else {
-            log("No data found in the response.");
+            log.error("No data found in the response.");
         }
         return null; // 返回 null 以便過濾
     }

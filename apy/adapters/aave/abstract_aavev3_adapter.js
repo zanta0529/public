@@ -1,5 +1,5 @@
 import BaseAdapter from "../BaseAdapter.js";
-import log from "../../utils/log.js";
+import * as log from "../../utils/log.js";
 
 export default class AbstractAaveV3Adapter extends BaseAdapter {
     constructor(vaultConfig) {
@@ -19,7 +19,7 @@ export default class AbstractAaveV3Adapter extends BaseAdapter {
 
         const endTime = performance.now(); // 結束計時
         const executionTime = ((endTime - startTime) / 1000).toFixed(2); // 計算執行時間（秒）
-        log(`${this.constructor.name} executed in ${executionTime} seconds`); // 記錄執行時間
+        log.info(`${this.constructor.name} executed in ${executionTime} seconds`); // 記錄執行時間
 
         return results;
     }

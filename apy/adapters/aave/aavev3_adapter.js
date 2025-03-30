@@ -1,7 +1,7 @@
 import puppeteer from "puppeteer";
 import AbstractAaveV3Adapter from "./abstract_aavev3_adapter.js";
 import vaultConfig from "./aavev3_vault_config.js";
-import log from "../../utils/log.js";
+import * as log from "../../utils/log.js";
 
 const DEFAULT_TIMEOUT = 10 * 1000;
 
@@ -9,7 +9,7 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
     constructor() {
         super(AaveV3Adapter.loadVaultConfig());
         this.initialize();
-        log(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
+        log.info(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
     }
 
     async initialize() {
@@ -24,7 +24,7 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
         try {
             this.browser = await puppeteer.launch({ headless: true, timeout: DEFAULT_TIMEOUT });
         } catch (launchError) {
-            log(`Failed to launch browser: ${launchError.message}`);
+            log.error(`Failed to launch browser: ${launchError.message}`);
             throw launchError;
         }
     }
@@ -38,10 +38,10 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
             try {
                 const page = await this.browser.newPage();
                 await page.goto(urlWithTimestamp, { waitUntil: "networkidle0", timeout: 10000 }); // 增加超時時間
-                log("fetching...")
+
                 const apy = await page.$eval(config.selector, (el) => el.textContent.trim());
                 if (apy) {
-                    log(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy} (${config.chain})`);
+                    log.info(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy} (${config.chain})`);
                     const waitTime = this.getRandomWaitTime(10, 50); // 隨機等待毫秒數
                     await new Promise((resolve) => setTimeout(resolve, waitTime));
                     await page.close();
@@ -55,7 +55,7 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
                     };
                 }
             } catch (error) {
-                log(`Error fetching data for ${config.coin}: ${error.message}`);
+                log.error(`Error fetching data for ${config.coin}: ${error.message}`);
             }
             attempt++;
         }

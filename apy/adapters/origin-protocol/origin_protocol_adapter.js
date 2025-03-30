@@ -1,13 +1,13 @@
 import AbstractOriginProtocolAdapter from "./abstract_origin_protocol_adapter.js";
 import fetch from "node-fetch"; // 引入 node-fetch
 import https from "https"; // 引入 https 模組
-import log from "../../utils/log.js";
+import * as log from "../../utils/log.js";
 import vaultConfig from "./origin_protocol_vault_config.js";
 
 export default class OriginProtocolAdapter extends AbstractOriginProtocolAdapter {
     constructor() {
         super(OriginProtocolAdapter.loadVaultConfig());
-        log(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
+        log.info(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
     }
 
     static loadVaultConfig() {
@@ -38,14 +38,14 @@ export default class OriginProtocolAdapter extends AbstractOriginProtocolAdapter
             });
 
             if (!response.ok) {
-                log(`Fetch error! status: ${response.status} for ${config.coin}`);
+                log.error(`Fetch error! status: ${response.status} for ${config.coin}`);
                 return null;
             }
 
             const data = await response.json();
             return super.processResponseData(data, config);
         } catch (error) {
-            log(`Error fetching data for ${config.coin}: ${error.message}`);
+            log.error(`Error fetching data for ${config.coin}: ${error.message}`);
         }
     }
 }
