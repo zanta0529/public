@@ -24,7 +24,7 @@ export default class ApyChecker {
     }
 
     async performCheck() {
-        log("\n★★★ Program started.");
+        log("\n★★★ Program started");
         const results = [];
 
         try {
@@ -50,16 +50,10 @@ export default class ApyChecker {
             }
             log(`Fetched results: ${JSON.stringify(results)}`); // 添加日誌
         } finally {
-            try {
-                await browser.close(); // 確保關閉瀏覽器
-            } catch (closeError) {
-                log(`Error closing browser: ${closeError.message}`);
-            }
         }
 
-        const finalData = ArraySortUtils.sortByApy(results);
         log("\n★★★ Program finished.");
-        return finalData;
+        return ArraySortUtils.sortByApy(results);
     }
 }
 
