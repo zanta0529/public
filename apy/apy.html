@@ -41,30 +41,48 @@
             background: #d2e9ff;
         }
 
+        .filter-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-weight: bold;
+            color: #003d79;
+        }
+
+        .filter-group select {
+            padding: 8px;
+            border: 1px solid #003d79;
+            border-radius: 4px;
+            background-color: white;
+            min-width: 150px;
+        }
+
         button {
             margin-bottom: 20px;
             height: 40px;
             font-size: 16px;
             border: none;
-            /* 移除邊框 */
             color: white;
-            /* 按鈕文字顏色 */
             cursor: pointer;
-            /* 鼠標懸停時顯示為可點擊 */
             transition: background-color 0.3s, transform 0.3s;
-            /* 添加過渡效果 */
             border-radius: 8px;
-            /* 添加圓角 */
             background-color: #007bff;
-            /* 外網按鈕顏色 */
         }
 
-        /* 懸停效果 */
         .button:hover {
             background-color: #0056b3;
-            /* 按鈕懸停顏色 */
             transform: scale(1.01);
-            /* 按鈕放大效果 */
         }
 
         .button-fetch {
@@ -74,10 +92,8 @@
             margin-bottom: 10px;
         }
 
-        /* 檢查中提示 */
         #loadingMessage {
             display: none;
-            /* 初始隱藏 */
             position: fixed;
             top: 50%;
             left: 50%;
@@ -89,50 +105,117 @@
             font-size: 16px;
             font-weight: bold;
             z-index: 1000;
-            /* 確保在最上層 */
         }
 
-        /* 響應式設計 */
         @media (max-width: 600px) {
             table {
                 font-size: 14px;
-                /* 調整表格字體大小 */
             }
 
             th,
             td {
                 padding: 4px;
-                /* 減少內邊距 */
             }
 
             td {
                 word-wrap: break-word;
-                /* 強制換行 */
                 max-width: 150px;
-                /* 設定最大寬度 */
             }
 
             th:nth-child(3),
             td:nth-child(3) {
-                /* 隱藏狀態列 */
                 display: none;
+            }
+
+            .filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group select {
+                width: 100%;
             }
         }
     </style>
 
     <script type="module">
-        import * as log from "./utils/log.js"; // 導入日誌模組
-        import Table from "./utils/Table.js"; // 導入 Table 類別
-        import BlockChainInfo from "./info/BlockchainInfo.js"; // 導入區塊鏈資訊類別
-        import TokenInfo from "./info/TokenInfo.js"; // 導入代幣資訊類別
-        import PlatformInfo from "./info/PlatformInfo.js"; // 導入平台資訊類別
+        import * as log from "./utils/log.js";
+        import Table from "./utils/Table.js";
+        import BlockchainInfo from "./info/BlockchainInfo.js";
+        import TokenInfo from "./info/TokenInfo.js";
+        import PlatformInfo from "./info/PlatformInfo.js";
 
         let container;
+        let currentData = [];
+
+        function initFilters() {
+            const platformSelect = document.getElementById('platformFilter');
+            const blockchainSelect = document.getElementById('blockchainFilter');
+            const tokenSelect = document.getElementById('tokenFilter');
+
+            // 對平台選項進行排序
+            const sortedPlatforms = [...PlatformInfo.platforms]
+                .sort((a, b) => a.id.localeCompare(b.id));
+
+            // 對區塊鏈選項進行排序
+            const sortedChains = [...BlockchainInfo.chains]
+                .sort((a, b) => a.symbol.localeCompare(b.symbol));
+
+            // 對代幣選項進行排序
+            const sortedTokens = [...TokenInfo.tokens]
+                .sort((a, b) => a.symbol.localeCompare(b.symbol));
+
+            sortedPlatforms.forEach(platform => {
+                const option = document.createElement('option');
+                option.value = platform.id;
+                option.textContent = platform.id;
+                platformSelect.appendChild(option);
+            });
+
+            sortedChains.forEach(chain => {
+                const option = document.createElement('option');
+                option.value = chain.symbol;
+                option.textContent = chain.symbol;
+                blockchainSelect.appendChild(option);
+            });
+
+            sortedTokens.forEach(token => {
+                const option = document.createElement('option');
+                option.value = token.symbol;
+                option.textContent = token.symbol;
+                tokenSelect.appendChild(option);
+            });
+
+            [platformSelect, blockchainSelect, tokenSelect].forEach(select => {
+                select.addEventListener('change', applyFilters);
+            });
+        }
+
+        function applyFilters() {
+            const platformValue = document.getElementById('platformFilter').value;
+            const blockchainValue = document.getElementById('blockchainFilter').value;
+            const tokenValue = document.getElementById('tokenFilter').value;
+
+            const filteredData = currentData.filter(item => {
+                const platformMatch = platformValue === '' || item._raw.platform === platformValue;
+                const blockchainMatch = blockchainValue === '' || item._raw.chain === blockchainValue;
+                const tokenMatch = tokenValue === '' || item._raw.coin === tokenValue;
+                return platformMatch && blockchainMatch && tokenMatch;
+            });
+
+            container.initializeData(filteredData);
+        }
 
         async function initUI() {
             try {
                 log.info("網頁初始化...");
                 container = await initTable();
+                initFilters();
                 log.info("網頁初始化完成");
             } catch (error) {
                 log.error("發生錯誤: " + error.message, true);
@@ -165,33 +248,34 @@
                 return;
             }
             const button = document.getElementById("btnFetch");
-            button.disabled = true; // 禁用按鈕
+            button.disabled = true;
 
             const loadingMessage = document.getElementById("loadingMessage");
-            loadingMessage.style.display = "block"; // 顯示檢查中提示
+            loadingMessage.style.display = "block";
 
-            container.clearData(); // 清除舊資料
+            container.clearData();
 
             const tbody = document.querySelector("#apyContainer tbody");
             if (!tbody) {
-                return; // 退出函數
+                return;
             }
 
-            tbody.innerHTML = ""; // 清空現有內容
+            tbody.innerHTML = "";
 
             try {
                 const response = await fetch("/run-check");
                 if (!response.ok) throw new Error("無法載入資料");
                 const allResults = await response.json();
-                const parsedData = parseData(allResults);
-                container.initializeData(parsedData);
+                currentData = parseData(allResults);
+                container.initializeData(currentData);
+                applyFilters();
                 log.info(`擷取資料完成，總資料數量: ${allResults.length}`);
             } catch (error) {
                 log.error(`擷取資料失敗: ${error.message}`, true);
-                alert(`擷取資料失敗: ${error.message}`); // 在 UI 上顯示錯誤
+                alert(`擷取資料失敗: ${error.message}`);
             } finally {
-                button.disabled = false; // 檢查結束後啟用按鈕
-                loadingMessage.style.display = "none"; // 隱藏檢查中提示
+                button.disabled = false;
+                loadingMessage.style.display = "none";
             }
         }
 
@@ -204,40 +288,58 @@
             return rawdata.map(({ favorite, platform, chain, coin, apy, vault, source }) => ({
                 favorite: favorite ? "❤️" : "",
                 platform: platform
-                    ? `<img src="${PlatformInfo.getPlatformIconUrl(
-                        platform.trim()
-                    )}" title="${platform}" alt="${platform}" width="20px" height="20px" />&nbsp;
-                      <a href="${source}" target="_blank">${platform}</a>`
+                    ? `<img src="${PlatformInfo.getPlatformIconUrl(platform.trim())}" 
+                         title="${platform}" alt="${platform}" width="20px" height="20px" />&nbsp;
+                       <a href="${source}" target="_blank">${platform}</a>`
                     : "-",
                 chain: chain
-                    ? `<img src="${BlockChainInfo.getChainIconUrl(
-                        chain.trim()
-                    )}" title="${chain}" alt="${chain}" width="20px" height="20px" />&nbsp;<span>${chain}</span>`
+                    ? `<img src="${BlockchainInfo.getChainIconUrl(chain.trim())}" 
+                         title="${chain}" alt="${chain}" width="20px" height="20px" />&nbsp;
+                       <span>${chain}</span>`
                     : "",
                 coin: coin
-                    ? `<img src="${TokenInfo.getTokenIconUrl(
-                        coin.trim()
-                    )}" title="${coin}" alt="${coin}" width="20px" height="20px" />&nbsp;<span>${coin}</span>`
+                    ? `<img src="${TokenInfo.getTokenIconUrl(coin.trim())}" 
+                         title="${coin}" alt="${coin}" width="20px" height="20px" />&nbsp;
+                       <span>${coin}</span>`
                     : "",
                 apy: apy ? apy.replaceAll("%", "") : "-",
                 vault: vault ? `<a href="${source}" target="_blank">${vault}</a>` : "-",
+                _raw: { platform, chain, coin } // 保存原始值用於篩選
             }));
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            initUI();
-            document.getElementById("btnFetch").addEventListener("click", loadData);
-        });
+        document.addEventListener("DOMContentLoaded", initUI);
+        document.getElementById("btnFetch").addEventListener("click", loadData);
     </script>
 </head>
 
 <body>
     <h1>APY Retriever</h1>
     <button id="btnFetch" class="button-fetch" aria-label="重新連線">重新連線</button>
-    <div id="loadingMessage">執行中，請稍等...</div>
-    <div id="apyContainer" style="overflow-x: auto">
-        <!-- 表格將在這裡顯示 -->
+
+    <div class="filter-container">
+        <div class="filter-group">
+            <label for="platformFilter">平台：</label>
+            <select id="platformFilter">
+                <option value="">全部</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="blockchainFilter">區塊鏈：</label>
+            <select id="blockchainFilter">
+                <option value="">全部</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="tokenFilter">代幣：</label>
+            <select id="tokenFilter">
+                <option value="">全部</option>
+            </select>
+        </div>
     </div>
+
+    <div id="apyContainer"></div>
+    <div id="loadingMessage">檢查中...</div>
 </body>
 
 </html>
