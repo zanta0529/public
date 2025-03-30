@@ -129,25 +129,34 @@ export default [
     // Polygon
     // --------------------------------------------
     {
-        enabled: 0,
+        enabled: 1,
         platform: "Beefy Finance",
         chain: "Polygon",
         coin: "USDC",
         url: "https://api.beefy.finance/apy/breakdown",
-        selector: "stargate-v2-polygon-usdc",
-        source: "https://app.beefy.com/vault/stargate-v2-polygon-usdc",
+        selector: "morpho-compound-usdc",
+        source: "https://app.beefy.com/vault/morpho-compound-usdc",
     },
     {
-        enabled: 0,
+        enabled: 1,
         platform: "Beefy Finance",
         chain: "Polygon",
         coin: "USDT",
         url: "https://api.beefy.finance/apy/breakdown",
-        selector: "stargate-v2-polygon-usdt",
-        source: "https://app.beefy.com/vault/stargate-v2-polygon-usdt",
+        selector: "morpho-compound-usdt",
+        source: "https://app.beefy.com/vault/morpho-compound-usdt",
     },
     {
-        enabled: 0,
+        enabled: 1,
+        platform: "Beefy Finance",
+        chain: "Polygon",
+        coin: "USDC.e",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "compound-polygon-usdc",
+        source: "https://app.beefy.com/vault/compound-polygon-usdc",
+    },
+    {
+        enabled: 1,
         platform: "Beefy Finance",
         chain: "Polygon",
         coin: "USDT",
@@ -193,5 +202,18 @@ export default [
         url: "https://api.beefy.finance/apy/breakdown",
         selector: "morpho-morpho-eusd",
         source: "https://app.beefy.com/vault/morpho-morpho-eusd",
+    },
+    // --------------------------------------------
+    // Sonic
+    // --------------------------------------------
+    {
+        enabled: 1,
+        platform: "Beefy Finance",
+        chain: "Sonic",
+        coin: "USDC.e",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "aavev3-sonic-usdc.e",
+        source: "https://app.beefy.com/vault/aavev3-sonic-usdc.e",
+        favorite: 0,
     },
 ];

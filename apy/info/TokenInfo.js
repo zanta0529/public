@@ -52,6 +52,11 @@ export default class TokenInfo {
             contract: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",
             icon: "https://etherscan.io/token/images/skyusds_32.svg",
         },
+        {
+            symbol: "USDC.e",
+            contract: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+            icon: "https://sonicscan.org/token/images/usdc_32.png",
+        },
     ];
 
     // 獲取所有代幣的符號列表
