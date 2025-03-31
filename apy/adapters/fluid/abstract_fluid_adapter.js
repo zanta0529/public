@@ -13,16 +13,19 @@ export default class AbstractFluidAdapter extends BaseAdapter {
         const fetchPromises = this.vaultConfig
             .filter((config) => config.enabled === 1) // 過濾啟用的配置
             .map(async (config) => {
-                if (this.responseData !== null) {
-                    return null;
-                }
-
                 try {
-                    const response = await this.fetchDataImpl(config, timestamp);
-                    const assetsData = response.data.find((asset) => asset.asset.symbol === `${config.selector}`);
+                    if (this.responseData === null) {
+                        this.responseData = await this.fetchDataImpl(config, timestamp);
+                    }
+
+                    const assetsData = this.responseData.data.find(
+                        (asset) => asset.asset.symbol === `${config.selector}`
+                    );
                     if (assetsData) {
                         const apy = (assetsData.totalRate / 100).toFixed(2);
-                        log.info(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.selector}`);
+                        log.info(
+                            `\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.selector}`
+                        );
                         return {
                             platform: config.platform,
                             chain: config.chain,

@@ -4,6 +4,7 @@ import * as log from "../../utils/log.js";
 export default class AbstractMorphoAdapter extends BaseAdapter {
     constructor(vaultConfig) {
         super(vaultConfig);
+        this.responseData = null; // 儲存響應數據
     }
 
     async fetchData() {
@@ -12,11 +13,13 @@ export default class AbstractMorphoAdapter extends BaseAdapter {
             .filter((config) => config.enabled === 1) // 過濾啟用的配置
             .map(async (config) => {
                 try {
-                    const response = await this.fetchDataImpl(config);
-                    const netApy = response["dailyApys"].netApy;
+                    if (this.responseData === null) {
+                        this.responseData = await this.fetchDataImpl(config);
+                    }
+                    const apyData = this.responseData["dailyApys"].netApy;
 
-                    if (netApy && netApy !== undefined) {
-                        const apy = (netApy * 100).toFixed(2); // 轉為百分比並保留兩位小數
+                    if (apyData && apyData !== undefined) {
+                        const apy = (apyData * 100).toFixed(2); // 轉為百分比並保留兩位小數
                         log.info(
                             `\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.vault}`
                         );

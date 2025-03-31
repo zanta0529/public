@@ -13,17 +13,17 @@ export default class AbstractBeefyAdapter extends BaseAdapter {
         const fetchPromises = this.vaultConfig
             .filter((config) => config.enabled === 1) // 過濾啟用的配置
             .map(async (config) => {
-                if (this.responseData !== null) {
-                    return null;
-                }
-
                 try {
-                    const response = await this.fetchDataImpl(config, timestamp);
-                    this.responseData = response[config.selector];
+                    if (this.responseData === null) {
+                        this.responseData = await this.fetchDataImpl(config, timestamp);
+                    }
+                    const apyData = this.responseData[config.selector];
 
-                    if (this.responseData && this.responseData.totalApy !== undefined) {
-                        const apy = (this.responseData.totalApy * 100).toFixed(2); // 轉為百分比並保留兩位小數
-                        log.info(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.selector}`);
+                    if (apyData && apyData.totalApy !== undefined) {
+                        const apy = (apyData.totalApy * 100).toFixed(2); // 轉為百分比並保留兩位小數
+                        log.info(
+                            `\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.selector}`
+                        );
                         return {
                             platform: config.platform,
                             chain: config.chain,
