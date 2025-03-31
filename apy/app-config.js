@@ -26,7 +26,7 @@ const appConfig = {
         {
             name: "Morpho Adapter",
             adapter: MorphoAdapter,
-            enabled: 0,
+            enabled: 1,
         },
         {
             name: "Origin Protocol Adapter",

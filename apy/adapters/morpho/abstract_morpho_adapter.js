@@ -4,7 +4,6 @@ import * as log from "../../utils/log.js";
 export default class AbstractMorphoAdapter extends BaseAdapter {
     constructor(vaultConfig) {
         super(vaultConfig);
-        this.responseData = null; // 儲存響應數據
     }
 
     async fetchData() {
@@ -12,7 +11,32 @@ export default class AbstractMorphoAdapter extends BaseAdapter {
         const fetchPromises = this.vaultConfig
             .filter((config) => config.enabled === 1) // 過濾啟用的配置
             .map(async (config) => {
-                return this.fetchConfigData(config);
+                try {
+                    const response = await this.fetchDataImpl(config);
+                    const netApy = response["dailyApys"].netApy;
+
+                    if (netApy && netApy !== undefined) {
+                        const apy = (netApy * 100).toFixed(2); // 轉為百分比並保留兩位小數
+                        log.info(
+                            `\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy}% (${config.chain}), vault: ${config.vault}`
+                        );
+                        return {
+                            platform: config.platform,
+                            chain: config.chain,
+                            coin: config.coin,
+                            apy: `${apy}%`,
+                            source: config.source,
+                            vault: config.vault,
+                            favorite: config.favorite || 0,
+                        };
+                    } else {
+                        log.warn(`\t* No APY found for ${config.coin} (${config.chain})(${config.vault})`);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    log.error(`Error fetching data for ${config.coin}: ${error.message}`);
+                }
+                return null; // 返回 null 以便過濾
             });
 
         const results = (await Promise.all(fetchPromises)).filter((result) => result !== null); // 過濾掉 null 值
@@ -24,7 +48,25 @@ export default class AbstractMorphoAdapter extends BaseAdapter {
         return results;
     }
 
-    async fetchConfigData(config) {
-        throw new Error("fetchConfigData must be implemented in subclasses");
+    getGraphQLQuery() {
+        return `
+            query MyQuery($vaultId: String!) {
+                vault(id: $vaultId) {
+                    id,
+                    address,
+                    name,
+                    asset {
+                        chain { id, network },
+                        symbol,
+                        name
+                    }
+                    dailyApys { apy, netApy },
+                }
+            }
+        `;
+    }
+
+    getGraphQLVaribales(vaultId) {
+        return { vaultId: vaultId };
     }
 }

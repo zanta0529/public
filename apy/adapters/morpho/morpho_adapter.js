@@ -1,11 +1,12 @@
 import AbstractMorphoAdapter from "./abstract_morpho_adapter.js";
 import vaultConfig from "./morpho_vault_config.js";
+import fetch from "node-fetch";
+import https from "https";
 import * as log from "../../utils/log.js";
 
 export default class MorphoAdapter extends AbstractMorphoAdapter {
-    constructor(browser) {
+    constructor() {
         super(MorphoAdapter.loadVaultConfig());
-        this.browser = browser; // 儲存 browser 物件
         log.info(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
     }
 
@@ -13,41 +14,47 @@ export default class MorphoAdapter extends AbstractMorphoAdapter {
         return vaultConfig;
     }
 
-    async fetchConfigData(config) {
-        const urlWithTimestamp = `${config.url}&_=${Date.now()}`; // 加上 timestamp 防止快取
-        const maxRetries = 3; // 最大重試次數
+    async fetchDataImpl(config) {
+        const response = await fetch(config.url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                query: this.getGraphQLQuery(),
+                variables: this.getGraphQLVaribales(config.selector),
+            }),
+            agent: new https.Agent({
+                rejectUnauthorized: false, // 禁用 SSL 憑證驗證
+            }),
+        });
 
-        let attempt = 0;
-        while (attempt < maxRetries) {
-            try {
-                const page = await this.browser.newPage();
-                await page.goto(urlWithTimestamp, { waitUntil: "networkidle0", timeout: 10000 }); // 增加超時時間
-
-                const apy = await page.$eval(config.selector, (el) => el.textContent.trim());
-                if (apy) {
-                    log.info(
-                        `\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy} (${config.chain}) from ${config.vault}`
-                    );
-                    const waitTime = this.getRandomWaitTime(10, 50); // 隨機等待毫秒數
-                    await new Promise((resolve) => setTimeout(resolve, waitTime));
-                    await page.close();
-                    return {
-                        platform: config.platform,
-                        chain: config.chain,
-                        coin: config.coin,
-                        apy: apy,
-                        source: config.url,
-                        vault: config.vault,
-                        favorite: config.favorite || 0,
-                    };
-                }
-            } catch (error) { }
-            attempt++;
+        if (!response.ok) {
+            log.error(`Error fetching data for ${config.coin}: ${response.statusText}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return null; // 返回 null 以便過濾
-    }
 
-    getRandomWaitTime(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+        const data = await response.json();
+        return data.data.vault;
+
+        // Sample response data:
+        // {
+        //     "data": {
+        //         "vault": {
+        //             "id": "2e7f5b9d-ff73-4ddc-996e-d9dda8e03184",
+        //             "address": "0xbb819D845b573B5D7C538F5b85057160cfb5f313",
+        //             "name": "Morpho eUSD",
+        //             "asset": {
+        //                 "chain": { "id": 8453, "network": "base" },
+        //                 "symbol": "eUSD",
+        //                 "name": "Electronic Dollar"
+        //             },
+        //             "dailyApys": {
+        //                 "apy": 0.011541425094546197,
+        //                 "netApy": 0.0886808779162616
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
