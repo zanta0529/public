@@ -185,7 +185,15 @@
 
         <!-- 編輯網站清單的對話框 -->
         <div id="editModal" style="display: none">
-            <h2>編輯網站清單</h2>
+            <h2>編輯網站清單（請務必確認格式須正確）</h2>
+            <p>範例格式：</p>
+            <pre>
+[
+    { "enabled": 1, "direction": "E", "url": "https://www.google.com" },
+    { "enabled": 0, "direction": "E", "url": "https://www.apple.com" },
+    { "enabled": 1, "direction": "I", "url": "https://www.abc.com/backend/login" },
+]
+            </pre>
             <textarea id="editContent"></textarea><br />
             <button id="saveButton" class="button-save">存檔</button>
             <button id="cancelButton" class="button-cancel">取消</button>
@@ -307,13 +315,22 @@
 
             saveButton.onclick = async () => {
                 if (confirm("確定要儲存更改嗎？")) {
-                    const newConfig = editContent.value;
+                    const jsonString = editContent.value; // 獲取 textarea 的值
+                    let newConfig;
+
+                    try {
+                        newConfig = JSON.parse(jsonString); // 嘗試解析 JSON
+                    } catch (error) {
+                        alert("儲存失敗：JSON 格式不正確！請檢查格式。");
+                        return; // 如果格式不正確，終止執行
+                    }
+
                     await fetch("/save-app-config", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
                         },
-                        body: newConfig,
+                        body: JSON.stringify(newConfig), // 將物件轉換為 JSON 字串
                     });
                     alert("儲存成功！");
                     editModal.style.display = "none"; // 隱藏對話框

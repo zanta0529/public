@@ -1,282 +1,277 @@
 [
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "http://audit.twse.com.tw/auth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "http://dspmng.twse.com.tw/auth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "http://isms.twse.com.tw/auth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "http://mng.twse.com.tw"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "http://msgpush.twse.com.tw"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://accessibility.twse.com.tw/zh/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://act.twse.com.tw/ghost/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://act.twse.com.tw/qr/auth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://act.twse.com.tw/qualifiedinvestor/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://act.twse.com.tw/quiz2023_early/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://act.twse.com.tw/R1140314/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://act.twse.com.tw/R1140328/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://act.twse.com.tw/R1140401/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://act.twse.com.tw/squaredelivery/"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "https://actiback.twse.com.tw/qr_back/auth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "https://actiback.twse.com.tw/qr_quest/auth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://auction.twse.com.tw/pvcAuth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "https://ccsp.twse.com.tw/auth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://cgc.twse.com.tw/"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "https://cgcmng.twse.com.tw"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://chat.twse.com.tw/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://colo.twse.com.tw/frontAuth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://data.twse.com.tw/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://dsp.twse.com.tw/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://epaper.twse.com.tw/epaper_static2015/epaper/20240522/zh-epaper.html"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://eshop.twse.com.tw/zh/"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "https://eshopback.twse.com.tw/auth/login"
-  },
-  {
-    "enabled": 0,
-    "direction": "I",
-    "url": "https://esmpweb.twse.com.tw"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://fbmg.twse.com.tw/auth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://infocrm.twse.com.tw/admin/auth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://infosv.twse.com.tw/server-java/t195login_dom?step=0"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://infosv.twse.com.tw/server-java/t195login_ove?step=0"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://infosv.twse.com.tw/server-java/t195login_s?step=0"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://investoredu.twse.com.tw/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://investoredu.twse.com.tw/TSEC_Visit/VisitB/Pages/index.aspx"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "https://investoredum.twse.com.tw/TSEC_BACKEND/Pages/Index.aspx"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "https://investoredum.twse.com.tw/TSEC_VISIT/Sys/Login.aspx"
-  },
-  {
-    "enabled": 1,
-    "direction": "I",
-    "url": "https://licensing.twse.com.tw/"
-  },
-  {
-    "enabled": 0,
-    "direction": "I",
-    "url": "https://mail.twse.com.tw"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://mdp.twse.com.tw/MyDevice"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://member.twse.com.tw/account/zh/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://mlpc.twse.com.tw/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://moa1.twse.com.tw/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://moa2.twse.com.tw/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://openapi.twse.com.tw/#/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://openapi.twse.com.tw/mng/auth/login"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://ques.twse.com.tw"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://reportingbox.twse.com.tw/POP30/WriteMail/CheckMail"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://shl.twse.com.tw/"
-  },
-  {
-    "enabled": 0,
-    "direction": "I",
-    "url": "https://shlmng.twse.com.tw/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://suggestionbox.twse.com.tw/swsfront35/SWSF/SWSF01014.aspx"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://twmonthly.twse.com.tw/front/index"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://webpro.twse.com.tw/webportal/schedule/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://webproserver.twse.com.tw/ContentServer/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://www.twse.com.tw/zh/"
-  },
-  {
-    "enabled": 1,
-    "direction": "E",
-    "url": "https://mis.twse.com.tw"
-  }
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "http://audit.twse.com.tw/auth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "http://dspmng.twse.com.tw/auth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "http://isms.twse.com.tw/auth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "http://mng.twse.com.tw"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "http://msgpush.twse.com.tw"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://accessibility.twse.com.tw/zh/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://act.twse.com.tw/ghost/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://act.twse.com.tw/qr/auth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://act.twse.com.tw/qualifiedinvestor/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://act.twse.com.tw/quiz2023_early/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://act.twse.com.tw/R1140314/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://act.twse.com.tw/R1140328/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://act.twse.com.tw/R1140401/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://act.twse.com.tw/squaredelivery/"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "https://actiback.twse.com.tw/qr_back/auth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "https://actiback.twse.com.tw/qr_quest/auth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://auction.twse.com.tw/pvcAuth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "https://ccsp.twse.com.tw/auth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://cgc.twse.com.tw/"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "https://cgcmng.twse.com.tw"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://chat.twse.com.tw/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://colo.twse.com.tw/frontAuth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://data.twse.com.tw/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://dsp.twse.com.tw/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://epaper.twse.com.tw/epaper_static2015/epaper/20240522/zh-epaper.html"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://eshop.twse.com.tw/zh/"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "https://eshopback.twse.com.tw/auth/login"
+    },
+    {
+        "enabled": 0,
+        "direction": "I",
+        "url": "https://esmpweb.twse.com.tw"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://fbmg.twse.com.tw/auth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://infocrm.twse.com.tw/admin/auth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://infosv.twse.com.tw/server-java/t195login_dom?step=0"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://infosv.twse.com.tw/server-java/t195login_ove?step=0"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://infosv.twse.com.tw/server-java/t195login_s?step=0"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://investoredu.twse.com.tw/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://investoredu.twse.com.tw/TSEC_Visit/VisitB/Pages/index.aspx"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "https://investoredum.twse.com.tw/TSEC_BACKEND/Pages/Index.aspx"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "https://investoredum.twse.com.tw/TSEC_VISIT/Sys/Login.aspx"
+    },
+    {
+        "enabled": 1,
+        "direction": "I",
+        "url": "https://licensing.twse.com.tw/"
+    },
+    {
+        "enabled": 0,
+        "direction": "I",
+        "url": "https://mail.twse.com.tw"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://mdp.twse.com.tw/MyDevice"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://member.twse.com.tw/account/zh/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://mlpc.twse.com.tw/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://moa1.twse.com.tw/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://moa2.twse.com.tw/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://openapi.twse.com.tw/#/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://openapi.twse.com.tw/mng/auth/login"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://ques.twse.com.tw"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://reportingbox.twse.com.tw/POP30/WriteMail/CheckMail"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://shl.twse.com.tw/"
+    },
+    {
+        "enabled": 0,
+        "direction": "I",
+        "url": "https://shlmng.twse.com.tw/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://suggestionbox.twse.com.tw/swsfront35/SWSF/SWSF01014.aspx"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://twmonthly.twse.com.tw/front/index"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://webpro.twse.com.tw/webportal/schedule/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://webproserver.twse.com.tw/ContentServer/"
+    },
+    {
+        "enabled": 1,
+        "direction": "E",
+        "url": "https://www.twse.com.tw/zh/"
+    }
 ]
