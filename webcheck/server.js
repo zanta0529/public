@@ -26,7 +26,7 @@ const log = (status, message) => {
 };
 
 const serverConfig = JSON.parse(await fs.readFile(path.resolve(`${__dirname}/server-config.json`), "utf-8"));
-const appConfig = JSON.parse(await fs.readFile(path.resolve(`${__dirname}/app-config.json`), "utf-8"));
+let appConfig = null;
 
 const app = express();
 const port = serverConfig.port || 10000;
@@ -34,9 +34,14 @@ const limit = pLimit(serverConfig.maxProcess);
 const timeout = serverConfig.timeout || 3000;
 
 app.use(express.static(path.join(__dirname, serverConfig.staticPath)));
+app.use(express.json());
 
 app.get("/run-check", async (req, res) => {
     try {
+        // 每次執行時先讀取最新的 app-config.json
+        await readConfig();
+        log("INFO", `Loaded app-config.json, item(s) = ${appConfig.length}`);
+
         const startTime = performance.now();
         const direction = req.query.direction;
         const results = await checkWebsites(appConfig, direction);
@@ -50,6 +55,39 @@ app.get("/run-check", async (req, res) => {
         res.status(500).send(`An error occurred: ${error.message}`);
     }
 });
+
+// 獲取 app-config.json
+app.get("/get-app-config", async (req, res) => {
+    try {
+        await readConfig();
+        res.json(appConfig);
+    } catch (error) {
+        res.status(500).send(`Error reading app-config.json: ${error.message}`);
+    }
+});
+
+// 儲存 app-config.json
+app.post("/save-app-config", async (req, res) => {
+    try {
+        const newConfig = req.body; // 獲取新的配置
+        await fs.writeFile(path.resolve(`${__dirname}/app-config.json`), JSON.stringify(newConfig, null, 2));
+
+        // 重新載入 app-config.json
+        appConfig = JSON.parse(await fs.readFile(path.resolve(`${__dirname}/app-config.json`), "utf-8"));
+
+        res.send("Config saved successfully");
+    } catch (error) {
+        res.status(500).send(`Error saving app-config.json: ${error.message}`);
+    }
+});
+
+const readConfig = async () => {
+    try {
+        appConfig = JSON.parse(await fs.readFile(path.resolve(`${__dirname}/app-config.json`), "utf-8"));
+    } catch (error) {
+        log("ERROR", `Error reading app-config.json: ${error.message}`);
+    }
+};
 
 const agent = new https.Agent({ rejectUnauthorized: false });
 

@@ -53,17 +53,33 @@
             .button-external {
                 background-color: #007bff; /* 外網按鈕顏色 */
             }
-            .button-internal {
-                background-color: #d18119; /* 內網按鈕顏色 */
-            }
-            /* 懸停效果 */
             .button-external:hover {
                 background-color: #0056b3; /* 外網按鈕懸停顏色 */
                 transform: scale(1.01); /* 按鈕放大效果 */
             }
+            .button-internal {
+                background-color: #d18119; /* 內網按鈕顏色 */
+            }
             .button-internal:hover {
                 background-color: #6e450e; /* 內網按鈕懸停顏色 */
                 transform: scale(1.01); /* 按鈕放大效果 */
+            }
+            .button-edit {
+                background-color: rgb(92, 3, 92); /* 編輯按鈕顏色 */
+            }
+            .button-save {
+                background-color: green; /* 存檔按鈕顏色 */
+            }
+            .button-cancel {
+                background-color: red; /* 取消按鈕顏色 */
+            }
+            .button-save:hover {
+                background-color: darkgreen; /* 存檔按鈕懸停顏色 */
+                transform: scale(1.01);
+            }
+            .button-cancel:hover {
+                background-color: darkred; /* 取消按鈕懸停顏色 */
+                transform: scale(1.01);
             }
             #log {
                 margin-top: auto;
@@ -93,6 +109,15 @@
             }
             #resultsTable th {
                 text-align: center;
+            }
+            #editContent {
+                width: 90%;
+                height: 300px;
+                font-family: "Consolas", "sans-serif";
+                font-size: 16px;
+                padding: 10px;
+                border-radius: 8px;
+                border: 1px solid #ddd;
             }
             /* 檢查中提示 */
             #loadingMessage {
@@ -133,6 +158,7 @@
     <body>
         <h1 id="resultTitle">網站檢查結果</h1>
         <button id="checkButton">執行網站檢查</button>
+        <button id="editButton" class="button-edit">編輯網站清單</button>
         <div id="loadingMessage">檢查中，請稍等...</div>
         <div style="overflow-x: auto">
             <table id="resultsTable">
@@ -155,6 +181,14 @@
         <h3>執行紀錄</h3>
         <div id="log">
             <div id="logMessages"></div>
+        </div>
+
+        <!-- 編輯網站清單的對話框 -->
+        <div id="editModal" style="display: none">
+            <h2>編輯網站清單</h2>
+            <textarea id="editContent"></textarea><br />
+            <button id="saveButton" class="button-save">存檔</button>
+            <button id="cancelButton" class="button-cancel">取消</button>
         </div>
 
         <script>
@@ -255,6 +289,42 @@
                 button.className = isInternalIP ? "button-internal" : "button-external";
                 button.onclick = () => runCheck(isInternalIP ? "I" : "E");
             }
+
+            // 新增編輯網站清單的功能
+            const editButton = document.getElementById("editButton");
+            const editModal = document.getElementById("editModal");
+            const editContent = document.getElementById("editContent");
+            const saveButton = document.getElementById("saveButton");
+            const cancelButton = document.getElementById("cancelButton");
+
+            editButton.onclick = async () => {
+                const response = await fetch("/get-app-config"); // 獲取當前的 app-config.json
+                const config = await response.json();
+                editContent.value = JSON.stringify(config, null, 2); // 格式化顯示
+                editModal.style.display = "block"; // 顯示編輯對話框
+                editContent.focus(); // 移動焦點到編輯區域
+            };
+
+            saveButton.onclick = async () => {
+                if (confirm("確定要儲存更改嗎？")) {
+                    const newConfig = editContent.value;
+                    await fetch("/save-app-config", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: newConfig,
+                    });
+                    alert("儲存成功！");
+                    editModal.style.display = "none"; // 隱藏對話框
+                    document.getElementById("resultTitle").focus(); // 將焦點移回頁面最上方
+                }
+            };
+
+            cancelButton.onclick = () => {
+                editModal.style.display = "none"; // 隱藏對話框
+                document.getElementById("resultTitle").focus(); // 將焦點移回頁面最上方
+            };
 
             // 在網頁載入時執行
             window.onload = () => {
