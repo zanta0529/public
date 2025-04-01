@@ -11,8 +11,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.8.4",
     "express": "^4.21.2",
-    "node-fetch": "^3.3.2",
     "p-limit": "^6.2.0",
     "web-services-status-checker": "file:"
   }

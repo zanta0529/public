@@ -1,7 +1,7 @@
 import express from "express";
 import fs from "fs/promises";
 import https from "https";
-import fetch from "node-fetch";
+import axios from "axios";
 import pLimit from "p-limit";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -31,7 +31,7 @@ let appConfig = null;
 const app = express();
 const port = serverConfig.port || 10000;
 const limit = pLimit(serverConfig.maxProcess);
-const timeout = serverConfig.timeout || 3000;
+const timeout = serverConfig.timeout || 5000;
 
 app.use(express.static(path.join(__dirname, serverConfig.staticPath)));
 app.use(express.json());
@@ -39,7 +39,7 @@ app.use(express.json());
 app.get("/run-check", async (req, res) => {
     try {
         // 每次執行時先讀取最新的 app-config.json
-        await readConfig();
+        await readAppConfig();
         log("INFO", `Loaded app-config.json, item(s) = ${appConfig.length}`);
 
         const startTime = performance.now();
@@ -59,7 +59,7 @@ app.get("/run-check", async (req, res) => {
 // 獲取 app-config.json
 app.get("/get-app-config", async (req, res) => {
     try {
-        await readConfig();
+        await readAppConfig();
         res.json(appConfig);
     } catch (error) {
         res.status(500).send(`Error reading app-config.json: ${error.message}`);
@@ -81,7 +81,7 @@ app.post("/save-app-config", async (req, res) => {
     }
 });
 
-const readConfig = async () => {
+const readAppConfig = async () => {
     try {
         appConfig = JSON.parse(await fs.readFile(path.resolve(`${__dirname}/app-config.json`), "utf-8"));
     } catch (error) {
@@ -93,19 +93,16 @@ const agent = new https.Agent({ rejectUnauthorized: false });
 
 const performCheck = async (url) => {
     const timestamp = getCurrentTimestamp();
-    const isHttps = url.trim().startsWith("https://");
-    const controller = new AbortController();
 
     for (let attempts = 0; attempts <= serverConfig.retry; attempts++) {
         try {
             const startTime = performance.now();
             const validUrl = new URL(url);
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
-            const response = await fetch(validUrl, {
-                agent: isHttps ? agent : undefined,
-                signal: controller.signal,
+
+            const response = await axios.get(validUrl.toString(), {
+                httpsAgent: agent,
+                timeout: timeout,
             });
-            clearTimeout(timeoutId);
 
             const executionTime = ((performance.now() - startTime) / 1000).toFixed(2);
             log("INFO", `Checking URL: ${validUrl}... [${executionTime} seconds]`);
@@ -116,7 +113,7 @@ const performCheck = async (url) => {
                 "ERROR",
                 `Attempt ${attempts + 1}: Error during performing website "${url}" checks. Error message: ${
                     error.message
-                }, Stack trace: ${error.stack}`
+                }`
             );
             if (attempts >= serverConfig.retry) {
                 return { url, status: "ERROR", message: error.message, timestamp };
