@@ -154,6 +154,7 @@
                 }
             }
         </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
     </head>
     <body>
         <h1 id="resultTitle">網站檢查結果</h1>
@@ -309,6 +310,43 @@
             const cancelButton = document.getElementById("cancelButton");
 
             editButton.onclick = async () => {
+                let verifiedResult = false;
+
+                // 提示用戶輸入密碼
+                const password = prompt("請輸入編輯密碼：");
+                if (password) {
+                    // 將密碼轉換為 MD5
+                    const hashedPassword = CryptoJS.MD5(password).toString();
+
+                    // 發送到伺服器進行驗證
+                    await fetch("/verify-password", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ password: hashedPassword }),
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data.success) {
+                                // 密碼正確，顯示編輯畫面
+                                verifiedResult = true;
+                            } else {
+                                // 密碼錯誤，顯示警告
+                                verifiedResult = false;
+                                alert("密碼錯誤，請再試一次！");
+                            }
+                        })
+                        .catch((error) => {
+                            log.error("ERROR", "密碼驗證失敗：" + error);
+                            verifiedResult = false;
+                        });
+                }
+
+                if (!verifiedResult) {
+                    return; // 如果密碼驗證失敗，終止執行
+                }
+
                 const response = await fetch("/get-app-config"); // 獲取當前的 app-config.json
                 const config = await response.json();
                 editContent.value = JSON.stringify(config, null, 2); // 格式化顯示

@@ -81,6 +81,20 @@ app.post("/save-app-config", async (req, res) => {
     }
 });
 
+// 驗證密碼的路由
+app.post("/verify-password", (req, res) => {
+    const { password } = req.body;
+
+    // 檢查密碼是否正確
+    if (password === "a447d9096b6cb207f05346c9cc0567fa") {
+        log("INFO", "Password verified successfully.");
+        res.json({ success: true });
+    } else {
+        log("ERROR", "Password verification failed.");
+        res.json({ success: false });
+    }
+});
+
 const readAppConfig = async () => {
     try {
         appConfig = JSON.parse(await fs.readFile(path.resolve(`${__dirname}/app-config.json`), "utf-8"));
