@@ -25,7 +25,7 @@ export default class PlatformInfo {
         {
             id: "Morpho",
             website: "https://app.morpho.org/",
-            icon: "https://pbs.twimg.com/profile_images/1712024635590455296/ksuEkiF7_400x400.jpg",
+            icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/34104.png",
         },
         {
             id: "Euler",
