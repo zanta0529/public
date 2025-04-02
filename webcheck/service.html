@@ -292,8 +292,11 @@
                     hostname.match(/^10\.\d{1,3}\./) ||
                     hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./);
 
+                const webTitle = isInternalIP ? "執行網站檢查（從內網）" : "執行網站檢查（從外網）";
+                window.document.title = webTitle; // 更新網頁標題
+
                 const button = document.getElementById("checkButton");
-                button.textContent = isInternalIP ? "執行網站檢查（從內網）" : "執行網站檢查（從外網）";
+                button.textContent = webTitle;
                 button.className = isInternalIP ? "button-internal" : "button-external";
                 button.onclick = () => runCheck(isInternalIP ? "I" : "E");
             }
