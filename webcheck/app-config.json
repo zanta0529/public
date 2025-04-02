@@ -270,7 +270,7 @@
         "url": "https://twmonthly.twse.com.tw/front/index"
     },
     {
-        "enabled": 1,
+        "enabled": 0,
         "direction": "E",
         "url": "https://twse-regulation.twse.com.tw"
     },
