@@ -77,7 +77,7 @@ export default [
         url: "https://api.beefy.finance/apy/breakdown",
         selector: "morpho-smokehouse-usdc",
         source: "https://app.beefy.com/vault/morpho-smokehouse-usdc",
-        favorite: 1,
+        favorite: 0,
     },
     {
         enabled: 1,
@@ -187,5 +187,15 @@ export default [
         selector: "aavev3-sonic-usdc.e",
         source: "https://app.beefy.com/vault/aavev3-sonic-usdc.e",
         favorite: 0,
+    },
+    {
+        enabled: 1,
+        platform: "Beefy Finance",
+        chain: "Sonic",
+        coin: "USDC.e",
+        url: "https://api.beefy.finance/apy/breakdown",
+        selector: "swapx-ichi-ws-usdc.e-usdc.e",
+        source: "https://app.beefy.com/vault/swapx-ichi-ws-usdc.e-usdc.e",
+        favorite: 1,
     },
 ];
