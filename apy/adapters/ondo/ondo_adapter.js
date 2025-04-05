@@ -1,7 +1,6 @@
 import AbstractOndoAdapter from "./abstract_ondo_adapter.js";
 import axios from "axios";
 import https from "https"; // 引入 https 模組
-import * as log from "../../utils/log.js";
 import vaultConfig from "./ondo_vault_config.js";
 import { CACHE_DURATION_SECONDS } from "../../ApyChecker.js";
 
@@ -31,14 +30,13 @@ export default class OndoAdapter extends AbstractOndoAdapter {
         return await super.fetchData(this.fetchDataImpl.bind(this));
     }
 
-    async fetchDataImpl(config, timestamp) {
-        const url = config.url + "?_=" + timestamp;
+    async fetchDataImpl(config) {
         const cacheKey = `ondo_${config.url}`;
 
         return this.fetchWithRetry(
             async () => {
                 // const startTime = performance.now();
-                const response = await this.axiosInstance.get(url);
+                const response = await this.axiosInstance.get(config.url);
                 // const endTime = performance.now();
                 // log.info(`Fetched data from ${url} in ${((endTime - startTime) / 1000).toFixed(2)}s`);
 

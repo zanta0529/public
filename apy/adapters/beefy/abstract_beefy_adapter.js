@@ -9,13 +9,12 @@ export default class AbstractBeefyAdapter extends BaseAdapter {
 
     async fetchData() {
         const startTime = performance.now(); // 開始計時
-        const timestamp = Date.now();
         const fetchPromises = this.vaultConfig
             .filter((config) => config.enabled === 1) // 過濾啟用的配置
             .map(async (config) => {
                 try {
                     if (this.responseData === null) {
-                        this.responseData = await this.fetchDataImpl(config, timestamp);
+                        this.responseData = await this.fetchDataImpl(config);
                     }
                     const apyData = this.responseData[config.selector];
 

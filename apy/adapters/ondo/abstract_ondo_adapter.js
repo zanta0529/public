@@ -9,7 +9,6 @@ export default class AbstractOndoAdapter extends BaseAdapter {
 
     async fetchData(fetchFunction) {
         const startTime = performance.now(); // 開始計時
-        const timestamp = Date.now();
         const fetchPromises = this.vaultConfig
             .filter((config) => config.enabled === 1) // 過濾啟用的配置
             .map(async (config) => {
@@ -19,7 +18,7 @@ export default class AbstractOndoAdapter extends BaseAdapter {
 
                 try {
                     // 步驟1: 發送請求來抓取網頁或API資料
-                    const response = await fetchFunction(config, timestamp);
+                    const response = await fetchFunction(config);
 
                     // 步驟2: 提取資產信息，假設 response 是 HTML 內容
                     const assetData = this.extractAssetData(response, config);

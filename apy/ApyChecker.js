@@ -16,7 +16,7 @@ const serverConfigPath = path.join(__dirname, 'server-config.json');
 const serverConfig = JSON.parse(fs_sync.readFileSync(serverConfigPath, 'utf8'));
 
 // Global cache configuration
-export const DEFAULT_TIMEOUT = 5 * 1000;
+export const DEFAULT_TIMEOUT = 15 * 1000;
 export const CACHE_DURATION_SECONDS = serverConfig["cache-ttl-seconds"] || 300; // Default to 5 minutes if not specified
 export const CACHE_DURATION = CACHE_DURATION_SECONDS; // For backward compatibility
 export const CACHE_CHECK_PERIOD = 120; // Cache check period in seconds

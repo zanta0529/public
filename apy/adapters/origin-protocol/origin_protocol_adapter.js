@@ -1,7 +1,6 @@
 import AbstractOriginProtocolAdapter from "./abstract_origin_protocol_adapter.js";
 import axios from "axios";
 import https from "https";
-import * as log from "../../utils/log.js";
 import vaultConfig from "./origin_protocol_vault_config.js";
 import { CACHE_DURATION_SECONDS } from "../../ApyChecker.js";
 

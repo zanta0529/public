@@ -2,7 +2,6 @@ import AbstractMorphoAdapter from "./abstract_morpho_adapter.js";
 import vaultConfig from "./morpho_vault_config.js";
 import axios from "axios";
 import https from "https";
-import * as log from "../../utils/log.js";
 import { CACHE_DURATION_SECONDS } from "../../ApyChecker.js";
 
 export default class MorphoAdapter extends AbstractMorphoAdapter {

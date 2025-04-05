@@ -1,7 +1,6 @@
 import AbstractBeefyAdapter from "./abstract_beefy_adapter.js";
 import axios from "axios";
 import https from "https"; // 引入 https 模組
-import * as log from "../../utils/log.js";
 import vaultConfig from "./beefy_vault_config.js";
 import { CACHE_DURATION_SECONDS } from "../../ApyChecker.js";
 
@@ -27,14 +26,13 @@ export default class BeefyAdapter extends AbstractBeefyAdapter {
         return vaultConfig;
     }
 
-    async fetchDataImpl(config, timestamp) {
-        const url = config.url + "?_=" + timestamp;
+    async fetchDataImpl(config) {
         const cacheKey = `beefy_${config.url}`;
 
         return this.fetchWithRetry(
             async () => {
                 // const startTime = performance.now();
-                const response = await this.axiosInstance.get(url);
+                const response = await this.axiosInstance.get(config.url);
                 // const endTime = performance.now();
                 // log.info(`Fetched data from ${url} in ${((endTime - startTime) / 1000).toFixed(2)}s`);
 
@@ -42,8 +40,8 @@ export default class BeefyAdapter extends AbstractBeefyAdapter {
             },
             cacheKey,
             {
-                retries: 2,
-                delay: 2000,
+                retries: 3,
+                delay: 1000,
                 cacheTTL: CACHE_DURATION_SECONDS * 1000 // Use global cache TTL configuration
             }
         );
