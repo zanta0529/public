@@ -1,3 +1,6 @@
+import { CACHE_DURATION_SECONDS, DEFAULT_RETRY_COUNT, DEFAULT_RETRY_DELAY } from "../ApyChecker.js";
+import * as log from "../utils/log.js";
+
 export default class BaseAdapter {
     constructor(vaultConfig) {
         if (!Array.isArray(vaultConfig)) {
@@ -5,8 +8,10 @@ export default class BaseAdapter {
         }
         this.vaultConfig = vaultConfig;
         this.cache = new Map(); // Memory cache for API responses
-        this.retryCount = 3; // Default retry count
-        this.retryDelay = 1000; // Default retry delay in ms
+        this.retryCount = DEFAULT_RETRY_COUNT; // Use global retry count
+        this.retryDelay = DEFAULT_RETRY_DELAY; // Use global retry delay in ms
+
+        log.info(`${this.constructor.name} initialized with cache TTL: ${CACHE_DURATION_SECONDS} seconds`);
     }
 
     async fetchData(config) {
@@ -24,7 +29,11 @@ export default class BaseAdapter {
 
     // Helper method to fetch with retry logic
     async fetchWithRetry(fetcher, cacheKey = null, options = {}) {
-        const { retries = this.retryCount, delay = this.retryDelay, cacheTTL = 300000 } = options;
+        const {
+            retries = this.retryCount,
+            delay = this.retryDelay,
+            cacheTTL = CACHE_DURATION_SECONDS * 1000 // Convert seconds to milliseconds
+        } = options;
 
         // Check cache first if cacheKey is provided
         if (cacheKey && this.cache.has(cacheKey)) {

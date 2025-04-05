@@ -3,11 +3,11 @@ import vaultConfig from "./morpho_vault_config.js";
 import axios from "axios";
 import https from "https";
 import * as log from "../../utils/log.js";
+import { CACHE_DURATION_SECONDS } from "../../ApyChecker.js";
 
 export default class MorphoAdapter extends AbstractMorphoAdapter {
     constructor() {
         super(MorphoAdapter.loadVaultConfig());
-        log.info(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
 
         // Configure axios instance with defaults
         this.axiosInstance = axios.create({
@@ -33,16 +33,15 @@ export default class MorphoAdapter extends AbstractMorphoAdapter {
 
         return this.fetchWithRetry(
             async () => {
-                log.info(`Fetching data from ${config.url} for ${config.coin}`);
-                const startTime = performance.now();
+                // const startTime = performance.now();
 
                 const response = await this.axiosInstance.post(config.url, {
                     query: this.getGraphQLQuery(),
                     variables: this.getGraphQLVaribales(config.selector)
                 });
 
-                const endTime = performance.now();
-                log.info(`Fetched data from ${config.url} in ${((endTime - startTime) / 1000).toFixed(2)}s`);
+                // const endTime = performance.now();
+                // log.info(`Fetched data from ${config.url} in ${((endTime - startTime) / 1000).toFixed(2)}s`);
 
                 if (response.status !== 200) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -54,7 +53,7 @@ export default class MorphoAdapter extends AbstractMorphoAdapter {
             {
                 retries: 2,
                 delay: 2000,
-                cacheTTL: 5 * 60 * 1000 // 5 minutes cache
+                cacheTTL: CACHE_DURATION_SECONDS * 1000 // Use global cache TTL configuration
             }
         );
     }

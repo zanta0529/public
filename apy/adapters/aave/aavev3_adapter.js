@@ -2,13 +2,13 @@ import puppeteer from "puppeteer";
 import AbstractAaveV3Adapter from "./abstract_aavev3_adapter.js";
 import vaultConfig from "./aavev3_vault_config.js";
 import * as log from "../../utils/log.js";
+import { DEFAULT_TIMEOUT as GLOBAL_DEFAULT_TIMEOUT, CACHE_DURATION_SECONDS } from "../../ApyChecker.js";
 
-const DEFAULT_TIMEOUT = 10 * 1000;
+const DEFAULT_TIMEOUT = 10 * 1000; // Keep local timeout for puppeteer operations
 
 export default class AaveV3Adapter extends AbstractAaveV3Adapter {
     constructor() {
         super(AaveV3Adapter.loadVaultConfig());
-        log.info(`Initializing ${this.constructor.name}`);
 
         // Browser configuration will be initialized lazily
         this.browser = null;
@@ -65,9 +65,7 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
 
         return this.fetchWithRetry(
             async () => {
-                const startTime = performance.now();
-                log.info(`Fetching data from ${config.url} for ${config.coin}`);
-
+                // const startTime = performance.now();
                 const browser = await this.getBrowser();
                 const page = await browser.newPage();
 
@@ -90,8 +88,8 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
                 // Close the page to free resources
                 await page.close();
 
-                const endTime = performance.now();
-                log.info(`Fetched data for ${config.coin} in ${((endTime - startTime) / 1000).toFixed(2)}s`);
+                // const endTime = performance.now();
+                // log.info(`Fetched data for ${config.coin} in ${((endTime - startTime) / 1000).toFixed(2)}s`);
 
                 if (!apy) {
                     throw new Error(`No APY data found for ${config.coin}`);
@@ -110,7 +108,7 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
             {
                 retries: 2,
                 delay: 2000,
-                cacheTTL: 5 * 60 * 1000 // 5 minutes cache
+                cacheTTL: CACHE_DURATION_SECONDS * 1000 // Use global cache TTL configuration
             }
         );
     }

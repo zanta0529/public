@@ -3,11 +3,11 @@ import axios from "axios";
 import https from "https"; // 引入 https 模組
 import * as log from "../../utils/log.js";
 import vaultConfig from "./ondo_vault_config.js";
+import { CACHE_DURATION_SECONDS } from "../../ApyChecker.js";
 
 export default class OndoAdapter extends AbstractOndoAdapter {
     constructor() {
         super(OndoAdapter.loadVaultConfig());
-        log.info(`Initializing ${this.constructor.name}`);
 
         // Configure axios instance with defaults
         this.axiosInstance = axios.create({
@@ -37,13 +37,10 @@ export default class OndoAdapter extends AbstractOndoAdapter {
 
         return this.fetchWithRetry(
             async () => {
-                log.info(`Fetching data from ${url}`);
-                const startTime = performance.now();
-
+                // const startTime = performance.now();
                 const response = await this.axiosInstance.get(url);
-
-                const endTime = performance.now();
-                log.info(`Fetched data from ${url} in ${((endTime - startTime) / 1000).toFixed(2)}s`);
+                // const endTime = performance.now();
+                // log.info(`Fetched data from ${url} in ${((endTime - startTime) / 1000).toFixed(2)}s`);
 
                 return response.data;
             },
@@ -51,7 +48,7 @@ export default class OndoAdapter extends AbstractOndoAdapter {
             {
                 retries: 2,
                 delay: 2000,
-                cacheTTL: 5 * 60 * 1000 // 5 minutes cache
+                cacheTTL: CACHE_DURATION_SECONDS * 1000 // Use global cache TTL configuration
             }
         );
     }

@@ -3,11 +3,11 @@ import axios from "axios";
 import https from "https";
 import * as log from "../../utils/log.js";
 import vaultConfig from "./origin_protocol_vault_config.js";
+import { CACHE_DURATION_SECONDS } from "../../ApyChecker.js";
 
 export default class OriginProtocolAdapter extends AbstractOriginProtocolAdapter {
     constructor() {
         super(OriginProtocolAdapter.loadVaultConfig());
-        log.info(`Initializing ${this.constructor.name}`);
 
         // Configure axios instance with defaults
         this.axiosInstance = axios.create({
@@ -37,16 +37,14 @@ export default class OriginProtocolAdapter extends AbstractOriginProtocolAdapter
 
         return this.fetchWithRetry(
             async () => {
-                log.info(`Fetching data from ${config.url} for ${config.coin}`);
-                const startTime = performance.now();
-
+                // const startTime = performance.now();
                 const graphQLQuery = this.getGraphQLQuery(config.selector);
                 const response = await this.axiosInstance.post(config.url, {
                     query: graphQLQuery
                 });
 
-                const endTime = performance.now();
-                log.info(`Fetched data from ${config.url} in ${((endTime - startTime) / 1000).toFixed(2)}s`);
+                // const endTime = performance.now();
+                // log.info(`Fetched data from ${config.url} in ${((endTime - startTime) / 1000).toFixed(2)}s`);
 
                 if (response.status !== 200) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -58,7 +56,7 @@ export default class OriginProtocolAdapter extends AbstractOriginProtocolAdapter
             {
                 retries: 2,
                 delay: 2000,
-                cacheTTL: 5 * 60 * 1000 // 5 minutes cache
+                cacheTTL: CACHE_DURATION_SECONDS * 1000 // Use global cache TTL configuration
             }
         );
     }

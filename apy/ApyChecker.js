@@ -5,20 +5,35 @@ import { fileURLToPath } from "url";
 import { promises as fs } from "fs";
 import path from "path";
 import NodeCache from "node-cache";
+import fs_sync from "fs";
 
 // 將 import.meta.url 轉換為文件系統路徑
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DEFAULT_TIMEOUT = 5 * 1000;
-const CACHE_DURATION = 5 * 60; // 5 minutes cache
+// Read server config synchronously
+const serverConfigPath = path.join(__dirname, 'server-config.json');
+const serverConfig = JSON.parse(fs_sync.readFileSync(serverConfigPath, 'utf8'));
+
+// Global cache configuration
+export const DEFAULT_TIMEOUT = 5 * 1000;
+export const CACHE_DURATION_SECONDS = serverConfig["cache-ttl-seconds"] || 300; // Default to 5 minutes if not specified
+export const CACHE_DURATION = CACHE_DURATION_SECONDS; // For backward compatibility
+export const CACHE_CHECK_PERIOD = 120; // Cache check period in seconds
+export const DEFAULT_RETRY_COUNT = 3;
+export const DEFAULT_RETRY_DELAY = 1000; // in milliseconds
 
 export default class ApyChecker {
     constructor() {
-        // Initialize cache with 5 minute TTL
-        this.cache = new NodeCache({ stdTTL: CACHE_DURATION, checkperiod: 120 });
+        // Initialize cache with global TTL configuration
+        this.cache = new NodeCache({
+            stdTTL: CACHE_DURATION_SECONDS,
+            checkperiod: CACHE_CHECK_PERIOD
+        });
         this.lastRunTime = null;
         this.lastResults = null;
+
+        log.info(`Initialized ApyChecker with cache TTL: ${CACHE_DURATION_SECONDS} seconds`);
     }
 
     formatOutput(result) {
