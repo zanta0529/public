@@ -19,7 +19,7 @@ export default class BaseAdapter {
     }
 
     async saveData(data) {
-        console.log(`${this.constructor.name} is saving data:`, data);
+        log.info(`${this.constructor.name} is saving data:`, data);
     }
 
     // 靜態方法負責載入配置
@@ -66,7 +66,7 @@ export default class BaseAdapter {
                 return data;
             } catch (error) {
                 lastError = error;
-                console.warn(`Attempt ${attempt + 1}/${retries + 1} failed: ${error.message}`);
+                log.warn(`Attempt ${attempt + 1}/${retries + 1} failed: ${error.message}`);
             }
         }
 
