@@ -14,10 +14,11 @@ const __dirname = path.dirname(__filename);
 
 // Load server configuration
 const serverConfig = JSON.parse(await fs.readFile(path.resolve(`${__dirname}/server-config.json`), "utf-8"));
+const port = serverConfig.port || 10000;
 
 // Initialize Express app
 const app = express();
-const port = serverConfig.port || 10000;
+app.set("trust proxy", true); // Enable trust for reverse proxies
 
 // Security and optimization middleware
 app.use(helmet({
@@ -33,6 +34,8 @@ app.use(helmet({
 })); // Add security headers with CSP configured for inline scripts
 app.use(compression()); // Compress responses
 app.use(cors()); // Enable CORS for all routes
+app.use(express.json()); // Parse JSON bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
 // Rate limiting to prevent abuse
 const apiLimiter = rateLimit({
