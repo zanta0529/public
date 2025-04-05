@@ -47,6 +47,56 @@
             text-align: center;
         }
 
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .cache-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85em;
+            color: #555;
+            background: #f0f7ff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border-left: 3px solid #2563eb;
+        }
+
+        .cache-info.stale {
+            background: #fff0f0;
+            border-left-color: #e11d48;
+        }
+
+        .cache-info .cache-status {
+            font-weight: bold;
+        }
+
+        .cache-info .cache-time {
+            white-space: nowrap;
+        }
+
+        .fetch-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .refresh-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .refresh-checkbox input {
+            cursor: pointer;
+        }
+
         #apyContainer thead th {
             background-color: #003d79;
             color: #fff;
@@ -129,7 +179,7 @@
         .filter-option:hover {
             transform: translateY(-1px);
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1),
-                       0 0 0 2px rgba(251, 146, 60, 0.3);
+                0 0 0 2px rgba(251, 146, 60, 0.3);
         }
 
         button.button-fetch {
@@ -142,7 +192,6 @@
             border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s ease;
-            align-self: center;
             min-width: 120px;
         }
 
@@ -150,6 +199,13 @@
             background-color: #1d4ed8;
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button.button-fetch:disabled {
+            background-color: #93c5fd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         #loadingMessage {
@@ -167,6 +223,67 @@
 
         #apyContainer {
             margin-top: 5px;
+        }
+
+        .performance-info {
+            margin-top: 10px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        .performance-info h3 {
+            margin: 0 0 8px 0;
+            font-size: 1em;
+            color: #003d79;
+        }
+
+        .metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .metric {
+            background: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border-left: 3px solid #2563eb;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-label {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            color: #1e40af;
+        }
+
+        #statusMessage {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        #statusMessage.success {
+            background-color: #dcfce7;
+            color: #166534;
+            border-left: 3px solid #16a34a;
+            display: block;
+        }
+
+        #statusMessage.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-left: 3px solid #dc2626;
+            display: block;
         }
 
         @media (max-width: 600px) {
@@ -231,6 +348,16 @@
             .filter-group select {
                 width: 100%;
             }
+
+            .header-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .cache-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
     </style>
 
@@ -243,6 +370,8 @@
 
         let container;
         let currentData = [];
+        let cacheInfo = null;
+        let performanceMetrics = {};
 
         let selectedPlatforms = new Set();
         let selectedChains = new Set();
@@ -328,6 +457,15 @@
             });
 
             container.initializeData(filteredData);
+
+            // Update status message
+            const statusMessage = document.getElementById('statusMessage');
+            if (filteredData.length === 0 && currentData.length > 0) {
+                statusMessage.textContent = '沒有符合篩選條件的資料';
+                statusMessage.className = 'error';
+            } else {
+                statusMessage.style.display = 'none';
+            }
         }
 
         async function initUI() {
@@ -335,9 +473,18 @@
                 log.info("網頁初始化...");
                 container = await initTable();
                 initFilters();
+                updateCacheInfo(null);
+
+                // Add event listener to the fetch button
+                document.getElementById("btnFetch").addEventListener("click", loadData);
+
                 log.info("網頁初始化完成");
+
+                // 自動載入資料
+                // loadData();
             } catch (error) {
                 log.error("發生錯誤: " + error.message, true);
+                showStatusMessage(error.message, 'error');
             }
         }
 
@@ -364,9 +511,12 @@
         async function loadData() {
             if (!container) {
                 log.error("表格尚未初始化");
+                showStatusMessage("表格尚未初始化", 'error');
                 return;
             }
+
             const button = document.getElementById("btnFetch");
+            const forceRefresh = document.getElementById("forceRefresh").checked;
             button.disabled = true;
 
             const loadingMessage = document.getElementById("loadingMessage");
@@ -374,24 +524,51 @@
 
             container.clearData();
 
+            // Clear performance metrics
+            updatePerformanceMetrics({});
+
             const tbody = document.querySelector("#apyContainer tbody");
             if (!tbody) {
                 return;
             }
 
             tbody.innerHTML = "";
-
             try {
-                const response = await fetch("/run-check");
-                if (!response.ok) throw new Error("無法載入資料");
-                const allResults = await response.json();
-                currentData = parseData(allResults);
+                const startTime = performance.now();
+                const response = await fetch(`/run-check?force=${forceRefresh}`);
+
+                if (!response.ok) {
+                    throw new Error(`無法載入資料: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || "未知錯誤");
+                }
+
+                const endTime = performance.now();
+                const fetchTime = ((endTime - startTime) / 1000).toFixed(2);
+
+                // Update cache info
+                updateCacheInfo(result.cacheInfo);
+
+                // Update performance metrics
+                updatePerformanceMetrics({
+                    fetchTime: `${fetchTime}秒`,
+                    itemCount: result.count,
+                    timestamp: new Date(result.timestamp).toLocaleString()
+                });
+
+                currentData = parseData(result.data);
                 container.initializeData(currentData);
                 applyFilters();
-                log.info(`擷取資料完成，總資料數量: ${allResults.length}`);
+
+                log.info(`擷取資料完成，總資料數量: ${result.count}`);
+                showStatusMessage(`成功擷取 ${result.count} 筆資料`, 'success');
             } catch (error) {
                 log.error(`擷取資料失敗: ${error.message}`, true);
-                alert(`擷取資料失敗: ${error.message}`);
+                showStatusMessage(`擷取資料失敗: ${error.message}`, 'error');
             } finally {
                 button.disabled = false;
                 loadingMessage.style.display = "none";
@@ -427,16 +604,127 @@
             }));
         }
 
+        function updateCacheInfo(info) {
+            cacheInfo = info;
+            const cacheInfoElement = document.getElementById('cacheInfo');
+
+            if (!info) {
+                cacheInfoElement.innerHTML = `
+                    <span class="cache-status">快取狀態: 未知</span>
+                `;
+                cacheInfoElement.classList.remove('stale');
+                return;
+            }
+
+            const lastRun = info.lastRun ? new Date(info.lastRun) : null;
+            const expiresAt = info.expiresAt ? new Date(info.expiresAt) : null;
+            const now = new Date();
+            const isStale = expiresAt && now > expiresAt;
+
+            let timeDisplay = '未知';
+            if (lastRun) {
+                timeDisplay = lastRun.toLocaleString();
+            }
+
+            let expiryDisplay = '';
+            if (expiresAt) {
+                const isExpired = now > expiresAt;
+                expiryDisplay = isExpired
+                    ? `<span style="color: #e11d48">已過期</span>`
+                    : `<span style="color: #16a34a">有效</span>`;
+            }
+
+            cacheInfoElement.innerHTML = `
+                <span class="cache-status">快取狀態: ${info.isCached ? '使用中' : '未使用'}</span>
+                <span class="cache-time">上次更新: ${timeDisplay}</span>
+                ${expiryDisplay ? `<span class="cache-expiry">${expiryDisplay}</span>` : ''}
+            `;
+
+            if (isStale) {
+                cacheInfoElement.classList.add('stale');
+            } else {
+                cacheInfoElement.classList.remove('stale');
+            }
+        }
+
+        function updatePerformanceMetrics(metrics) {
+            performanceMetrics = metrics;
+            const metricsContainer = document.getElementById('metricsContainer');
+
+            if (!metrics || Object.keys(metrics).length === 0) {
+                metricsContainer.innerHTML = '';
+                return;
+            }
+
+            let metricsHTML = '';
+
+            if (metrics.fetchTime) {
+                metricsHTML += `
+                    <div class="metric">
+                        <span class="metric-label">擷取時間</span>
+                        <span class="metric-value">${metrics.fetchTime}</span>
+                    </div>
+                `;
+            }
+
+            if (metrics.itemCount !== undefined) {
+                metricsHTML += `
+                    <div class="metric">
+                        <span class="metric-label">資料數量</span>
+                        <span class="metric-value">${metrics.itemCount}</span>
+                    </div>
+                `;
+            }
+
+            if (metrics.timestamp) {
+                metricsHTML += `
+                    <div class="metric">
+                        <span class="metric-label">擷取時間戳</span>
+                        <span class="metric-value">${metrics.timestamp}</span>
+                    </div>
+                `;
+            }
+
+            metricsContainer.innerHTML = metricsHTML;
+        }
+
+        function showStatusMessage(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = type;
+
+            // Auto hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", initUI);
-        document.getElementById("btnFetch").addEventListener("click", loadData);
     </script>
 </head>
 
 <body>
     <div class="page-header">
         <h1>DeFi APY Retriever</h1>
-        <button id="btnFetch" class="button-fetch" aria-label="擷取最新資料">擷取最新資料</button>
+
+        <div class="header-controls">
+            <div id="cacheInfo" class="cache-info">
+                <span class="cache-status">快取狀態: 載入中...</span>
+            </div>
+
+            <div class="fetch-controls">
+                <label class="refresh-checkbox" for="forceRefresh">
+                    <input type="checkbox" id="forceRefresh" name="forceRefresh">
+                    <span>強制重新擷取</span>
+                </label>
+                <button id="btnFetch" class="button-fetch" aria-label="擷取最新資料">擷取最新資料</button>
+            </div>
+        </div>
     </div>
+
+    <div id="statusMessage"></div>
 
     <div class="filter-container">
         <div class="filter-group">
@@ -454,6 +742,12 @@
     </div>
 
     <div id="apyContainer"></div>
+
+    <div class="performance-info">
+        <h3>效能指標</h3>
+        <div id="metricsContainer" class="metrics"></div>
+    </div>
+
     <div id="loadingMessage">連線中...</div>
 </body>
 

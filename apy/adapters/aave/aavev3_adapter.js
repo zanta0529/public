@@ -8,21 +8,52 @@ const DEFAULT_TIMEOUT = 10 * 1000;
 export default class AaveV3Adapter extends AbstractAaveV3Adapter {
     constructor() {
         super(AaveV3Adapter.loadVaultConfig());
-        this.initialize();
-        log.info(`Initializing ${this.constructor.name}`); // 日誌：初始化 adapter
-    }
+        log.info(`Initializing ${this.constructor.name}`);
 
-    async initialize() {
-        await this.init(); // 初始化瀏覽器
+        // Browser configuration will be initialized lazily
+        this.browser = null;
+        this.browserInitPromise = null;
     }
 
     static loadVaultConfig() {
         return vaultConfig;
     }
 
-    async init() {
+    // Lazy initialization of the browser
+    async getBrowser() {
+        if (this.browser) {
+            return this.browser;
+        }
+
+        if (!this.browserInitPromise) {
+            this.browserInitPromise = this.initBrowser();
+        }
+
+        return this.browserInitPromise;
+    }
+
+    async initBrowser() {
         try {
-            this.browser = await puppeteer.launch({ headless: true, timeout: DEFAULT_TIMEOUT });
+            log.info("Initializing headless browser");
+            const startTime = performance.now();
+
+            this.browser = await puppeteer.launch({
+                headless: "new", // Use new headless mode for better performance
+                timeout: DEFAULT_TIMEOUT,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--disable-gpu',
+                    '--window-size=1920x1080',
+                ]
+            });
+
+            const endTime = performance.now();
+            log.info(`Browser initialized in ${((endTime - startTime) / 1000).toFixed(2)}s`);
+
+            return this.browser;
         } catch (launchError) {
             log.error(`Failed to launch browser: ${launchError.message}`);
             throw launchError;
@@ -30,39 +61,66 @@ export default class AaveV3Adapter extends AbstractAaveV3Adapter {
     }
 
     async fetchConfigData(config) {
-        const urlWithTimestamp = `${config.url}&_=${Date.now()}`; // 加上 timestamp 防止快取
-        const maxRetries = 3; // 最大重試次數
+        const cacheKey = `aavev3_${config.url}_${config.selector}`;
 
-        let attempt = 0;
-        while (attempt < maxRetries) {
-            try {
-                const page = await this.browser.newPage();
-                await page.goto(urlWithTimestamp, { waitUntil: "networkidle0", timeout: 10000 }); // 增加超時時間
+        return this.fetchWithRetry(
+            async () => {
+                const startTime = performance.now();
+                log.info(`Fetching data from ${config.url} for ${config.coin}`);
 
+                const browser = await this.getBrowser();
+                const page = await browser.newPage();
+
+                // Set user agent and other browser options
+                await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+                await page.setViewport({ width: 1920, height: 1080 });
+
+                // Add URL timestamp to avoid caching
+                const urlWithTimestamp = `${config.url}?_=${Date.now()}`;
+
+                // Navigate with better error handling
+                await page.goto(urlWithTimestamp, {
+                    waitUntil: "networkidle0",
+                    timeout: DEFAULT_TIMEOUT
+                });
+
+                // Extract APY data
                 const apy = await page.$eval(config.selector, (el) => el.textContent.trim());
-                if (apy) {
-                    log.info(`\t* [${config.platform}] Fetched APY for ${config.coin}: ${apy} (${config.chain})`);
-                    const waitTime = this.getRandomWaitTime(10, 50); // 隨機等待毫秒數
-                    await new Promise((resolve) => setTimeout(resolve, waitTime));
-                    await page.close();
-                    return {
-                        platform: config.platform,
-                        chain: config.chain,
-                        coin: config.coin,
-                        apy: apy,
-                        source: config.url,
-                        favorite: config.favorite || 0,
-                    };
+
+                // Close the page to free resources
+                await page.close();
+
+                const endTime = performance.now();
+                log.info(`Fetched data for ${config.coin} in ${((endTime - startTime) / 1000).toFixed(2)}s`);
+
+                if (!apy) {
+                    throw new Error(`No APY data found for ${config.coin}`);
                 }
-            } catch (error) {
-                log.error(`Error fetching data for ${config.coin}: ${error.message}`);
+
+                return {
+                    platform: config.platform,
+                    chain: config.chain,
+                    coin: config.coin,
+                    apy: apy,
+                    source: config.url,
+                    favorite: config.favorite || 0,
+                };
+            },
+            cacheKey,
+            {
+                retries: 2,
+                delay: 2000,
+                cacheTTL: 5 * 60 * 1000 // 5 minutes cache
             }
-            attempt++;
-        }
-        return null; // 返回 null 以便過濾
+        );
     }
 
-    getRandomWaitTime(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+    // Clean up resources when done
+    async close() {
+        if (this.browser) {
+            await this.browser.close();
+            this.browser = null;
+            this.browserInitPromise = null;
+        }
     }
 }

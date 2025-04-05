@@ -1,5 +1,6 @@
 {
   "port": 80,
   "staticPath": ".",
-  "maxProcess": 10
+  "maxProcess": 10,
+  "cache-ttl-seconds": 300
 }
