@@ -18,7 +18,6 @@ const port = serverConfig.port || 10000;
 
 // Initialize Express app
 const app = express();
-app.set("trust proxy", true); // Enable trust for reverse proxies
 
 // Security and optimization middleware
 app.use(helmet({
@@ -31,7 +30,7 @@ app.use(helmet({
             connectSrc: ["'self'"]
         }
     }
-})); // Add security headers with CSP configured for inline scripts
+}));
 app.use(compression()); // Compress responses
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Parse JSON bodies
