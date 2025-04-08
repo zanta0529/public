@@ -1,754 +1,753 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>APY 結果顯示</title>
-    <link rel="stylesheet" href="./utils/Table.css" />
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 8px;
-            background-color: #f9f9f9;
-            display: flex;
-            flex-direction: column;
-        }
-
-        a {
-            color: #0000ff;
-            text-decoration: none;
-        }
-
-        a:hover {
-            background-color: #ea0000;
-            color: #fbfbff;
-        }
-
-        h1 {
-            margin: 0;
-            color: #003d79;
-            font-size: 1.4em;
-        }
-
-        .page-header {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 10px;
-            padding: 8px;
-            background: #f8f9fa;
-            border-radius: 4px;
-        }
-
-        .page-header h1 {
-            text-align: center;
-        }
-
-        .header-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .cache-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85em;
-            color: #555;
-            background: #f0f7ff;
-            padding: 6px 10px;
-            border-radius: 4px;
-            border-left: 3px solid #2563eb;
-        }
-
-        .cache-info.stale {
-            background: #fff0f0;
-            border-left-color: #e11d48;
-        }
-
-        .cache-info .cache-status {
-            font-weight: bold;
-        }
-
-        .cache-info .cache-time {
-            white-space: nowrap;
-        }
-
-        .fetch-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .refresh-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-        }
-
-        .refresh-checkbox input {
-            cursor: pointer;
-        }
-
-        #apyContainer thead th {
-            background-color: #003d79;
-            color: #fff;
-            padding: 12px;
-        }
-
-        #apyContainer tr:nth-child(even) {
-            background: #d2e9ff;
-        }
-
-        .filter-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .filter-group-label {
-            font-weight: bold;
-            color: #003d79;
-            font-size: 0.85em;
-            margin-bottom: 0;
-        }
-
-        .filter-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            padding: 4px;
-            border-radius: 4px;
-            background: #f5f5f5;
-        }
-
-        .filter-option {
-            cursor: pointer;
-            padding: 3px 6px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: white;
-            border: 1px solid transparent;
-        }
-
-        .filter-option img {
-            width: 32px;
-            height: 32px;
-            transition: all 0.3s ease;
-            filter: grayscale(100%) opacity(0.5);
-        }
-
-        .filter-option span {
-            color: #666;
-            font-size: 0.8em;
-            transition: all 0.2s ease;
-        }
-
-        .filter-option.selected {
-            border-color: #2563eb;
-            background: #f0f7ff;
-            box-shadow: 0 0 4px rgba(37, 99, 235, 0.2);
-        }
-
-        .filter-option.selected img {
-            filter: none;
-        }
-
-        .filter-option.selected span {
-            color: #1e40af;
-            font-weight: 500;
-        }
-
-        .filter-option:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1),
-                0 0 0 2px rgba(251, 146, 60, 0.3);
-        }
-
-        button.button-fetch {
-            padding: 8px 16px;
-            height: 36px;
-            font-size: 16px;
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            min-width: 120px;
-        }
-
-        button.button-fetch:hover {
-            background-color: #1d4ed8;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        button.button-fetch:disabled {
-            background-color: #93c5fd;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        #loadingMessage {
-            padding: 6px 12px;
-            font-size: 20px;
-            background: rgba(202, 2, 2, 0.8);
-            color: yellow;
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-        }
-
-        #apyContainer {
-            margin-top: 5px;
-        }
-
-        .performance-info {
-            margin-top: 10px;
-            padding: 8px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            font-size: 0.85em;
-            color: #555;
-        }
-
-        .performance-info h3 {
-            margin: 0 0 8px 0;
-            font-size: 1em;
-            color: #003d79;
-        }
-
-        .metrics {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .metric {
-            background: white;
-            padding: 6px 10px;
-            border-radius: 4px;
-            border-left: 3px solid #2563eb;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .metric-label {
-            font-size: 0.8em;
-            color: #666;
-        }
-
-        .metric-value {
-            font-weight: bold;
-            color: #1e40af;
-        }
-
-        #statusMessage {
-            margin-top: 10px;
-            padding: 8px 12px;
-            border-radius: 4px;
-            display: none;
-        }
-
-        #statusMessage.success {
-            background-color: #dcfce7;
-            color: #166534;
-            border-left: 3px solid #16a34a;
-            display: block;
-        }
-
-        #statusMessage.error {
-            background-color: #fee2e2;
-            color: #991b1b;
-            border-left: 3px solid #dc2626;
-            display: block;
-        }
-
-        @media (max-width: 600px) {
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>APY 結果顯示</title>
+        <link rel="stylesheet" href="./utils/Table.css" />
+        <style>
             body {
-                padding: 4px;
+                font-family: Arial, sans-serif;
+                max-width: 1800px;
+                margin: 0 auto;
+                padding: 8px;
+                background-color: #f9f9f9;
+                display: flex;
+                flex-direction: column;
             }
 
-            .page-header {
-                padding: 4px 8px;
+            a {
+                color: #0000ff;
+                text-decoration: none;
+            }
+
+            a:hover {
+                background-color: #ea0000;
+                color: #fbfbff;
             }
 
             h1 {
-                font-size: 1.2em;
+                margin: 0;
+                color: #003d79;
+                font-size: 1.4em;
             }
 
-            .filter-options {
-                padding: 2px;
-            }
-
-            .filter-option {
-                padding: 2px 4px;
-            }
-
-            .filter-option img {
-                width: 14px;
-                height: 14px;
-            }
-
-            .filter-option span {
-                font-size: 0.75em;
-            }
-
-            table {
-                font-size: 14px;
-            }
-
-            th,
-            td {
-                padding: 4px;
-            }
-
-            td {
-                word-wrap: break-word;
-                max-width: 150px;
-            }
-
-            th:nth-child(3),
-            td:nth-child(3) {
-                display: none;
-            }
-
-            .filter-container {
+            .page-header {
+                display: flex;
                 flex-direction: column;
-                align-items: stretch;
+                gap: 10px;
+                margin-bottom: 10px;
+                padding: 8px;
+                background: #f8f9fa;
+                border-radius: 4px;
             }
 
-            .filter-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .filter-group select {
-                width: 100%;
+            .page-header h1 {
+                text-align: center;
             }
 
             .header-controls {
-                flex-direction: column;
-                align-items: stretch;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 10px;
             }
 
             .cache-info {
-                flex-direction: column;
-                align-items: flex-start;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.85em;
+                color: #555;
+                background: #f0f7ff;
+                padding: 6px 10px;
+                border-radius: 4px;
+                border-left: 3px solid #2563eb;
             }
-        }
-    </style>
 
-    <script type="module">
-        import * as log from "./utils/log.js";
-        import Table from "./utils/Table.js";
-        import BlockchainInfo from "./info/BlockchainInfo.js";
-        import TokenInfo from "./info/TokenInfo.js";
-        import PlatformInfo from "./info/PlatformInfo.js";
+            .cache-info.stale {
+                background: #fff0f0;
+                border-left-color: #e11d48;
+            }
 
-        let container;
-        let currentData = [];
-        let cacheInfo = null;
-        let performanceMetrics = {};
+            .cache-info .cache-status {
+                font-weight: bold;
+            }
 
-        let selectedPlatforms = new Set();
-        let selectedChains = new Set();
-        let selectedTokens = new Set();
+            .cache-info .cache-time {
+                white-space: nowrap;
+            }
 
-        function initFilters() {
-            const platformFilters = document.getElementById('platformFilters');
-            const blockchainFilters = document.getElementById('blockchainFilters');
-            const tokenFilters = document.getElementById('tokenFilters');
+            .fetch-controls {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
 
-            // 對選項進行排序
-            const sortedPlatforms = [...PlatformInfo.platforms].sort((a, b) => a.id.localeCompare(b.id));
-            const sortedChains = [...BlockchainInfo.chains].sort((a, b) => a.symbol.localeCompare(b.symbol));
-            const sortedTokens = [...TokenInfo.tokens].sort((a, b) => a.symbol.localeCompare(b.symbol));
+            .refresh-checkbox {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                cursor: pointer;
+            }
 
-            // 創建平台選項
-            sortedPlatforms.forEach(platform => {
-                const option = document.createElement('div');
-                option.className = 'filter-option';
-                option.innerHTML = `
+            .refresh-checkbox input {
+                cursor: pointer;
+            }
+
+            #apyContainer thead th {
+                background-color: #003d79;
+                color: #fff;
+                padding: 12px;
+            }
+
+            #apyContainer tr:nth-child(even) {
+                background: #d2e9ff;
+            }
+
+            .filter-container {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+
+            .filter-group {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .filter-group-label {
+                font-weight: bold;
+                color: #003d79;
+                font-size: 0.85em;
+                margin-bottom: 0;
+            }
+
+            .filter-options {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                padding: 4px;
+                border-radius: 4px;
+                background: #f5f5f5;
+            }
+
+            .filter-option {
+                cursor: pointer;
+                padding: 3px 6px;
+                border-radius: 4px;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                background: white;
+                border: 1px solid transparent;
+            }
+
+            .filter-option img {
+                width: 32px;
+                height: 32px;
+                transition: all 0.3s ease;
+                filter: grayscale(100%) opacity(0.5);
+            }
+
+            .filter-option span {
+                color: #666;
+                font-size: 0.8em;
+                transition: all 0.2s ease;
+            }
+
+            .filter-option.selected {
+                border-color: #2563eb;
+                background: #f0f7ff;
+                box-shadow: 0 0 4px rgba(37, 99, 235, 0.2);
+            }
+
+            .filter-option.selected img {
+                filter: none;
+            }
+
+            .filter-option.selected span {
+                color: #1e40af;
+                font-weight: 500;
+            }
+
+            .filter-option:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(251, 146, 60, 0.3);
+            }
+
+            button.button-fetch {
+                padding: 8px 16px;
+                height: 36px;
+                font-size: 16px;
+                background-color: #2563eb;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 120px;
+            }
+
+            button.button-fetch:hover {
+                background-color: #1d4ed8;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            button.button-fetch:disabled {
+                background-color: #93c5fd;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+
+            #loadingMessage {
+                padding: 6px 12px;
+                font-size: 20px;
+                background: rgba(202, 2, 2, 0.8);
+                color: yellow;
+                display: none;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1000;
+            }
+
+            #apyContainer {
+                margin-top: 5px;
+            }
+
+            .performance-info {
+                margin-top: 10px;
+                padding: 8px;
+                background: #f8f9fa;
+                border-radius: 4px;
+                font-size: 0.85em;
+                color: #555;
+            }
+
+            .performance-info h3 {
+                margin: 0 0 8px 0;
+                font-size: 1em;
+                color: #003d79;
+            }
+
+            .metrics {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .metric {
+                background: white;
+                padding: 6px 10px;
+                border-radius: 4px;
+                border-left: 3px solid #2563eb;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .metric-label {
+                font-size: 0.8em;
+                color: #666;
+            }
+
+            .metric-value {
+                font-weight: bold;
+                color: #1e40af;
+            }
+
+            #statusMessage {
+                margin-top: 10px;
+                padding: 8px 12px;
+                border-radius: 4px;
+                display: none;
+            }
+
+            #statusMessage.success {
+                background-color: #dcfce7;
+                color: #166534;
+                border-left: 3px solid #16a34a;
+                display: block;
+            }
+
+            #statusMessage.error {
+                background-color: #fee2e2;
+                color: #991b1b;
+                border-left: 3px solid #dc2626;
+                display: block;
+            }
+
+            @media (max-width: 600px) {
+                body {
+                    padding: 4px;
+                }
+
+                .page-header {
+                    padding: 4px 8px;
+                }
+
+                h1 {
+                    font-size: 1.2em;
+                }
+
+                .filter-options {
+                    padding: 2px;
+                }
+
+                .filter-option {
+                    padding: 2px 4px;
+                }
+
+                .filter-option img {
+                    width: 14px;
+                    height: 14px;
+                }
+
+                .filter-option span {
+                    font-size: 0.75em;
+                }
+
+                table {
+                    font-size: 14px;
+                }
+
+                th,
+                td {
+                    padding: 4px;
+                }
+
+                td {
+                    word-wrap: break-word;
+                    max-width: 150px;
+                }
+
+                th:nth-child(3),
+                td:nth-child(3) {
+                    display: none;
+                }
+
+                .filter-container {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .filter-group {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .filter-group select {
+                    width: 100%;
+                }
+
+                .header-controls {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .cache-info {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            }
+        </style>
+
+        <script type="module">
+            import * as log from "./utils/log.js";
+            import Table from "./utils/Table.js";
+            import BlockchainInfo from "./info/BlockchainInfo.js";
+            import TokenInfo from "./info/TokenInfo.js";
+            import PlatformInfo from "./info/PlatformInfo.js";
+
+            let container;
+            let currentData = [];
+            let cacheInfo = null;
+            let performanceMetrics = {};
+
+            let selectedPlatforms = new Set();
+            let selectedChains = new Set();
+            let selectedTokens = new Set();
+
+            function initFilters() {
+                const platformFilters = document.getElementById("platformFilters");
+                const blockchainFilters = document.getElementById("blockchainFilters");
+                const tokenFilters = document.getElementById("tokenFilters");
+
+                // 對選項進行排序
+                const sortedPlatforms = [...PlatformInfo.platforms].sort((a, b) => a.id.localeCompare(b.id));
+                const sortedChains = [...BlockchainInfo.chains].sort((a, b) => a.symbol.localeCompare(b.symbol));
+                const sortedTokens = [...TokenInfo.tokens].sort((a, b) => a.symbol.localeCompare(b.symbol));
+
+                // 創建平台選項
+                sortedPlatforms.forEach((platform) => {
+                    const option = document.createElement("div");
+                    option.className = "filter-option";
+                    option.innerHTML = `
                     <img src="${platform.icon}" alt="${platform.id}" title="${platform.id}" />
                     <span>${platform.id}</span>
                 `;
-                option.addEventListener('click', () => {
-                    option.classList.toggle('selected');
-                    if (option.classList.contains('selected')) {
-                        selectedPlatforms.add(platform.id);
-                    } else {
-                        selectedPlatforms.delete(platform.id);
-                    }
-                    applyFilters();
+                    option.addEventListener("click", () => {
+                        option.classList.toggle("selected");
+                        if (option.classList.contains("selected")) {
+                            selectedPlatforms.add(platform.id);
+                        } else {
+                            selectedPlatforms.delete(platform.id);
+                        }
+                        applyFilters();
+                    });
+                    platformFilters.appendChild(option);
                 });
-                platformFilters.appendChild(option);
-            });
 
-            // 創建區塊鏈選項
-            sortedChains.forEach(chain => {
-                const option = document.createElement('div');
-                option.className = 'filter-option';
-                option.innerHTML = `
+                // 創建區塊鏈選項
+                sortedChains.forEach((chain) => {
+                    const option = document.createElement("div");
+                    option.className = "filter-option";
+                    option.innerHTML = `
                     <img src="${chain.icon}" alt="${chain.symbol}" title="${chain.symbol}" />
                     <span>${chain.symbol}</span>
                 `;
-                option.addEventListener('click', () => {
-                    option.classList.toggle('selected');
-                    if (option.classList.contains('selected')) {
-                        selectedChains.add(chain.symbol);
-                    } else {
-                        selectedChains.delete(chain.symbol);
-                    }
-                    applyFilters();
+                    option.addEventListener("click", () => {
+                        option.classList.toggle("selected");
+                        if (option.classList.contains("selected")) {
+                            selectedChains.add(chain.symbol);
+                        } else {
+                            selectedChains.delete(chain.symbol);
+                        }
+                        applyFilters();
+                    });
+                    blockchainFilters.appendChild(option);
                 });
-                blockchainFilters.appendChild(option);
-            });
 
-            // 創建代幣選項
-            sortedTokens.forEach(token => {
-                const option = document.createElement('div');
-                option.className = 'filter-option';
-                option.innerHTML = `
+                // 創建代幣選項
+                sortedTokens.forEach((token) => {
+                    const option = document.createElement("div");
+                    option.className = "filter-option";
+                    option.innerHTML = `
                     <img src="${token.icon}" alt="${token.symbol}" title="${token.symbol}" />
                     <span>${token.symbol}</span>
                 `;
-                option.addEventListener('click', () => {
-                    option.classList.toggle('selected');
-                    if (option.classList.contains('selected')) {
-                        selectedTokens.add(token.symbol);
-                    } else {
-                        selectedTokens.delete(token.symbol);
+                    option.addEventListener("click", () => {
+                        option.classList.toggle("selected");
+                        if (option.classList.contains("selected")) {
+                            selectedTokens.add(token.symbol);
+                        } else {
+                            selectedTokens.delete(token.symbol);
+                        }
+                        applyFilters();
+                    });
+                    tokenFilters.appendChild(option);
+                });
+            }
+
+            function applyFilters() {
+                const filteredData = currentData.filter((item) => {
+                    const platformMatch = selectedPlatforms.size === 0 || selectedPlatforms.has(item._raw.platform);
+                    const chainMatch = selectedChains.size === 0 || selectedChains.has(item._raw.chain);
+                    const tokenMatch = selectedTokens.size === 0 || selectedTokens.has(item._raw.coin);
+                    return platformMatch && chainMatch && tokenMatch;
+                });
+
+                container.initializeData(filteredData);
+
+                // Update status message
+                const statusMessage = document.getElementById("statusMessage");
+                if (filteredData.length === 0 && currentData.length > 0) {
+                    statusMessage.textContent = "沒有符合篩選條件的資料";
+                    statusMessage.className = "error";
+                } else {
+                    statusMessage.style.display = "none";
+                }
+            }
+
+            async function initUI() {
+                try {
+                    log.info("網頁初始化...");
+                    container = await initTable();
+                    initFilters();
+                    updateCacheInfo(null);
+
+                    // Add event listener to the fetch button
+                    document.getElementById("btnFetch").addEventListener("click", loadData);
+
+                    log.info("網頁初始化完成");
+
+                    // 自動載入資料
+                    // loadData();
+                } catch (error) {
+                    log.error("發生錯誤: " + error.message, true);
+                    showStatusMessage(error.message, "error");
+                }
+            }
+
+            async function initTable() {
+                const columns = [
+                    { label: "關注", field: "favorite", sortable: true, align: "alignCenter" },
+                    { label: "平台", field: "platform", sortable: true, align: "alignLeft" },
+                    { label: "區塊鏈", field: "chain", sortable: true, align: "alignLeft" },
+                    { label: "代幣", field: "coin", sortable: true, align: "alignLeft" },
+                    { label: "APY(%)", field: "apy", sortable: true, align: "alignRight", defaultSortColumn: true },
+                    { label: "金庫", field: "vault", sortable: true, align: "alignCenter" },
+                ];
+
+                return new Table({
+                    language: "cht",
+                    container: document.querySelector("#apyContainer"),
+                    columns,
+                    search: true,
+                    rowsPerPage: true,
+                    navigatorStyle: 1,
+                });
+            }
+
+            async function loadData() {
+                if (!container) {
+                    log.error("表格尚未初始化");
+                    showStatusMessage("表格尚未初始化", "error");
+                    return;
+                }
+
+                const button = document.getElementById("btnFetch");
+                const forceRefresh = document.getElementById("forceRefresh").checked;
+                button.disabled = true;
+
+                const loadingMessage = document.getElementById("loadingMessage");
+                loadingMessage.style.display = "block";
+
+                container.clearData();
+
+                // Clear performance metrics
+                updatePerformanceMetrics({});
+
+                const tbody = document.querySelector("#apyContainer tbody");
+                if (!tbody) {
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                try {
+                    const startTime = performance.now();
+                    const response = await fetch(`/run-check?force=${forceRefresh}`);
+
+                    if (!response.ok) {
+                        throw new Error(`無法載入資料: ${response.status} ${response.statusText}`);
                     }
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.error || "未知錯誤");
+                    }
+
+                    const endTime = performance.now();
+                    const fetchTime = ((endTime - startTime) / 1000).toFixed(2);
+
+                    // Update cache info
+                    updateCacheInfo(result.cacheInfo);
+
+                    // Update performance metrics
+                    updatePerformanceMetrics({
+                        fetchTime: `${fetchTime}秒`,
+                        itemCount: result.count,
+                        timestamp: new Date(result.timestamp).toLocaleString(),
+                    });
+
+                    currentData = parseData(result.data);
+                    container.initializeData(currentData);
                     applyFilters();
-                });
-                tokenFilters.appendChild(option);
-            });
-        }
 
-        function applyFilters() {
-            const filteredData = currentData.filter(item => {
-                const platformMatch = selectedPlatforms.size === 0 || selectedPlatforms.has(item._raw.platform);
-                const chainMatch = selectedChains.size === 0 || selectedChains.has(item._raw.chain);
-                const tokenMatch = selectedTokens.size === 0 || selectedTokens.has(item._raw.coin);
-                return platformMatch && chainMatch && tokenMatch;
-            });
-
-            container.initializeData(filteredData);
-
-            // Update status message
-            const statusMessage = document.getElementById('statusMessage');
-            if (filteredData.length === 0 && currentData.length > 0) {
-                statusMessage.textContent = '沒有符合篩選條件的資料';
-                statusMessage.className = 'error';
-            } else {
-                statusMessage.style.display = 'none';
-            }
-        }
-
-        async function initUI() {
-            try {
-                log.info("網頁初始化...");
-                container = await initTable();
-                initFilters();
-                updateCacheInfo(null);
-
-                // Add event listener to the fetch button
-                document.getElementById("btnFetch").addEventListener("click", loadData);
-
-                log.info("網頁初始化完成");
-
-                // 自動載入資料
-                // loadData();
-            } catch (error) {
-                log.error("發生錯誤: " + error.message, true);
-                showStatusMessage(error.message, 'error');
-            }
-        }
-
-        async function initTable() {
-            const columns = [
-                { label: "關注", field: "favorite", sortable: true, align: "alignCenter" },
-                { label: "平台", field: "platform", sortable: true, align: "alignLeft" },
-                { label: "區塊鏈", field: "chain", sortable: true, align: "alignLeft" },
-                { label: "代幣", field: "coin", sortable: true, align: "alignLeft" },
-                { label: "APY(%)", field: "apy", sortable: true, align: "alignRight", defaultSortColumn: true },
-                { label: "金庫", field: "vault", sortable: true, align: "alignCenter" },
-            ];
-
-            return new Table({
-                language: "cht",
-                container: document.querySelector("#apyContainer"),
-                columns,
-                search: true,
-                rowsPerPage: true,
-                navigatorStyle: 1,
-            });
-        }
-
-        async function loadData() {
-            if (!container) {
-                log.error("表格尚未初始化");
-                showStatusMessage("表格尚未初始化", 'error');
-                return;
+                    log.info(`擷取資料完成，總資料數量: ${result.count}`);
+                    showStatusMessage(`成功擷取 ${result.count} 筆資料`, "success");
+                } catch (error) {
+                    log.error(`擷取資料失敗: ${error.message}`, true);
+                    showStatusMessage(`擷取資料失敗: ${error.message}`, "error");
+                } finally {
+                    button.disabled = false;
+                    loadingMessage.style.display = "none";
+                }
             }
 
-            const button = document.getElementById("btnFetch");
-            const forceRefresh = document.getElementById("forceRefresh").checked;
-            button.disabled = true;
-
-            const loadingMessage = document.getElementById("loadingMessage");
-            loadingMessage.style.display = "block";
-
-            container.clearData();
-
-            // Clear performance metrics
-            updatePerformanceMetrics({});
-
-            const tbody = document.querySelector("#apyContainer tbody");
-            if (!tbody) {
-                return;
-            }
-
-            tbody.innerHTML = "";
-            try {
-                const startTime = performance.now();
-                const response = await fetch(`/run-check?force=${forceRefresh}`);
-
-                if (!response.ok) {
-                    throw new Error(`無法載入資料: ${response.status} ${response.statusText}`);
+            function parseData(rawdata) {
+                if (!rawdata) {
+                    log.warn("未接收到任何數據", true);
+                    return [];
                 }
 
-                const result = await response.json();
-
-                if (!result.success) {
-                    throw new Error(result.error || "未知錯誤");
-                }
-
-                const endTime = performance.now();
-                const fetchTime = ((endTime - startTime) / 1000).toFixed(2);
-
-                // Update cache info
-                updateCacheInfo(result.cacheInfo);
-
-                // Update performance metrics
-                updatePerformanceMetrics({
-                    fetchTime: `${fetchTime}秒`,
-                    itemCount: result.count,
-                    timestamp: new Date(result.timestamp).toLocaleString()
-                });
-
-                currentData = parseData(result.data);
-                container.initializeData(currentData);
-                applyFilters();
-
-                log.info(`擷取資料完成，總資料數量: ${result.count}`);
-                showStatusMessage(`成功擷取 ${result.count} 筆資料`, 'success');
-            } catch (error) {
-                log.error(`擷取資料失敗: ${error.message}`, true);
-                showStatusMessage(`擷取資料失敗: ${error.message}`, 'error');
-            } finally {
-                button.disabled = false;
-                loadingMessage.style.display = "none";
-            }
-        }
-
-        function parseData(rawdata) {
-            if (!rawdata) {
-                log.warn("未接收到任何數據", true);
-                return [];
-            }
-
-            return rawdata.map(({ favorite, platform, chain, coin, apy, vault, source }) => ({
-                favorite: favorite ? "❤️" : "",
-                platform: platform
-                    ? `<img src="${PlatformInfo.getPlatformIconUrl(platform.trim())}" 
+                return rawdata.map(({ favorite, platform, chain, coin, apy, vault, source }) => ({
+                    favorite: favorite ? "❤️" : "",
+                    platform: platform
+                        ? `<img src="${PlatformInfo.getPlatformIconUrl(platform.trim())}" 
                          title="${platform}" alt="${platform}" width="20px" height="20px" />&nbsp;
                        <a href="${source}" target="_blank">${platform}</a>`
-                    : "-",
-                chain: chain
-                    ? `<img src="${BlockchainInfo.getChainIconUrl(chain.trim())}" 
+                        : "-",
+                    chain: chain
+                        ? `<img src="${BlockchainInfo.getChainIconUrl(chain.trim())}" 
                          title="${chain}" alt="${chain}" width="20px" height="20px" />&nbsp;
                        <span>${chain}</span>`
-                    : "",
-                coin: coin
-                    ? `<img src="${TokenInfo.getTokenIconUrl(coin.trim())}" 
+                        : "",
+                    coin: coin
+                        ? `<img src="${TokenInfo.getTokenIconUrl(coin.trim())}" 
                          title="${coin}" alt="${coin}" width="20px" height="20px" />&nbsp;
                        <span>${coin}</span>`
-                    : "",
-                apy: apy ? apy.replaceAll("%", "") : "-",
-                vault: vault ? `<a href="${source}" target="_blank">${vault}</a>` : "-",
-                _raw: { platform, chain, coin } // 保存原始值用於篩選
-            }));
-        }
+                        : "",
+                    apy: apy ? apy.replaceAll("%", "") : "-",
+                    vault: vault ? `<a href="${source}" target="_blank">${vault}</a>` : "-",
+                    _raw: { platform, chain, coin }, // 保存原始值用於篩選
+                }));
+            }
 
-        function updateCacheInfo(info) {
-            cacheInfo = info;
-            const cacheInfoElement = document.getElementById('cacheInfo');
+            function updateCacheInfo(info) {
+                cacheInfo = info;
+                const cacheInfoElement = document.getElementById("cacheInfo");
 
-            if (!info) {
-                cacheInfoElement.innerHTML = `
+                if (!info) {
+                    cacheInfoElement.innerHTML = `
                     <span class="cache-status">快取狀態: 未知</span>
                 `;
-                cacheInfoElement.classList.remove('stale');
-                return;
-            }
+                    cacheInfoElement.classList.remove("stale");
+                    return;
+                }
 
-            const lastRun = info.lastRun ? new Date(info.lastRun) : null;
-            const expiresAt = info.expiresAt ? new Date(info.expiresAt) : null;
-            const now = new Date();
-            const isStale = expiresAt && now > expiresAt;
+                const lastRun = info.lastRun ? new Date(info.lastRun) : null;
+                const expiresAt = info.expiresAt ? new Date(info.expiresAt) : null;
+                const now = new Date();
+                const isStale = expiresAt && now > expiresAt;
 
-            let timeDisplay = '未知';
-            if (lastRun) {
-                timeDisplay = lastRun.toLocaleString();
-            }
+                let timeDisplay = "未知";
+                if (lastRun) {
+                    timeDisplay = lastRun.toLocaleString();
+                }
 
-            let expiryDisplay = '';
-            if (expiresAt) {
-                const isExpired = now > expiresAt;
-                expiryDisplay = isExpired
-                    ? `<span style="color: #e11d48">已過期</span>`
-                    : `<span style="color: #16a34a">有效</span>`;
-            }
+                let expiryDisplay = "";
+                if (expiresAt) {
+                    const isExpired = now > expiresAt;
+                    expiryDisplay = isExpired
+                        ? `<span style="color: #e11d48">已過期</span>`
+                        : `<span style="color: #16a34a">有效</span>`;
+                }
 
-            cacheInfoElement.innerHTML = `
-                <span class="cache-status">快取狀態: ${info.isCached ? '使用中' : '未使用'}</span>
+                cacheInfoElement.innerHTML = `
+                <span class="cache-status">快取狀態: ${info.isCached ? "使用中" : "未使用"}</span>
                 <span class="cache-time">上次更新: ${timeDisplay}</span>
-                ${expiryDisplay ? `<span class="cache-expiry">${expiryDisplay}</span>` : ''}
+                ${expiryDisplay ? `<span class="cache-expiry">${expiryDisplay}</span>` : ""}
             `;
 
-            if (isStale) {
-                cacheInfoElement.classList.add('stale');
-            } else {
-                cacheInfoElement.classList.remove('stale');
-            }
-        }
-
-        function updatePerformanceMetrics(metrics) {
-            performanceMetrics = metrics;
-            const metricsContainer = document.getElementById('metricsContainer');
-
-            if (!metrics || Object.keys(metrics).length === 0) {
-                metricsContainer.innerHTML = '';
-                return;
+                if (isStale) {
+                    cacheInfoElement.classList.add("stale");
+                } else {
+                    cacheInfoElement.classList.remove("stale");
+                }
             }
 
-            let metricsHTML = '';
+            function updatePerformanceMetrics(metrics) {
+                performanceMetrics = metrics;
+                const metricsContainer = document.getElementById("metricsContainer");
 
-            if (metrics.fetchTime) {
-                metricsHTML += `
+                if (!metrics || Object.keys(metrics).length === 0) {
+                    metricsContainer.innerHTML = "";
+                    return;
+                }
+
+                let metricsHTML = "";
+
+                if (metrics.fetchTime) {
+                    metricsHTML += `
                     <div class="metric">
                         <span class="metric-label">擷取時間</span>
                         <span class="metric-value">${metrics.fetchTime}</span>
                     </div>
                 `;
-            }
+                }
 
-            if (metrics.itemCount !== undefined) {
-                metricsHTML += `
+                if (metrics.itemCount !== undefined) {
+                    metricsHTML += `
                     <div class="metric">
                         <span class="metric-label">資料數量</span>
                         <span class="metric-value">${metrics.itemCount}</span>
                     </div>
                 `;
-            }
+                }
 
-            if (metrics.timestamp) {
-                metricsHTML += `
+                if (metrics.timestamp) {
+                    metricsHTML += `
                     <div class="metric">
                         <span class="metric-label">擷取時間戳</span>
                         <span class="metric-value">${metrics.timestamp}</span>
                     </div>
                 `;
+                }
+
+                metricsContainer.innerHTML = metricsHTML;
             }
 
-            metricsContainer.innerHTML = metricsHTML;
-        }
+            function showStatusMessage(message, type) {
+                const statusMessage = document.getElementById("statusMessage");
+                statusMessage.textContent = message;
+                statusMessage.className = type;
 
-        function showStatusMessage(message, type) {
-            const statusMessage = document.getElementById('statusMessage');
-            statusMessage.textContent = message;
-            statusMessage.className = type;
-
-            // Auto hide success messages after 5 seconds
-            if (type === 'success') {
-                setTimeout(() => {
-                    statusMessage.style.display = 'none';
-                }, 5000);
+                // Auto hide success messages after 5 seconds
+                if (type === "success") {
+                    setTimeout(() => {
+                        statusMessage.style.display = "none";
+                    }, 5000);
+                }
             }
-        }
 
-        document.addEventListener("DOMContentLoaded", initUI);
-    </script>
-</head>
+            document.addEventListener("DOMContentLoaded", initUI);
+        </script>
+    </head>
 
-<body>
-    <div class="page-header">
-        <h1>DeFi APY Retriever</h1>
+    <body>
+        <div class="page-header">
+            <h1>DeFi APY Retriever</h1>
 
-        <div class="header-controls">
-            <div id="cacheInfo" class="cache-info">
-                <span class="cache-status">快取狀態: 載入中...</span>
+            <div class="header-controls">
+                <div id="cacheInfo" class="cache-info">
+                    <span class="cache-status">快取狀態: 載入中...</span>
+                </div>
+
+                <div class="fetch-controls">
+                    <label class="refresh-checkbox" for="forceRefresh">
+                        <input type="checkbox" id="forceRefresh" name="forceRefresh" />
+                        <span>強制重新擷取</span>
+                    </label>
+                    <button id="btnFetch" class="button-fetch" aria-label="擷取最新資料">擷取最新資料</button>
+                </div>
             </div>
+        </div>
 
-            <div class="fetch-controls">
-                <label class="refresh-checkbox" for="forceRefresh">
-                    <input type="checkbox" id="forceRefresh" name="forceRefresh">
-                    <span>強制重新擷取</span>
-                </label>
-                <button id="btnFetch" class="button-fetch" aria-label="擷取最新資料">擷取最新資料</button>
+        <div id="statusMessage"></div>
+
+        <div class="filter-container">
+            <div class="filter-group">
+                <div class="filter-group-label">平台</div>
+                <div id="platformFilters" class="filter-options"></div>
+            </div>
+            <div class="filter-group">
+                <div class="filter-group-label">區塊鏈</div>
+                <div id="blockchainFilters" class="filter-options"></div>
+            </div>
+            <div class="filter-group">
+                <div class="filter-group-label">代幣</div>
+                <div id="tokenFilters" class="filter-options"></div>
             </div>
         </div>
-    </div>
 
-    <div id="statusMessage"></div>
+        <h2>APY 結果</h2>
 
-    <div class="filter-container">
-        <div class="filter-group">
-            <div class="filter-group-label">平台</div>
-            <div id="platformFilters" class="filter-options"></div>
+        <div id="apyContainer"></div>
+
+        <div class="performance-info">
+            <h3>效能指標</h3>
+            <div id="metricsContainer" class="metrics"></div>
         </div>
-        <div class="filter-group">
-            <div class="filter-group-label">區塊鏈</div>
-            <div id="blockchainFilters" class="filter-options"></div>
-        </div>
-        <div class="filter-group">
-            <div class="filter-group-label">代幣</div>
-            <div id="tokenFilters" class="filter-options"></div>
-        </div>
-    </div>
 
-    <div id="apyContainer"></div>
-
-    <div class="performance-info">
-        <h3>效能指標</h3>
-        <div id="metricsContainer" class="metrics"></div>
-    </div>
-
-    <div id="loadingMessage">連線中...</div>
-</body>
-
+        <div id="loadingMessage">連線中...</div>
+    </body>
 </html>
