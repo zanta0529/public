@@ -5,7 +5,7 @@ export default class PlatformInfo {
         {
             id: "Aave",
             website: "https://app.aave.com/markets/",
-            icon: "https://cryptologos.cc/logos/aave-aave-logo.svg",
+            icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/7278.png",
         },
         {
             id: "Beefy Finance",
