@@ -470,8 +470,8 @@
                 try {
                     log.info("網頁初始化...");
                     container = await initTable();
-                    initFilters();
-                    updateCacheInfo(null);
+                    await initFilters();
+                    await updateCacheInfo(null);
 
                     // Add event listener to the fetch button
                     document.getElementById("btnFetch").addEventListener("click", loadData);
@@ -479,9 +479,9 @@
                     log.info("網頁初始化完成");
 
                     // 自動載入資料
-                    // loadData();
+                    // await loadData();
                 } catch (error) {
-                    log.error("發生錯誤: " + error.message, true);
+                    log.error("發生錯誤：" + error.message, true);
                     showStatusMessage(error.message, "error");
                 }
             }
@@ -536,7 +536,10 @@
                     const response = await fetch(`/run-check?force=${forceRefresh}`);
 
                     if (!response.ok) {
-                        throw new Error(`無法載入資料: ${response.status} ${response.statusText}`);
+                        const errorMessafe = `無法載入資料：${response.status} ${response.statusText}`;
+                        log.error(errorMessafe, true);
+                        showStatusMessage(errorMessafe, "error");
+                        throw new Error(errorMessafe);
                     }
 
                     const result = await response.json();
@@ -553,7 +556,7 @@
 
                     // Update performance metrics
                     updatePerformanceMetrics({
-                        fetchTime: `${fetchTime}秒`,
+                        fetchTime: `${fetchTime} 秒`,
                         itemCount: result.count,
                         timestamp: new Date(result.timestamp).toLocaleString(),
                     });
@@ -562,11 +565,11 @@
                     container.initializeData(currentData);
                     applyFilters();
 
-                    log.info(`擷取資料完成，總資料數量: ${result.count}`);
+                    log.info(`擷取資料完成，總資料數量：${result.count}`);
                     showStatusMessage(`成功擷取 ${result.count} 筆資料`, "success");
                 } catch (error) {
-                    log.error(`擷取資料失敗: ${error.message}`, true);
-                    showStatusMessage(`擷取資料失敗: ${error.message}`, "error");
+                    log.error(`擷取資料失敗：${error.message}`, true);
+                    showStatusMessage(`擷取資料失敗：${error.message}`, "error");
                 } finally {
                     button.disabled = false;
                     loadingMessage.style.display = "none";
@@ -608,7 +611,7 @@
 
                 if (!info) {
                     cacheInfoElement.innerHTML = `
-                    <span class="cache-status">快取狀態: 未知</span>
+                    <span class="cache-status">快取狀態：未知</span>
                 `;
                     cacheInfoElement.classList.remove("stale");
                     return;
@@ -633,8 +636,8 @@
                 }
 
                 cacheInfoElement.innerHTML = `
-                <span class="cache-status">快取狀態: ${info.isCached ? "使用中" : "未使用"}</span>
-                <span class="cache-time">上次更新: ${timeDisplay}</span>
+                <span class="cache-status">快取狀態：${info.isCached ? "使用中" : "未使用"}</span>
+                <span class="cache-time">上次更新：${timeDisplay}</span>
                 ${expiryDisplay ? `<span class="cache-expiry">${expiryDisplay}</span>` : ""}
             `;
 
@@ -709,7 +712,7 @@
 
             <div class="header-controls">
                 <div id="cacheInfo" class="cache-info">
-                    <span class="cache-status">快取狀態: 載入中...</span>
+                    <span class="cache-status">快取狀態：載入中...</span>
                 </div>
 
                 <div class="fetch-controls">
