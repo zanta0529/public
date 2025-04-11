@@ -264,6 +264,8 @@
                     UserID: "",
                     Password: "",
                     lessonId: 30654,
+                    startId: 30654,
+                    endId: 30682,
                     LoopTimes: 1,
                     maxSeconds: 60,
                     minSeconds: 57,
@@ -272,10 +274,6 @@
                 Object.entries(defaultValues).forEach(([key, value]) => {
                     document.getElementById(key).value = value;
                 });
-
-                // 設定開始和結束的預設值
-                document.getElementById("startId").value = 30654;
-                document.getElementById("endId").value = 30682;
 
                 document.getElementById("OpenPageButton").addEventListener("click", () => {
                     window.open(loginUrl);
