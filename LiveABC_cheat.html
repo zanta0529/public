@@ -295,7 +295,16 @@
 
                 const addLearning = async (isCount) => {
                     const loopTimes = parseInt(document.getElementById("LoopTimes").value);
+                    const maxWindows = 1; // 設定一次最多開啟的視窗數量，經實際測試建議值為 1，否則有可能會遺漏資料
+                    const promises = []; // 儲存所有的 Promise
+                    let currentWindowCount = 0; // 當前已開啟的視窗數量
+
                     for (let i = 0; i < loopTimes; i++) {
+                        // 當前已開啟的視窗數量達到限制時，等待一段時間再繼續
+                        while (currentWindowCount >= maxWindows) {
+                            await sleep(pauseTime); // 等待後再檢查
+                        }
+
                         document.getElementById("GenerateButton").click();
                         const url = isCount
                             ? document.getElementById("addCountUrl").value
@@ -306,10 +315,26 @@
                                   parseInt(document.getElementById("maxSeconds").value),
                                   parseInt(document.getElementById("minSeconds").value)
                               )}&_=${Date.now()}`;
-                        const obj = window.open(`${url}${params}`);
-                        await sleep(pauseTime);
-                        obj.close();
+
+                        const newWindow = window.open(`${url}${params}`);
+                        currentWindowCount++; // 增加已開啟的視窗數量
+
+                        // 將每個視窗的關閉操作包裝成 Promise
+                        const promise = new Promise((resolve) => {
+                            setTimeout(() => {
+                                if (newWindow) {
+                                    newWindow.close(); // 關閉視窗
+                                }
+                                currentWindowCount--; // 減少已開啟的視窗數量
+                                resolve(); // 完成這個 Promise
+                            }, pauseTime); // 使用 pauseTime 來控制等待時間
+                        });
+
+                        promises.push(promise); // 將 Promise 加入到陣列中
                     }
+
+                    // 等待所有的 Promise 完成
+                    await Promise.all(promises);
                 };
 
                 document.getElementById("AddCountButton").addEventListener("click", () => addLearning(true));
