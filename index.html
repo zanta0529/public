@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zanta's Toolbox</title>
+    <style>
+        * {
+            font-family: arial;
+        }
+
+        .option-group {
+            flex-wrap: wrap;
+            /* 當元素過多時，自動換行 */
+            gap: 10px;
+            /* 元素之間的間距為 10px */
+            margin-bottom: 15px;
+            /* 底部外邊距為 15px */
+        }
+
+        .option {
+            padding: 10px 15px;
+            /* 內邊距設定為 10px 上下，15px 左右 */
+            border: 1px solid #ccc;
+            /* 設定邊框為 1px 寬，顏色為灰色 (#ccc) */
+            border-radius: 5px;
+            /* 邊框圓角半徑為 5px，讓角落圓滑 */
+            cursor: pointer;
+            /* 當滑鼠移到元素上時，顯示可點擊的游標 */
+            transition: background-color 0.3s, color 0.3s;
+            /* 當背景顏色或文字顏色變化時，過渡效果持續 0.3 秒 */
+            margin: 10px;
+        }
+
+        /* 當滑鼠懸停時變色 */
+        .option:hover {
+            background-color: #007bff;
+            /* 背景顏色變為藍色 */
+            color: white;
+            /* 文字顏色為白色 */
+            cursor: pointer;
+            /* 游標變為手形指標 */
+        }
+
+        .option.disabled {
+            pointer-events: none;
+            /* 停用滑鼠點擊事件，元素無法被點擊 */
+            opacity: 0.5;
+            /* 設定透明度為 0.5，使元素半透明 */
+            cursor: not-allowed;
+            /* 顯示不可用的游標，表示此元素無法互動 */
+        }
+
+        @media (max-width: 768px) {
+            .option {
+                flex: 1 1 48%;
+                /* 每行顯示兩個選項 */
+            }
+
+            .button-group {
+                flex-direction: column;
+                /* 小螢幕上直排 */
+            }
+        }
+
+        @media (min-width: 769px) {
+            .button-group {
+                flex-direction: row;
+                /* 大螢幕上橫排 */
+                flex-wrap: wrap;
+                /* 允許換行 */
+            }
+
+            /* 大螢幕上按鈕均分空間 */
+            button {
+                flex: 1;
+            }
+        }
+    </style>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4KG6DFWZEM"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag("js", new Date());
+        gtag("config", "G-4KG6DFWZEM");
+    </script>
+</head>
+
+<body>
+    <section>
+        <label>Zanta's Toolbox</label>
+        <div id="func" class="option-group" />
+    </section>
+
+    <script>
+        // JSON 格式的資料
+        const optionsData = [
+            { id: "aes", uri: "aes.html", display: "AES 加解密 / AES Encryption and Decryption Tool" },
+            { id: "shamir", uri: "shamir.html", display: "Shamir 密鑰分割還原 / Shamir's Secret Sharing Tool" },
+            { id: "bip39", uri: "bip39.html", display: "BIP39 助記詞產生器 / BIP39 Mnemonic Code Converter" },
+        ];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // 生成選項
+            generateOptions(optionsData);
+
+            // 網頁載入時顯示選中的選項
+            updateStatus();
+        });
+
+        // 動態生成選項
+        function generateOptions(options) {
+            const container = document.getElementById("func");
+            container.innerHTML = ""; // 清空容器
+
+            options.forEach((option) => {
+                const optionElement = document.createElement("div");
+                optionElement.classList.add("option");
+                optionElement.dataset.value = option.id;
+                optionElement.dataset.link = option.uri;
+                optionElement.textContent = option.display;
+
+                // 將選項元素加入到容器中
+                container.appendChild(optionElement);
+            });
+        }
+
+        // 顯示選取的選項
+        function updateStatus() {
+            const selectedOption = document.querySelector("#func .option.selected");
+            if (selectedOption) {
+                // 取得顯示的文字並去除多餘空格
+                const text = selectedOption.textContent.trim();
+
+                // 取得 data-value 屬性的值
+                const value = selectedOption.dataset.value;
+
+                // FIXME: 讀取 data-link 的值並且開新瀏覽視窗
+                const link = selectedOption.dataset.link;
+                if (link) {
+                    window.open(link, "_blank"); // 開啟新視窗
+                }
+            }
+        }
+
+        // 當選擇一個選項時
+        document.querySelector("#func").addEventListener("click", (e) => {
+            const selectedOption = e.target.closest(".option");
+            if (selectedOption) {
+                // 移除所有選項的選中狀態
+                document.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
+
+                // 為當前選中的選項添加選中狀態
+                selectedOption.classList.add("selected");
+
+                // 更新顯示選取項目
+                updateStatus();
+            }
+        });
+    </script>
+</body>
+
+</html>
