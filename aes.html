@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>AES 加密/解密工具 v2</title>
+        <title>AES 加密/解密工具</title>
         <style>
             body {
                 transition: background-color 0.3s ease;
@@ -128,20 +128,10 @@
                 } */
             }
         </style>
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-4KG6DFWZEM"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() {
-                dataLayer.push(arguments);
-            }
-            gtag("js", new Date());
-            gtag("config", "G-4KG6DFWZEM");
-        </script>
     </head>
     <body class="encrypt-mode">
         <div class="container">
-            <h1>AES 加密/解密工具 v2</h1>
+            <h1>AES 加密/解密工具</h1>
 
             <div id="functionMode" class="option-group">
                 <div id="FunctionEncrypt" class="option selected" data-value="encrypt">加密模式</div>
@@ -243,57 +233,50 @@
                 { mode: "ECB", padding: 1, keySize: 1, iv: 0, tagLength: 0 },
             ];
 
+            // 修改 toggleUI 函式，根據模式設定預設選項
             function toggleUI() {
-                const func = document.querySelector("#functionMode .selected").dataset.value;
-                const mode = document.querySelector("#encryptionMode .selected").dataset.value;
-                const paddingGroup = document.getElementById("paddingGroup");
-                const paddingMode = document.querySelector("#padding .selected").dataset.value;
-                const ivGroup = document.getElementById("ivGroup");
-                const ivInput = document.getElementById("iv");
-                const tagLengthGroup = document.getElementById("tagLengthGroup");
-                const outputFormatOptions = document.querySelectorAll("#outputFormat .option");
-                const processButton = document.getElementById("btnExecute");
-                processButton.textContent = func === "encrypt" ? "加密" : "解密";
-                processButton.classList.toggle("encryptButton", func === "encrypt");
-                processButton.classList.toggle("decryptButton", func === "decrypt");
-
+                const func = getSelectedValue("functionMode");
+                const mode = getSelectedValue("encryptionMode");
                 const config = UI_CONFIG.find((config) => config.mode === mode);
 
-                // 根據 UI_CONFIG 的設定來顯示或隱藏元素
-                if (config) {
-                    paddingGroup.style.display = config.padding === 1 ? "block" : "none";
-                    ivGroup.style.display = config.iv === 1 ? "block" : "none";
-                    ivInput.setAttribute("maxlength", config.iv === 1 ? 16 : 0); // 設定maxlength，如果需要隱藏可設為0
-                    tagLengthGroup.style.display = config.tagLength === 1 ? "block" : "none";
-                } else {
+                if (!config) {
                     alert(`未知的加密模式: '${mode}'`);
+                    return;
                 }
 
-                // 根據當前功能設置預設的輸出格式
-                outputFormatOptions.forEach((option) => {
-                    option.classList.remove("selected");
-                    if (
-                        (func === "encrypt" && option.dataset.value === "base64") ||
-                        (func === "decrypt" && option.dataset.value === "plaintext")
-                    ) {
-                        option.classList.add("selected");
-                    }
-                });
-                document.getElementById("optTextFormat").style.display = func === "encrypt" ? "none" : "block";
-                document.getElementById("optHexFormat").style.display = func === "decrypt" ? "none" : "block";
+                document.getElementById("paddingGroup").style.display = config.padding ? "block" : "none";
+                document.getElementById("ivGroup").style.display = config.iv ? "block" : "none";
+                document.getElementById("iv").setAttribute("maxlength", config.iv ? 16 : 0);
+                document.getElementById("tagLengthGroup").style.display = config.tagLength ? "block" : "none";
+
+                const processButton = document.getElementById("btnExecute");
+                processButton.textContent = func === "encrypt" ? "加密" : "解密";
+                processButton.className = func === "encrypt" ? "encryptButton" : "decryptButton";
+
                 document.body.className = func === "encrypt" ? "encrypt-mode" : "decrypt-mode";
+
+                // 隱藏或顯示特定選項
+                document.getElementById("optTextFormat").style.display = func === "encrypt" ? "none" : "block";
+                document.getElementById("optHexFormat").style.display = func === "encrypt" ? "block" : "none";
+
+                // 設定預設選項
+                const outputFormatGroup = document.getElementById("outputFormat");
+                outputFormatGroup.querySelectorAll(".option").forEach((option) => option.classList.remove("selected"));
+                const defaultOption = func === "encrypt" ? "base64" : "plaintext";
+                outputFormatGroup.querySelector(`[data-value='${defaultOption}']`).classList.add("selected");
             }
 
+            // 修正 processData 函式，確保加密與解密功能正常運作
             async function processData() {
-                const func = document.querySelector("#functionMode .selected").dataset.value;
-                const mode = document.querySelector("#encryptionMode .selected").dataset.value;
-                const paddingValue = document.querySelector("#padding .selected").dataset.value;
+                const func = getSelectedValue("functionMode");
+                const mode = getSelectedValue("encryptionMode");
+                const paddingValue = getSelectedValue("padding");
                 const text = document.getElementById("text").value;
                 const secretKey = document.getElementById("secretKey").value;
-                const keySize = parseInt(document.querySelector("#keySize .selected").dataset.value);
+                const keySize = parseInt(getSelectedValue("keySize"));
                 const iv = document.getElementById("iv").value;
-                const tagLength = parseInt(document.querySelector("#tagLength .selected").dataset.value);
-                const outputFormat = document.querySelector("#outputFormat .selected").dataset.value;
+                const tagLength = parseInt(getSelectedValue("tagLength"));
+                const outputFormat = getSelectedValue("outputFormat");
                 const apiModeName = `AES-${mode.toUpperCase()}`;
 
                 // 清空訊息
@@ -310,135 +293,132 @@
                 }
 
                 try {
-                    if (mode === "GCM" || mode === "CTR") {
-                        // 使用 Web Crypto API
-                        const key = await window.crypto.subtle.importKey(
-                            "raw",
-                            new TextEncoder().encode(secretKey),
-                            { name: apiModeName },
-                            false,
-                            ["encrypt", "decrypt"]
+                    let result;
+                    if (func === "encrypt") {
+                        result = await performEncryption(
+                            apiModeName,
+                            mode,
+                            text,
+                            secretKey,
+                            iv,
+                            tagLength,
+                            paddingValue,
+                            outputFormat
                         );
-
-                        const ivBuffer = new TextEncoder().encode(iv);
-                        const algorithm = {
-                            name: apiModeName,
-                            iv: ivBuffer,
-                            ...(mode === "CTR" ? { counter: ivBuffer, length: 128 } : { tagLength: tagLength }),
-                        };
-
-                        let result;
-                        if (func === "encrypt") {
-                            result = await window.crypto.subtle.encrypt(algorithm, key, new TextEncoder().encode(text));
-                            document.getElementById("result").value = formatOutput(result, outputFormat);
-                        } else {
-                            const decryptedData = parseInput(text, outputFormat);
-                            result = await window.crypto.subtle.decrypt(algorithm, key, decryptedData);
-                            const decryptedText = new TextDecoder().decode(result);
-                            document.getElementById("result").value = formatFinalOutput(decryptedText, outputFormat);
-                        }
-                        document.getElementById("status").textContent = `${func === "encrypt" ? "加密" : "解密"}成功`;
                     } else {
-                        // 使用 CryptoJS
-                        const padding = CryptoJS.pad[paddingValue];
-                        if (!padding) return displayError(`不支援的 Padding: ${paddingValue}`, "msgKeyError");
-
-                        const key = CryptoJS.enc.Utf8.parse(secretKey);
-                        const ivParam = mode !== "ECB" ? CryptoJS.enc.Utf8.parse(iv) : undefined;
-                        const config = {
-                            keySize: keySize / 32,
-                            mode: CryptoJS.mode[mode],
-                            padding,
-                            ...(ivParam && { iv: ivParam }),
-                        };
-
-                        let result;
-                        if (func === "encrypt") {
-                            result = CryptoJS.AES.encrypt(text, key, config);
-                            document.getElementById("result").value = formatCryptoJSOutput(result, outputFormat);
-                        } else {
-                            if (paddingValue === "NoPadding" && text.length % 32 !== 0) {
-                                return displayError("解密時，輸入的文本必須為 16 的倍數（No Padding）", "msgIVError");
-                            }
-                            const cipherParams = parseCryptoJSInput(text, outputFormat);
-                            result = CryptoJS.AES.decrypt(cipherParams, key, config);
-                            const decryptedText = result.toString(CryptoJS.enc.Utf8);
-                            document.getElementById("result").value = formatFinalOutput(decryptedText, outputFormat);
-                        }
-                        document.getElementById("status").textContent = `${func === "encrypt" ? "加密" : "解密"}成功`;
+                        result = await performDecryption(
+                            apiModeName,
+                            mode,
+                            text,
+                            secretKey,
+                            iv,
+                            tagLength,
+                            paddingValue,
+                            outputFormat
+                        );
                     }
+                    document.getElementById("result").value = result;
+                    document.getElementById("status").textContent = `${func === "encrypt" ? "加密" : "解密"}成功`;
                 } catch (error) {
                     document.getElementById("status").textContent = `錯誤: ${error.message}`;
                     console.error(error);
                 }
             }
 
-            function formatOutput(buffer, format) {
-                switch (format) {
-                    case "base64":
-                        return arrayBufferToBase64(buffer);
-                    case "hex":
-                        return arrayBufferToHex(buffer);
-                    case "plaintext":
-                        return new TextDecoder().decode(buffer);
-                    default:
-                        throw new Error("Unsupported output format");
+            // 修正 performEncryption 函式，確保加密結果正確處理
+            async function performEncryption(
+                apiModeName,
+                mode,
+                text,
+                secretKey,
+                iv,
+                tagLength,
+                paddingValue,
+                outputFormat
+            ) {
+                if (mode === "GCM" || mode === "CTR") {
+                    const key = await window.crypto.subtle.importKey(
+                        "raw",
+                        new TextEncoder().encode(secretKey),
+                        { name: apiModeName },
+                        false,
+                        ["encrypt"]
+                    );
+                    const ivBuffer = new TextEncoder().encode(iv);
+                    const algorithm = {
+                        name: apiModeName,
+                        iv: ivBuffer,
+                        ...(mode === "CTR" ? { counter: ivBuffer, length: 128 } : { tagLength: tagLength }),
+                    };
+                    const encryptedData = await window.crypto.subtle.encrypt(
+                        algorithm,
+                        key,
+                        new TextEncoder().encode(text)
+                    );
+                    return arrayBufferToBase64(encryptedData); // 確保加密結果轉換為 Base64
+                } else {
+                    const key = CryptoJS.enc.Utf8.parse(secretKey);
+                    const ivParam = mode !== "ECB" ? CryptoJS.enc.Utf8.parse(iv) : undefined;
+                    const config = {
+                        mode: CryptoJS.mode[mode],
+                        padding: CryptoJS.pad[paddingValue],
+                        ...(ivParam && { iv: ivParam }),
+                    };
+                    const encrypted = CryptoJS.AES.encrypt(text, key, config);
+                    return encrypted.toString(); // 確保加密結果轉換為字串
                 }
             }
 
-            function parseInput(input, format) {
-                switch (format) {
-                    case "base64":
-                        return base64ToArrayBuffer(input);
-                    case "hex":
-                        return hexToArrayBuffer(input);
-                    case "plaintext":
-                        return base64ToArrayBuffer(input);
-                    default:
-                        throw new Error("Unsupported input format");
+            // 修正 performDecryption 函式，確保解密結果正確處理
+            async function performDecryption(
+                apiModeName,
+                mode,
+                text,
+                secretKey,
+                iv,
+                tagLength,
+                paddingValue,
+                outputFormat
+            ) {
+                if (mode === "GCM" || mode === "CTR") {
+                    const key = await window.crypto.subtle.importKey(
+                        "raw",
+                        new TextEncoder().encode(secretKey),
+                        { name: apiModeName },
+                        false,
+                        ["decrypt"]
+                    );
+                    const ivBuffer = new TextEncoder().encode(iv);
+                    const algorithm = {
+                        name: apiModeName,
+                        iv: ivBuffer,
+                        ...(mode === "CTR" ? { counter: ivBuffer, length: 128 } : { tagLength: tagLength }),
+                    };
+                    const decryptedData = await window.crypto.subtle.decrypt(algorithm, key, base64ToArrayBuffer(text)); // 確保解密輸入正確轉換
+                    return new TextDecoder().decode(decryptedData);
+                } else {
+                    const key = CryptoJS.enc.Utf8.parse(secretKey);
+                    const ivParam = mode !== "ECB" ? CryptoJS.enc.Utf8.parse(iv) : undefined;
+                    const config = {
+                        mode: CryptoJS.mode[mode],
+                        padding: CryptoJS.pad[paddingValue],
+                        ...(ivParam && { iv: ivParam }),
+                    };
+                    const decrypted = CryptoJS.AES.decrypt(text, key, config);
+                    return decrypted.toString(CryptoJS.enc.Utf8); // 確保解密結果轉換為字串
                 }
             }
 
-            function formatFinalOutput(text, format) {
+            function formatData(data, format, isInput = false) {
                 switch (format) {
                     case "base64":
-                        // 使用 TextEncoder 和 arrayBufferToBase64 來處理 Unicode 字符
-                        return arrayBufferToBase64(new TextEncoder().encode(text));
+                        return isInput ? base64ToArrayBuffer(data) : arrayBufferToBase64(data);
                     case "hex":
-                        return text
-                            .split("")
-                            .map((char) => char.charCodeAt(0).toString(16).padStart(2, "0"))
-                            .join("");
+                        return isInput ? hexToArrayBuffer(data) : arrayBufferToHex(data);
                     case "plaintext":
-                        return text;
+                        return isInput ? new TextEncoder().encode(data) : new TextDecoder().decode(data);
                     default:
-                        throw new Error("Unsupported output format");
-                }
-            }
-
-            function formatCryptoJSOutput(result, format) {
-                switch (format) {
-                    case "base64":
-                        return result.toString();
-                    case "hex":
-                        return result.ciphertext.toString();
-                    case "plaintext":
-                        return result.toString();
-                    default:
-                        throw new Error("Unsupported output format for CryptoJS");
-                }
-            }
-
-            function parseCryptoJSInput(input, format) {
-                switch (format) {
-                    case "base64":
-                        return input;
-                    case "hex":
-                        return { ciphertext: CryptoJS.enc.Hex.parse(input) };
-                    case "plaintext":
-                        return input;
-                    default:
-                        throw new Error("Unsupported input format for CryptoJS");
+                        throw new Error("Unsupported format");
                 }
             }
 
@@ -478,23 +458,30 @@
                 return buffer.buffer;
             }
 
-            document.querySelectorAll(".option-group").forEach((group) => {
-                group.addEventListener("click", (e) => {
-                    const selectedOption = e.target.closest(".option");
-                    if (selectedOption) {
-                        group.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
-                        selectedOption.classList.add("selected");
-                        if (group.id === "functionMode" || group.id === "encryptionMode") {
-                            toggleUI();
+            function bindOptionGroupEvents() {
+                document.querySelectorAll(".option-group").forEach((group) => {
+                    group.addEventListener("click", (e) => {
+                        const selectedOption = e.target.closest(".option");
+                        if (selectedOption) {
+                            group.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
+                            selectedOption.classList.add("selected");
+                            if (group.id === "functionMode" || group.id === "encryptionMode") {
+                                toggleUI();
+                            }
                         }
-                    }
+                    });
                 });
-            });
+            }
+
+            function getSelectedValue(groupId) {
+                return document.querySelector(`#${groupId} .selected`).dataset.value;
+            }
 
             function copyText(id) {
                 const element = document.getElementById(id);
-                element.select();
-                document.execCommand("copy");
+                navigator.clipboard.writeText(element.value).then(() => {
+                    document.getElementById("status").textContent = "已複製到剪貼簿";
+                });
             }
 
             function pasteText(id) {
@@ -539,6 +526,9 @@
                 const element = document.getElementById(elementId);
                 if (element) element.textContent = message;
             }
+
+            // 初始化事件綁定
+            bindOptionGroupEvents();
         </script>
     </body>
 </html>
