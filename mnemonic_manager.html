@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>助記詞管理工具（完整功能）</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #1e1e2f;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #292945;
+      padding: 1em;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+    main {
+      padding: 2em;
+      max-width: 700px;
+      margin: auto;
+    }
+    .card {
+      background: #2f2f4f;
+      border-radius: 10px;
+      padding: 1.5em;
+      margin-bottom: 2em;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+    label {
+      display: block;
+      margin-top: 1em;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.7em;
+      margin-top: 0.5em;
+      border: none;
+      border-radius: 5px;
+      background: #444;
+      color: #fff;
+    }
+    button {
+      margin-top: 1em;
+      padding: 0.7em 1.2em;
+      border: none;
+      background: #5865f2;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #4752c4;
+    }
+    canvas {
+      margin-top: 1em;
+      background: white;
+      border-radius: 10px;
+    }
+    .output {
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 1em;
+    }
+  </style>
+</head>
+<body>
+  <header>🔐 助記詞管理工具（AES-GCM + QR Code）</header>
+  <main>
+    <div class="card">
+      <label for="mnemonic">助記詞：</label>
+      <textarea id="mnemonic" rows="3" placeholder="例如：apple zebra moon..."></textarea>
+
+      <label for="passphrase">密碼：</label>
+      <input type="password" id="passphrase" placeholder="輸入用於加密的密碼" />
+
+      <button onclick="encryptAndShowQR()">加密並生成 QR Code</button>
+      <canvas id="qrCanvas"></canvas>
+
+      <label for="base64json">輸入密文（Base64）：</label>
+      <textarea id="base64json" rows="4" placeholder="貼上 QR Code 掃描結果或 JSON base64"></textarea>
+      <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:1em;">
+      <button onclick="decryptAndShowMnemonic()">解密助記詞</button>
+      <button onclick="copyCipher()">複製密文</button>
+      <button onclick="pasteCipher()">貼上密文</button>
+    </div>
+
+      <div id="output" class="output"></div>
+    </div>
+  
+    <div class="card" style="font-size: 0.95em; line-height: 1.6;">
+      <h3>🔍 工具說明</h3>
+      <p>本工具可將加密貨幣錢包助記詞進行 AES-GCM 加密處理，搭配 PBKDF2 以密碼衍生安全金鑰，並可輸出為 QR Code 供列印或備份。</p>
+      <p>解密流程需使用相同密碼輸入，加解密資料包含：<code>iv</code>（初始向量）、<code>salt</code>（鹽值）、<code>ciphertext</code>（密文），並全部以 base64 包裝成 JSON 儲存。</p>
+      <p>此工具僅於本地端瀏覽器執行，無資料上傳行為，適用於冷錢包備份與助記詞保存用途。</p>
+    </div>
+  </main>
+
+  <script>
+    function copyCipher() {
+      const cipher = document.getElementById("base64json").value;
+      navigator.clipboard.writeText(cipher).then(() => {
+        alert("已複製密文到剪貼簿");
+      });
+    }
+
+    function pasteCipher() {
+      navigator.clipboard.readText().then(text => {
+        document.getElementById("base64json").value = text;
+      });
+    }
+  </script>
+
+
+  <script>
+    async function encryptAndShowQR() {
+      const mnemonic = document.getElementById("mnemonic").value.trim();
+      const passphrase = document.getElementById("passphrase").value;
+      if (!mnemonic || !passphrase) {
+        alert("請輸入助記詞和密碼");
+        return;
+      }
+
+      const enc = new TextEncoder();
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+
+      const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(passphrase), { name: "PBKDF2" }, false, ["deriveKey"]);
+      const key = await crypto.subtle.deriveKey(
+        {
+          name: "PBKDF2",
+          salt,
+          iterations: 100000,
+          hash: "SHA-256"
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt"]
+      );
+
+      const ciphertext = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        key,
+        enc.encode(mnemonic)
+      );
+
+      const json = {
+        iv: btoa(String.fromCharCode(...iv)),
+        salt: btoa(String.fromCharCode(...salt)),
+        ciphertext: btoa(String.fromCharCode(...new Uint8Array(ciphertext)))
+      };
+
+      const base64json = btoa(JSON.stringify(json));
+      QRCode.toCanvas(document.getElementById("qrCanvas"), base64json, { errorCorrectionLevel: 'H' });
+
+      document.getElementById("base64json").value = base64json;
+    }
+
+    async function decryptAndShowMnemonic() {
+      const base64json = document.getElementById("base64json").value.trim();
+      const passphrase = document.getElementById("passphrase").value;
+      if (!base64json || !passphrase) {
+        alert("請輸入密文與密碼");
+        return;
+      }
+
+      try {
+        const json = JSON.parse(atob(base64json));
+        const iv = Uint8Array.from(atob(json.iv), c => c.charCodeAt(0));
+        const salt = Uint8Array.from(atob(json.salt), c => c.charCodeAt(0));
+        const ciphertext = Uint8Array.from(atob(json.ciphertext), c => c.charCodeAt(0));
+
+        const enc = new TextEncoder();
+        const dec = new TextDecoder();
+
+        const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(passphrase), { name: "PBKDF2" }, false, ["deriveKey"]);
+        const key = await crypto.subtle.deriveKey(
+          {
+            name: "PBKDF2",
+            salt,
+            iterations: 100000,
+            hash: "SHA-256"
+          },
+          keyMaterial,
+          { name: "AES-GCM", length: 256 },
+          false,
+          ["decrypt"]
+        );
+
+        const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+        const mnemonic = dec.decode(decrypted);
+        document.getElementById("output").textContent = "✅ 成功解密助記詞：\n" + mnemonic;
+      } catch (e) {
+        document.getElementById("output").textContent = "❌ 解密失敗，請確認密碼與資料正確。";
+      }
+    }
+  </script>
+</body>
+</html>
