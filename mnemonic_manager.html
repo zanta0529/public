@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -68,7 +67,11 @@
       white-space: pre-wrap;
       word-break: break-word;
       margin-top: 1em;
+      color: #f00; /* Default to error color */
     }
+     .output.success {
+        color: #0f0; /* Green for success */
+     }
   </style>
 </head>
 <body>
@@ -98,8 +101,9 @@
 
     <div class="card" style="font-size: 0.95em; line-height: 1.6;">
       <h3>🔍 工具說明</h3>
-      <p>本工具使用 AES-GCM 加密助記詞，PBKDF2 產生金鑰，支援 QR Code 匯出與還原。加密後的 JSON 包含 salt、iterations、keySize、iv、ciphertext、tag。</p>
+      <p>本工具使用 AES-GCM 加密助記詞，PBKDF2 產生金鑰，支援 QR Code 匯出與還原。加密後的 JSON 包含 salt、iterations、keySize、iv、ciphertext、tag 等參數。</p>
       <p>此工具不使用 AAD，完全在本地端執行，適合冷錢包環境使用。</p>
+      <p><strong>重要提示：</strong>請務必牢記您的密碼，密碼遺失將無法還原助記詞。請將密文 (Base64 或 QR Code) 妥善保管。</p>
     </div>
   </main>
 
@@ -107,92 +111,159 @@
     async function encryptAndShowQR() {
       const mnemonic = document.getElementById("mnemonic").value.trim();
       const passphrase = document.getElementById("passphrase").value;
-      if (!mnemonic || !passphrase) return alert("請輸入助記詞和密碼");
+      const outputDiv = document.getElementById("output");
+      outputDiv.textContent = ''; // Clear previous output
+      outputDiv.classList.remove('success');
 
-      const enc = new TextEncoder();
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      const iterations = 100000;
-      const keySize = 256;
-
-      const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(passphrase), { name: "PBKDF2" }, false, ["deriveKey"]);
-      const key = await crypto.subtle.deriveKey(
-        { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
-        keyMaterial,
-        { name: "AES-GCM", length: keySize },
-        false,
-        ["encrypt"]
-      );
-
-      const encoded = enc.encode(mnemonic);
-      const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv, tagLength: 128 }, key, encoded);
-      const encryptedBytes = new Uint8Array(encrypted);
-      const tag = encryptedBytes.slice(-16);
-      const ciphertext = encryptedBytes.slice(0, -16);
-
-      const json = {
-  salt: btoa(String.fromCharCode(...salt)),
-  iterations,
-  keySize,
-  iv: btoa(String.fromCharCode(...iv)),
-  ciphertext: btoa(String.fromCharCode(...ciphertext)),
-  tag: btoa(String.fromCharCode(...tag)),
-  algorithm: {
-    name: "AES-GCM",
-    ivLength: 12,
-    tagLength: 128,
-    keyDerivation: {
-      name: "PBKDF2",
-      hash: "SHA-256"
-    }
-  }
-};
-
-      const output = btoa(JSON.stringify(json));
-      QRCode.toCanvas(document.getElementById("qrCanvas"), output, { errorCorrectionLevel: 'H' });
-      document.getElementById("base64json").value = output;
-    }
-
-    async function decryptAndShowMnemonic() {
-      const passphrase = document.getElementById("passphrase").value;
-      const base64json = document.getElementById("base64json").value.trim();
-      if (!passphrase || !base64json) return alert("請輸入密文與密碼");
+      if (!mnemonic || !passphrase) {
+        outputDiv.textContent = "請輸入助記詞和密碼";
+        return;
+      }
 
       try {
-        const json = JSON.parse(atob(base64json));
-        const iv = Uint8Array.from(atob(json.iv), c => c.charCodeAt(0));
-        const salt = Uint8Array.from(atob(json.salt), c => c.charCodeAt(0));
-        const ciphertext = Uint8Array.from(atob(json.ciphertext), c => c.charCodeAt(0));
-        const tag = Uint8Array.from(atob(json.tag), c => c.charCodeAt(0));
-        const iterations = json.iterations || 100000;
-        const fullCipher = new Uint8Array([...ciphertext, ...tag]);
-
         const enc = new TextEncoder();
-        const dec = new TextDecoder();
+        const iv = crypto.getRandomValues(new Uint8Array(12)); // GCM standard IV length 12 bytes (96 bits)
+        const salt = crypto.getRandomValues(new Uint8Array(16)); // Recommended salt length 16 bytes
+        const iterations = 300000; // Increased iterations for better security
+        const keySize = 256; // AES-256 key size in bits
+        const tagLength = 128; // AES-GCM standard tag length in bits (16 bytes)
 
         const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(passphrase), { name: "PBKDF2" }, false, ["deriveKey"]);
         const key = await crypto.subtle.deriveKey(
           { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
           keyMaterial,
-          { name: "AES-GCM", length: 256 },
+          { name: "AES-GCM", length: keySize },
+          false,
+          ["encrypt"]
+        );
+
+        const encoded = enc.encode(mnemonic);
+        // The encrypt operation with GCM appends the tag to the ciphertext
+        const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv, tagLength: tagLength }, key, encoded);
+
+        const encryptedBytes = new Uint8Array(encrypted);
+        // tagLength is in bits, convert to bytes for slicing
+        const tagBytesLength = tagLength / 8;
+        const tag = encryptedBytes.slice(-tagBytesLength);
+        const ciphertext = encryptedBytes.slice(0, -tagBytesLength);
+
+        const json = {
+          salt: btoa(String.fromCharCode(...salt)),
+          iterations,
+          keySize,
+          iv: btoa(String.fromCharCode(...iv)),
+          ciphertext: btoa(String.fromCharCode(...ciphertext)),
+          tag: btoa(String.fromCharCode(...tag)),
+          algorithm: {
+            name: "AES-GCM",
+            ivLength: iv.length, // Store IV length in bytes
+            tagLength: tagLength, // Store tag length in bits
+            keyDerivation: {
+              name: "PBKDF2",
+              hash: "SHA-256"
+            }
+          }
+        };
+
+        const outputBase64 = btoa(JSON.stringify(json));
+        QRCode.toCanvas(document.getElementById("qrCanvas"), outputBase64, { errorCorrectionLevel: 'H', width: 256 }); // Set a fixed width for QR code
+        document.getElementById("base64json").value = outputBase64;
+        outputDiv.textContent = "✅ 加密成功！密文已生成並顯示在下方與 QR Code 中。";
+        outputDiv.classList.add('success');
+
+      } catch (e) {
+        console.error("加密失敗:", e);
+        outputDiv.textContent = "❌ 加密失敗：" + e.message;
+        outputDiv.classList.remove('success');
+      }
+    }
+
+    async function decryptAndShowMnemonic() {
+      const passphrase = document.getElementById("passphrase").value;
+      const base64json = document.getElementById("base64json").value.trim();
+      const outputDiv = document.getElementById("output");
+      outputDiv.textContent = ''; // Clear previous output
+      outputDiv.classList.remove('success');
+
+
+      if (!passphrase || !base64json) {
+         outputDiv.textContent = "請輸入密文與密碼";
+         return;
+      }
+
+      try {
+        const jsonString = atob(base64json);
+        const json = JSON.parse(jsonString);
+
+        // --- 從 JSON 讀取加密參數 ---
+        const salt = Uint8Array.from(atob(json.salt), c => c.charCodeAt(0));
+        const iv = Uint8Array.from(atob(json.iv), c => c.charCodeAt(0));
+        const ciphertext = Uint8Array.from(atob(json.ciphertext), c => c.charCodeAt(0));
+        const tag = Uint8Array.from(atob(json.tag), c => c.charCodeAt(0));
+
+        const iterations = json.iterations;
+        const keySize = json.keySize; // <-- 從 JSON 讀取 keySize
+        const tagLength = json.algorithm && json.algorithm.tagLength; // <-- 從 JSON 讀取 tagLength
+
+        // --- 參數基本驗證 ---
+        if (typeof iterations !== 'number' || iterations <= 0) throw new Error("Invalid iterations.");
+        if (typeof keySize !== 'number' || (keySize !== 128 && keySize !== 192 && keySize !== 256)) throw new Error("Invalid or unsupported key size.");
+        if (iv.length !== (json.algorithm && json.algorithm.ivLength)) throw new Error("IV length mismatch.");
+        if (typeof tagLength !== 'number' || (tagLength % 8 !== 0 || tagLength < 32 || tagLength > 128)) throw new Error("Invalid or unsupported tag length.");
+        if (tag.length * 8 !== tagLength) throw new Error(`Tag length mismatch. JSON specifies ${tagLength} bits, but decoded tag is ${tag.length * 8} bits.`);
+        if (json.algorithm.name !== "AES-GCM" || json.algorithm.keyDerivation.name !== "PBKDF2" || json.algorithm.keyDerivation.hash !== "SHA-256") {
+            console.warn("Algorithm parameters in JSON do not exactly match expected (AES-GCM/PBKDF2/SHA-256). Proceeding based on present parameters, but exercise caution.");
+            // Note: For strictness, you might throw an error here instead of just warning.
+        }
+
+
+        // --- 金鑰派生 ---
+        const enc = new TextEncoder();
+        const dec = new TextDecoder();
+
+        const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(passphrase), { name: "PBKDF2" }, false, ["deriveKey"]);
+
+        const key = await crypto.subtle.deriveKey(
+          { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+          keyMaterial,
+          { name: "AES-GCM", length: keySize }, // <-- 使用從 JSON 讀取的 keySize
           false,
           ["decrypt"]
         );
 
-        const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv, tagLength: 128 }, key, fullCipher);
-        document.getElementById("output").textContent = "✅ 成功解密助記詞：\n" + dec.decode(decrypted);
-      } catch {
-        document.getElementById("output").textContent = "❌ 解密失敗，請確認密碼與密文。";
+        // --- 解密 ---
+        // 解密函式需要密文和標籤組合在一起作為輸入 (當指定 tagLength 時)
+        const fullCipher = new Uint8Array([...ciphertext, ...tag]);
+
+        const decrypted = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv, tagLength: tagLength }, // <-- 使用從 JSON 讀取的 tagLength
+            key,
+            fullCipher
+        );
+
+        // --- 顯示結果 ---
+        outputDiv.textContent = "✅ 成功解密助記詞：\n" + dec.decode(decrypted);
+        outputDiv.classList.add('success');
+
+      } catch (e) {
+        console.error("解密失敗:", e);
+        outputDiv.textContent = "❌ 解密失敗，請確認密碼、密文，或密文格式錯誤。";
+        outputDiv.classList.remove('success');
       }
     }
 
+    // Helper functions (copy, paste, reset) remain the same
     function copyCipher() {
       const cipher = document.getElementById("base64json").value;
-      navigator.clipboard.writeText(cipher).then(() => alert("已複製密文到剪貼簿"));
+      navigator.clipboard.writeText(cipher).then(() => alert("已複製密文到剪貼簿")).catch(err => console.error("複製失敗:", err));
     }
 
     function pasteCipher() {
-      navigator.clipboard.readText().then(text => document.getElementById("base64json").value = text);
+      navigator.clipboard.readText().then(text => {
+         document.getElementById("base64json").value = text;
+         document.getElementById("output").textContent = ""; // Clear output after pasting
+         document.getElementById("output").classList.remove('success');
+      }).catch(err => console.error("貼上失敗:", err));
     }
 
     function resetAll() {
@@ -200,10 +271,12 @@
       document.getElementById("passphrase").value = "";
       document.getElementById("base64json").value = "";
       document.getElementById("output").textContent = "";
+      document.getElementById("output").classList.remove('success');
       const canvas = document.getElementById("qrCanvas");
       canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-      navigator.clipboard.writeText("");
-      alert("已清除所有內容與剪貼簿");
+      // Clear clipboard might require user interaction in some browsers, might fail silently.
+      navigator.clipboard.writeText("").catch(err => console.warn("無法完全清除剪貼簿:", err));
+      alert("已清除所有輸入與結果。");
     }
   </script>
 </body>
