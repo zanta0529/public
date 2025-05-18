@@ -1,118 +1,49 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>助記詞管理工具（AES-GCM + QR Code）</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-  <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background: #1e1e2f;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #292945;
-      padding: 1em;
-      text-align: center;
-      font-size: 1.5em;
-      font-weight: bold;
-    }
-    main {
-      padding: 2em;
-      max-width: 700px;
-      margin: auto;
-    }
-    .card {
-      background: #2f2f4f;
-      border-radius: 10px;
-      padding: 1.5em;
-      margin-bottom: 2em;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
-    }
-    label {
-      display: block;
-      margin-top: 1em;
-      font-weight: bold;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 0.7em;
-      margin-top: 0.5em;
-      border: none;
-      border-radius: 5px;
-      background: #444;
-      color: #fff;
-    }
-    button {
-      margin-top: 1em;
-      padding: 0.7em 1.2em;
-      border: none;
-      background: #5865f2;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #4752c4;
-    }
-    canvas {
-      margin-top: 1em;
-      background: white;
-      border-radius: 10px;
-    }
-    .output {
-      white-space: pre-wrap;
-      word-break: break-word;
-      margin-top: 1em;
-      color: #f00; /* Default to error color */
-    }
-     .output.success {
-        color: #0f0; /* Green for success */
-     }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>助記詞管理工具（AES-GCM + QR Code）</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+<style>
+body{font-family:"Segoe UI",sans-serif;background:#1e1e2f;color:#fff;margin:0;padding:0}header{background:#292945;padding:1em;text-align:center;font-size:1.5em;font-weight:700}main{padding:2em;max-width:700px;margin:auto}.card{background:#2f2f4f;border-radius:10px;padding:1.5em;margin-bottom:2em;box-shadow:0 0 10px rgba(0,0,0,.4)}label{display:block;margin-top:1em;font-weight:700}input,textarea{width:100%;padding:.7em;margin-top:.5em;border:none;border-radius:5px;background:#444;color:#fff}button{margin-top:1em;padding:.7em 1.2em;border:none;background:#5865f2;color:#fff;border-radius:5px;cursor:pointer}button:hover{background:#4752c4}canvas{margin-top:1em;background:#fff;border-radius:10px}.output{white-space:pre-wrap;word-break:break-word;margin-top:1em;color:red}.output.success{color:#0f0}
+</style>
 </head>
 <body>
-  <header>🔐 助記詞管理工具（AES-GCM + QR Code）</header>
-  <main>
-    <div class="card">
-      <label for="mnemonic">助記詞：</label>
-      <textarea id="mnemonic" rows="3"></textarea>
-
-      <label for="passphrase">密碼：</label>
-      <input type="password" id="passphrase" placeholder="輸入用於加密的密碼" />
-
-      <button onclick="encryptAndShowQR()">加密並生成 QR Code</button>
-      <canvas id="qrCanvas"></canvas>
-
-      <label for="base64json">輸入密文（Base64）：</label>
-      <textarea id="base64json" rows="4"></textarea>
-      <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:1em;">
-        <button onclick="decryptAndShowMnemonic()">解密助記詞</button>
-        <button onclick="copyCipher()">複製密文</button>
-        <button onclick="pasteCipher()">貼上密文</button>
-        <button onclick="resetAll()" style="background-color:#a00;">🔁 重設</button>
-      </div>
-
-      <div id="output" class="output"></div>
+<header>🔐 助記詞管理工具（AES-GCM + QR Code）</header>
+<main>
+<div class="card">
+    <label for="mnemonic">助記詞</label>
+    <textarea id="mnemonic" rows="3" placeholder="請輸入助記詞或想要加密的文字"></textarea>
+    <label for="passphrase">密碼短語（註：非加密金鑰）</label>
+    <input type="password" id="passphrase" placeholder="輸入密碼短語以產生加密用的金鑰">
+    <button onclick="encrypt()">加密並產生 QR Code</button>
+    <div><canvas id="qrCanvas" style="display:none"></canvas><div>
+    <label for="base64json">輸入密文（Base64）</label>
+    <textarea id="base64json" rows="4"></textarea>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:1em">
+        <button onclick="decrypt()">解密</button>
+        <button onclick="copyCipher()">複製</button>
+        <button onclick="pasteCipher()">貼上</button>
+        <button onclick="resetAll()" style="background-color:#a00">🔁 重設</button>
     </div>
-
-    <div class="card" style="font-size: 0.95em; line-height: 1.6;">
-      <h3>🔍 工具說明</h3>
-      <p>本工具使用 AES-GCM 加密助記詞，PBKDF2 產生金鑰，支援 QR Code 匯出與還原。加密後的 JSON 包含 salt、iterations、keySize、iv、ciphertext、tag 等參數。</p>
-      <p>此工具不使用 AAD，完全在本地端執行，適合冷錢包環境使用。</p>
-      <p><strong>重要提示：</strong>請務必牢記您的密碼，密碼遺失將無法還原助記詞。請將密文 (Base64 或 QR Code) 妥善保管。</p>
-    </div>
-  </main>
-
-  <script>
-    async function encryptAndShowQR() {
-      const mnemonic = document.getElementById("mnemonic").value.trim();
-      const passphrase = document.getElementById("passphrase").value;
-      const outputDiv = document.getElementById("output");
-      outputDiv.textContent = ''; // Clear previous output
+    <div id="output" class="output"></div>
+</div>
+<div class="card" style="font-size:.95em;line-height:1.6">
+    <h3>🔍 工具說明</h3>
+    <p>本工具使用 AES-GCM 加密助記詞，PBKDF2 產生金鑰，支援 QR Code 匯出與還原。加密後的 JSON 包含 salt、iterations、keySize、iv、ciphertext、tag 等參數。</p>
+    <p>此工具不使用 AAD，完全在本地端執行，適合冷錢包環境使用。</p>
+    <p><strong>重要提示：</strong>請務必牢記您的密碼，密碼遺失將無法還原助記詞。請將密文 (Base64 或 QR Code) 妥善保管。</p>
+</div>
+</main>
+<script>
+    const getObject = document.getElementById.bind(document);
+  
+    async function encrypt() {
+      const mnemonic = getObject("mnemonic").value.trim();
+      const passphrase = getObject("passphrase").value;
+      const outputDiv = getObject("output");
+      outputDiv.textContent = '';
       outputDiv.classList.remove('success');
 
       if (!mnemonic || !passphrase) {
@@ -122,11 +53,11 @@
 
       try {
         const enc = new TextEncoder();
-        const iv = crypto.getRandomValues(new Uint8Array(12)); // GCM standard IV length 12 bytes (96 bits)
-        const salt = crypto.getRandomValues(new Uint8Array(16)); // Recommended salt length 16 bytes
-        const iterations = 300000; // Increased iterations for better security
-        const keySize = 256; // AES-256 key size in bits
-        const tagLength = 128; // AES-GCM standard tag length in bits (16 bytes)
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iterations = 300000;
+        const keySize = 256;
+        const tagLength = 128;
 
         const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(passphrase), { name: "PBKDF2" }, false, ["deriveKey"]);
         const key = await crypto.subtle.deriveKey(
@@ -138,11 +69,8 @@
         );
 
         const encoded = enc.encode(mnemonic);
-        // The encrypt operation with GCM appends the tag to the ciphertext
         const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv, tagLength: tagLength }, key, encoded);
-
         const encryptedBytes = new Uint8Array(encrypted);
-        // tagLength is in bits, convert to bytes for slicing
         const tagBytesLength = tagLength / 8;
         const tag = encryptedBytes.slice(-tagBytesLength);
         const ciphertext = encryptedBytes.slice(0, -tagBytesLength);
@@ -156,8 +84,8 @@
           tag: btoa(String.fromCharCode(...tag)),
           algorithm: {
             name: "AES-GCM",
-            ivLength: iv.length, // Store IV length in bytes
-            tagLength: tagLength, // Store tag length in bits
+            ivLength: iv.length,
+            tagLength: tagLength,
             keyDerivation: {
               name: "PBKDF2",
               hash: "SHA-256"
@@ -165,8 +93,9 @@
           }
         };
 
+        document.getElementById("qrCanvas").style.display = "block";
         const outputBase64 = btoa(JSON.stringify(json));
-        QRCode.toCanvas(document.getElementById("qrCanvas"), outputBase64, { errorCorrectionLevel: 'H', width: 256 }); // Set a fixed width for QR code
+        QRCode.toCanvas(document.getElementById("qrCanvas"), outputBase64, { errorCorrectionLevel: 'H', width: 256 });
         document.getElementById("base64json").value = outputBase64;
         outputDiv.textContent = "✅ 加密成功！密文已生成並顯示在下方與 QR Code 中。";
         outputDiv.classList.add('success');
@@ -178,13 +107,12 @@
       }
     }
 
-    async function decryptAndShowMnemonic() {
-      const passphrase = document.getElementById("passphrase").value;
-      const base64json = document.getElementById("base64json").value.trim();
-      const outputDiv = document.getElementById("output");
-      outputDiv.textContent = ''; // Clear previous output
+    async function decrypt() {
+      const passphrase = getObject("passphrase").value;
+      const base64json = getObject("base64json").value.trim();
+      const outputDiv = getObject("output");
+      outputDiv.textContent = '';
       outputDiv.classList.remove('success');
-
 
       if (!passphrase || !base64json) {
          outputDiv.textContent = "請輸入密文與密碼";
@@ -200,10 +128,9 @@
         const iv = Uint8Array.from(atob(json.iv), c => c.charCodeAt(0));
         const ciphertext = Uint8Array.from(atob(json.ciphertext), c => c.charCodeAt(0));
         const tag = Uint8Array.from(atob(json.tag), c => c.charCodeAt(0));
-
         const iterations = json.iterations;
-        const keySize = json.keySize; // <-- 從 JSON 讀取 keySize
-        const tagLength = json.algorithm && json.algorithm.tagLength; // <-- 從 JSON 讀取 tagLength
+        const keySize = json.keySize;
+        const tagLength = json.algorithm && json.algorithm.tagLength;
 
         // --- 參數基本驗證 ---
         if (typeof iterations !== 'number' || iterations <= 0) throw new Error("Invalid iterations.");
@@ -216,8 +143,6 @@
             // Note: For strictness, you might throw an error here instead of just warning.
         }
 
-
-        // --- 金鑰派生 ---
         const enc = new TextEncoder();
         const dec = new TextDecoder();
 
@@ -226,17 +151,14 @@
         const key = await crypto.subtle.deriveKey(
           { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
           keyMaterial,
-          { name: "AES-GCM", length: keySize }, // <-- 使用從 JSON 讀取的 keySize
+          { name: "AES-GCM", length: keySize },
           false,
           ["decrypt"]
         );
 
-        // --- 解密 ---
-        // 解密函式需要密文和標籤組合在一起作為輸入 (當指定 tagLength 時)
         const fullCipher = new Uint8Array([...ciphertext, ...tag]);
-
         const decrypted = await crypto.subtle.decrypt(
-            { name: "AES-GCM", iv, tagLength: tagLength }, // <-- 使用從 JSON 讀取的 tagLength
+            { name: "AES-GCM", iv, tagLength: tagLength },
             key,
             fullCipher
         );
@@ -252,32 +174,28 @@
       }
     }
 
-    // Helper functions (copy, paste, reset) remain the same
     function copyCipher() {
-      const cipher = document.getElementById("base64json").value;
+      const cipher = getObject("base64json").value;
       navigator.clipboard.writeText(cipher).then(() => alert("已複製密文到剪貼簿")).catch(err => console.error("複製失敗:", err));
     }
 
     function pasteCipher() {
       navigator.clipboard.readText().then(text => {
-         document.getElementById("base64json").value = text;
-         document.getElementById("output").textContent = ""; // Clear output after pasting
-         document.getElementById("output").classList.remove('success');
+         getObject("base64json").value = text;
+         getObject("output").textContent = "";
+         getObject("output").classList.remove('success');
       }).catch(err => console.error("貼上失敗:", err));
     }
 
     function resetAll() {
-      document.getElementById("mnemonic").value = "";
-      document.getElementById("passphrase").value = "";
-      document.getElementById("base64json").value = "";
-      document.getElementById("output").textContent = "";
-      document.getElementById("output").classList.remove('success');
-      const canvas = document.getElementById("qrCanvas");
+      getObject("mnemonic").value = "";
+      getObject("passphrase").value = "";
+      getObject("base64json").value = "";
+      getObject("output").textContent = "";
+      getObject("output").classList.remove('success');
+      const canvas = getObject("qrCanvas");
       canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-      // Clear clipboard might require user interaction in some browsers, might fail silently.
+      canvas.style.display = "none";
       navigator.clipboard.writeText("").catch(err => console.warn("無法完全清除剪貼簿:", err));
       alert("已清除所有輸入與結果。");
-    }
-  </script>
-</body>
-</html>
+    }</script></body></html>
