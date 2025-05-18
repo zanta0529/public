@@ -1,534 +1,662 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>AES 加密/解密工具</title>
-        <style>
-            body {
-                transition: background-color 0.3s ease;
-            }
-            body.encrypt-mode {
-                background-color: #e6ffe6;
-            }
-            body.decrypt-mode {
-                background-color: #ffe6e6;
-            }
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AES 加密/解密工具 (文字金鑰/IV)</title>
+    <style>
+        body {
+            transition: background-color 0.3s ease;
+            font-family: Arial, sans-serif;
+        }
+        body.encrypt-mode {
+            background-color: #e6ffe6;
+        }
+        body.decrypt-mode {
+            background-color: #ffe6e6;
+        }
+        .container {
+            max-width: 80%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .option {
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .option.selected {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .option.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label, .label-text {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        textarea {
+            width: calc(100% - 22px); /* Adjusted for padding and border */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        textarea {
+             width: 98%; /* Original for textarea */
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .encryptButton {
+            width: 100%;
+            margin: 20px 0;
+            background-color: #28a745; /* Green */
+        }
+        .encryptButton:hover {
+            background-color: #1e7e34;
+        }
+        .decryptButton {
+            width: 100%;
+            margin: 20px 0;
+            background-color: #dc3545; /* Red */
+        }
+        .decryptButton:hover {
+            background-color: #b02a37;
+        }
+        #FunctionEncrypt,
+        #FunctionDecrypt {
+            background-color: #6c757d;
+            border-width: 1px;
+            color: white;
+        }
+        #FunctionEncrypt.selected,
+        #FunctionDecrypt.selected {
+            background-color: #BB3D00;
+        }
+        .note {
+            color: #AE00AE;
+            font-size: 14px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+        .error-message {
+            color: red;
+            font-size: 16px;
+        }
+        .status-message {
+            margin-top: 16px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .security-note {
+            font-size: 0.9em;
+            color: #721c24; /* Dark red */
+            background-color: #f8d7da; /* Light red */
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        @media (max-width: 768px) {
             .container {
-                max-width: 80%;
-                margin: 0 auto;
-                padding: 20px;
-                font-family: Arial, sans-serif;
-                background-color: white;
-                border-radius: 8px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            }
-            .option-group {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                margin-bottom: 15px;
+                max-width: 95%;
             }
             .option {
-                padding: 10px 15px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                cursor: pointer;
-                transition: background-color 0.3s;
-            }
-            .option.selected {
-                background-color: #007bff;
-                color: white;
-            }
-            .option.disabled {
-                pointer-events: none; /* 禁用點擊事件 */
-                opacity: 0.5; /* 改變透明度 */
-                cursor: not-allowed; /* 更改鼠標指標 */
-            }
-            .input-group {
-                margin-bottom: 15px;
-            }
-            label {
-                display: block;
-                margin-bottom: 5px;
-            }
-            input[type="text"],
-            textarea {
-                width: 98%;
-                padding: 10px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                font-size: 16px;
+                flex: 1 1 48%;
             }
             .button-group {
-                display: flex;
                 flex-direction: column;
-                gap: 10px;
-                margin-bottom: 15px;
             }
-            button {
-                padding: 10px 15px;
-                background-color: #007bff;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
+        }
+        @media (min-width: 769px) {
+            .button-group {
+                flex-direction: row;
+                flex-wrap: wrap;
             }
-            button:hover {
-                background-color: #442901;
-                color: yellow;
+            .button-group button {
+                 flex: 1; /* Allow buttons to share space */
+                 min-width: 100px; /* Minimum width for buttons */
             }
-            .encryptButton {
-                width: 100%;
-                margin: 20px 0 20px 0;
-                background-color: #006400;
-            }
-            .decryptButton {
-                width: 100%;
-                margin: 20px 0 20px 0;
-                background-color: #8b0000;
-            }
-            #FunctionEncrypt,
-            #FunctionDecrypt {
-                background-color: #aaa8a8;
-                color: black;
-            }
-            #FunctionEncrypt.selected,
-            #FunctionDecrypt.selected {
-                background-color: #ad701f;
-                color: white;
-            }
-            .note {
-                color: #464545;
-                font-size: 14px;
-            }
-            .error-message {
-                color: red;
-            }
-            @media (max-width: 768px) {
-                .option {
-                    flex: 1 1 48%; /* 每行顯示兩個選項 */
-                }
+        }
+    </style>
+</head>
+<body class="encrypt-mode">
+    <div class="container">
+        <h1>AES 加密/解密工具 (文字金鑰/IV)</h1>
 
-                .button-group {
-                    flex-direction: column; /* 小螢幕上直排 */
-                }
-            }
-
-            @media (min-width: 769px) {
-                .button-group {
-                    flex-direction: row; /* 大螢幕上橫排 */
-                    flex-wrap: wrap; /* 允許換行 */
-                }
-
-                /* 按鈕均分空間 */
-                /* button {
-                    flex: 1;
-                } */
-            }
-        </style>
-    </head>
-    <body class="encrypt-mode">
-        <div class="container">
-            <h1>AES 加密/解密工具</h1>
-
-            <div id="functionMode" class="option-group">
-                <div id="FunctionEncrypt" class="option selected" data-value="encrypt">加密模式</div>
-                <div id="FunctionDecrypt" class="option" data-value="decrypt">解密模式</div>
-            </div>
-
-            <div class="input-group">
-                <label for="text">Text</label>
-                <div class="button-group">
-                    <button onclick="copyText('text')">複製</button>
-                    <button onclick="pasteText('text')">貼上</button>
-                    <button onclick="clearText('text')">清除</button>
-                </div>
-                <textarea id="text" rows="6"></textarea>
-            </div>
-
-            <label>Encryption Mode</label>
-            <div id="encryptionMode" class="option-group">
-                <div class="option selected" data-value="GCM">GCM</div>
-                <div class="option" data-value="CTR">CTR</div>
-                <div class="option" data-value="CBC">CBC</div>
-                <div class="option" data-value="ECB">ECB</div>
-            </div>
-
-            <div id="paddingGroup">
-                <label>Padding</label>
-                <div id="padding" class="option-group">
-                    <div class="option selected" data-value="Pkcs7">PKCS7Padding</div>
-                    <div class="option" data-value="NoPadding">NoPadding</div>
-                </div>
-            </div>
-
-            <label>Encryption Key Size</label>
-            <div id="keySize" class="option-group">
-                <div class="option selected" data-value="128">128 bits</div>
-                <div class="option" data-value="192">192 bits</div>
-                <div class="option" data-value="256">256 bits</div>
-            </div>
-
-            <div class="input-group">
-                <label for="secretKey">Secret Key</label>
-                <input type="text" id="secretKey" />
-                <label id="msgKeyError" class="error-message"></label>
-            </div>
-
-            <div id="ivGroup" class="input-group">
-                <label for="iv">Initial Vector</label>
-                <input type="text" id="iv" />
-                <label id="msgIVError" class="error-message"></label>
-            </div>
-
-            <div id="tagLengthGroup" class="input-group" style="display: none">
-                <label for="tagLength">Tag Length</label>
-                <div id="tagLength" class="option-group">
-                    <div class="option selected" data-value="128">128</div>
-                    <div class="option" data-value="120">120</div>
-                    <div class="option" data-value="112">112</div>
-                    <div class="option" data-value="104">104</div>
-                    <div class="option" data-value="96">96</div>
-                </div>
-            </div>
-
-            <label>Output Text Format</label>
-            <div id="outputFormat" class="option-group">
-                <div id="optTextFormat" class="option" data-value="plaintext">Plain-Text</div>
-                <div id="optBase64Format" class="option selected" data-value="base64">Base64</div>
-                <div id="optHexFormat" class="option" data-value="hex">Hex</div>
-            </div>
-
-            <div class="button-group">
-                <button id="btnExecute" onclick="processData()">加密</button>
-            </div>
-
-            <div class="input-group">
-                <label for="result">Result</label>
-                <div class="button-group">
-                    <button onclick="copyText('result')">複製</button>
-                    <button onclick="clearText('result')">清除</button>
-                    <button onclick="swapText()">交換</button>
-                    <button onclick="resetForm()">重置</button>
-                </div>
-                <textarea id="result" rows="6" readonly></textarea>
-            </div>
-
-            <div id="status"></div>
+        <div id="functionMode" class="option-group">
+            <div id="FunctionEncrypt" class="option selected" data-value="encrypt">加密模式</div>
+            <div id="FunctionDecrypt" class="option" data-value="decrypt">解密模式</div>
         </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                document.getElementById("FunctionEncrypt").click();
-                toggleUI();
-            });
+        <div class="input-group">
+            <label for="text">原始文字、明文 (Text)</label>
+            <div class="button-group">
+                <button onclick="copyText('text')">複製</button>
+                <button onclick="pasteText('text')">貼上</button>
+                <button onclick="clearText('text')">清除</button>
+            </div>
+            <textarea id="text" rows="6" placeholder="在此輸入要加密的明文或要解密的密文"></textarea>
+        </div>
 
-            const UI_CONFIG = [
-                { mode: "GCM", padding: 0, keySize: 1, iv: 1, tagLength: 1 },
-                { mode: "CTR", padding: 0, keySize: 1, iv: 1, tagLength: 0 },
-                { mode: "CBC", padding: 1, keySize: 1, iv: 1, tagLength: 0 },
-                { mode: "ECB", padding: 1, keySize: 1, iv: 0, tagLength: 0 },
-            ];
+        <label class="label-text">加密演算法模式 (Encryption Mode)</label>
+        <div id="encryptionMode" class="option-group">
+            <div class="option selected" data-value="GCM">GCM</div>
+            <div class="option" data-value="CTR">CTR</div>
+            <div class="option" data-value="CBC">CBC</div>
+            <div class="option" data-value="ECB">ECB</div>
+        </div>
+        <div class="security-note" id="ecbWarning" style="display: none;">
+            🔐 <strong>注意：</strong>ECB 模式通常不安全，因為相同的明文塊會加密成相同的密文塊。建議僅在特殊情況下使用。
+        </div>
 
-            // 修改 toggleUI 函式，根據模式設定預設選項
-            function toggleUI() {
-                const func = getSelectedValue("functionMode");
-                const mode = getSelectedValue("encryptionMode");
-                const config = UI_CONFIG.find((config) => config.mode === mode);
 
-                if (!config) {
-                    alert(`未知的加密模式: '${mode}'`);
-                    return;
-                }
+        <div id="paddingGroup" style="display: none;">
+            <label class="label-text">填充模式 (Padding)</label>
+            <div id="padding" class="option-group">
+                <div class="option selected" data-value="Pkcs7">PKCS7</div>
+                <div class="option" data-value="NoPadding">NoPadding</div>
+            </div>
+             <div class="note" id="noPaddingNote" style="display: none;">🔍 使用 NoPadding 時，CBC / ECB 模式的明文長度 (UTF-8 編碼後的位元組) 必須是 16 的倍數。</div>
+        </div>
 
-                document.getElementById("paddingGroup").style.display = config.padding ? "block" : "none";
-                document.getElementById("ivGroup").style.display = config.iv ? "block" : "none";
-                document.getElementById("iv").setAttribute("maxlength", config.iv ? 16 : 0);
-                document.getElementById("tagLengthGroup").style.display = config.tagLength ? "block" : "none";
 
-                const processButton = document.getElementById("btnExecute");
-                processButton.textContent = func === "encrypt" ? "加密" : "解密";
-                processButton.className = func === "encrypt" ? "encryptButton" : "decryptButton";
+        <label class="label-text">金鑰長度 (Encryption Key Size)</label>
+        <div id="keySize" class="option-group">
+            <div class="option selected" data-value="128">128 位元</div>
+            <div class="option" data-value="192">192 位元</div>
+            <div class="option" data-value="256">256 位元</div>
+        </div>
 
-                document.body.className = func === "encrypt" ? "encrypt-mode" : "decrypt-mode";
+        <div class="input-group">
+            <label for="secretKey">金鑰 (Secret Key) - 純文字格式</label>
+            <input type="text" id="secretKey" placeholder="輸入金鑰文字" />
+            <div class="note">🔍 金鑰文字將以 UTF-8 編碼。編碼後的 <strong>* 位元組長度 *</strong> 需符合：128 位元 (16 位元組) | 192 位元 (24 位元組) | 256 位元 (32 位元組)。</div>
+            <label id="msgKeyError" class="error-message"></label>
+        </div>
 
-                // 隱藏或顯示特定選項
-                document.getElementById("optTextFormat").style.display = func === "encrypt" ? "none" : "block";
-                document.getElementById("optHexFormat").style.display = func === "encrypt" ? "block" : "none";
+        <div id="ivGroup" class="input-group">
+            <label for="iv">初始向量 (IV) - 純文字格式</label>
+            <input type="text" id="iv" placeholder="輸入 IV 文字" />
+            <div class="note">
+                🔍 GCM、CTR、CBC 模式需要 IV。IV 文字將以 UTF-8 編碼，編碼後的 <strong>* 位元組長度 *</strong> 通常需為 16 位元組。<br/>
+                🔍 <strong>重要：</strong>GCM / CTR模式下，同一金鑰每次加密的 IV 必須唯一！CBC 模式下 IV 應隨機且不可預測。
+            </div>
+            <label id="msgIVError" class="error-message"></label>
+        </div>
 
-                // 設定預設選項
-                const outputFormatGroup = document.getElementById("outputFormat");
-                outputFormatGroup.querySelectorAll(".option").forEach((option) => option.classList.remove("selected"));
-                const defaultOption = func === "encrypt" ? "base64" : "plaintext";
-                outputFormatGroup.querySelector(`[data-value='${defaultOption}']`).classList.add("selected");
-            }
+        <div id="tagLengthGroup" class="input-group" style="display: none;">
+            <label class="label-text">認證標籤長度 (Tag Length for GCM)</label>
+            <div id="tagLength" class="option-group">
+                <div class="option selected" data-value="128">128 位元</div>
+                <div class="option" data-value="120">120 位元</div>
+                <div class="option" data-value="112">112 位元</div>
+                <div class="option" data-value="104">104 位元</div>
+                <div class="option" data-value="96">96 位元</div>
+            </div>
+        </div>
 
-            // 修正 processData 函式，確保加密與解密功能正常運作
-            async function processData() {
-                const func = getSelectedValue("functionMode");
-                const mode = getSelectedValue("encryptionMode");
-                const paddingValue = getSelectedValue("padding");
-                const text = document.getElementById("text").value;
-                const secretKey = document.getElementById("secretKey").value;
-                const keySize = parseInt(getSelectedValue("keySize"));
-                const iv = document.getElementById("iv").value;
-                const tagLength = parseInt(getSelectedValue("tagLength"));
-                const outputFormat = getSelectedValue("outputFormat");
-                const apiModeName = `AES-${mode.toUpperCase()}`;
+        <div id="inputCiphertextFormatGroup" class="input-group" style="display: none;">
+            <label class="label-text">輸入密文格式 (Input Ciphertext Format)</label>
+            <div id="inputCiphertextFormat" class="option-group">
+                <div class="option selected" data-value="base64">Base64</div>
+                <div class="option" data-value="hex">Hex</div>
+            </div>
+        </div>
 
-                // 清空訊息
-                document.getElementById("msgKeyError").textContent = "";
-                document.getElementById("msgIVError").textContent = "";
-                document.getElementById("status").textContent = "";
+        <label class="label-text">輸出純文字格式 (Output Text Format)</label>
+        <div id="outputFormat" class="option-group">
+            <div id="optTextFormat" class="option" data-value="plaintext">明文 (Plain-Text)</div>
+            <div id="optBase64Format" class="option selected" data-value="base64">Base64</div>
+            <div id="optHexFormat" class="option" data-value="hex">Hex</div>
+        </div>
 
-                // 驗證 Secret Key 長度
-                const keyError = validateSecretKey(secretKey, keySize);
-                if (keyError) return displayError(keyError, "msgKeyError");
 
-                if (mode !== "ECB" && (ivError = validateInitialVector(iv))) {
-                    return displayError(ivError, "msgIVError");
-                }
+        <div class="button-group">
+            <button id="btnExecute" onclick="processData()">加密</button>
+        </div>
 
-                try {
-                    let result;
-                    if (func === "encrypt") {
-                        result = await performEncryption(
-                            apiModeName,
-                            mode,
-                            text,
-                            secretKey,
-                            iv,
-                            tagLength,
-                            paddingValue,
-                            outputFormat
-                        );
-                    } else {
-                        result = await performDecryption(
-                            apiModeName,
-                            mode,
-                            text,
-                            secretKey,
-                            iv,
-                            tagLength,
-                            paddingValue,
-                            outputFormat
-                        );
-                    }
-                    document.getElementById("result").value = result;
-                    document.getElementById("status").textContent = `${func === "encrypt" ? "加密" : "解密"}成功`;
-                } catch (error) {
-                    document.getElementById("status").textContent = `錯誤: ${error.message}`;
-                    console.error(error);
-                }
-            }
+        <div class="input-group">
+            <label for="result">結果 (Result)</label>
+            <div class="button-group">
+                <button onclick="copyText('result')">複製</button>
+                <button onclick="clearText('result')">清除</button>
+                <button onclick="swapText()">交換</button>
+                <button onclick="resetForm">🔁 重置</button>
+            </div>
+            <textarea id="result" rows="6" readonly></textarea>
+        </div>
 
-            // 修正 performEncryption 函式，確保加密結果正確處理
-            async function performEncryption(
-                apiModeName,
-                mode,
-                text,
-                secretKey,
-                iv,
-                tagLength,
-                paddingValue,
-                outputFormat
-            ) {
-                if (mode === "GCM" || mode === "CTR") {
-                    const key = await window.crypto.subtle.importKey(
-                        "raw",
-                        new TextEncoder().encode(secretKey),
-                        { name: apiModeName },
-                        false,
-                        ["encrypt"]
-                    );
-                    const ivBuffer = new TextEncoder().encode(iv);
-                    const algorithm = {
-                        name: apiModeName,
-                        iv: ivBuffer,
-                        ...(mode === "CTR" ? { counter: ivBuffer, length: 128 } : { tagLength: tagLength }),
-                    };
-                    const encryptedData = await window.crypto.subtle.encrypt(
-                        algorithm,
-                        key,
-                        new TextEncoder().encode(text)
-                    );
-                    return arrayBufferToBase64(encryptedData); // 確保加密結果轉換為 Base64
-                } else {
-                    const key = CryptoJS.enc.Utf8.parse(secretKey);
-                    const ivParam = mode !== "ECB" ? CryptoJS.enc.Utf8.parse(iv) : undefined;
-                    const config = {
-                        mode: CryptoJS.mode[mode],
-                        padding: CryptoJS.pad[paddingValue],
-                        ...(ivParam && { iv: ivParam }),
-                    };
-                    const encrypted = CryptoJS.AES.encrypt(text, key, config);
-                    return encrypted.toString(); // 確保加密結果轉換為字串
-                }
-            }
+        <div id="status" class="status-message"></div>
+    </div>
 
-            // 修正 performDecryption 函式，確保解密結果正確處理
-            async function performDecryption(
-                apiModeName,
-                mode,
-                text,
-                secretKey,
-                iv,
-                tagLength,
-                paddingValue,
-                outputFormat
-            ) {
-                if (mode === "GCM" || mode === "CTR") {
-                    const key = await window.crypto.subtle.importKey(
-                        "raw",
-                        new TextEncoder().encode(secretKey),
-                        { name: apiModeName },
-                        false,
-                        ["decrypt"]
-                    );
-                    const ivBuffer = new TextEncoder().encode(iv);
-                    const algorithm = {
-                        name: apiModeName,
-                        iv: ivBuffer,
-                        ...(mode === "CTR" ? { counter: ivBuffer, length: 128 } : { tagLength: tagLength }),
-                    };
-                    const decryptedData = await window.crypto.subtle.decrypt(algorithm, key, base64ToArrayBuffer(text)); // 確保解密輸入正確轉換
-                    return new TextDecoder().decode(decryptedData);
-                } else {
-                    const key = CryptoJS.enc.Utf8.parse(secretKey);
-                    const ivParam = mode !== "ECB" ? CryptoJS.enc.Utf8.parse(iv) : undefined;
-                    const config = {
-                        mode: CryptoJS.mode[mode],
-                        padding: CryptoJS.pad[paddingValue],
-                        ...(ivParam && { iv: ivParam }),
-                    };
-                    const decrypted = CryptoJS.AES.decrypt(text, key, config);
-                    return decrypted.toString(CryptoJS.enc.Utf8); // 確保解密結果轉換為字串
-                }
-            }
-
-            function formatData(data, format, isInput = false) {
-                switch (format) {
-                    case "base64":
-                        return isInput ? base64ToArrayBuffer(data) : arrayBufferToBase64(data);
-                    case "hex":
-                        return isInput ? hexToArrayBuffer(data) : arrayBufferToHex(data);
-                    case "plaintext":
-                        return isInput ? new TextEncoder().encode(data) : new TextDecoder().decode(data);
-                    default:
-                        throw new Error("Unsupported format");
-                }
-            }
-
-            function arrayBufferToBase64(buffer) {
-                let binary = "";
-                const bytes = new Uint8Array(buffer);
-                const len = bytes.byteLength;
-                for (let i = 0; i < len; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                return window.btoa(binary);
-            }
-
-            function base64ToArrayBuffer(base64) {
-                const binaryString = window.atob(base64);
-                const len = binaryString.length;
-                const bytes = new Uint8Array(len);
-                for (let i = 0; i < len; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                return bytes.buffer;
-            }
-
-            function arrayBufferToHex(buffer) {
-                const byteArray = new Uint8Array(buffer);
-                return Array.from(byteArray)
-                    .map((byte) => byte.toString(16).padStart(2, "0"))
-                    .join("");
-            }
-
-            function hexToArrayBuffer(hex) {
-                const len = hex.length;
-                const buffer = new Uint8Array(len / 2);
-                for (let i = 0; i < len; i += 2) {
-                    buffer[i / 2] = parseInt(hex.substr(i, 2), 16);
-                }
-                return buffer.buffer;
-            }
-
-            function bindOptionGroupEvents() {
-                document.querySelectorAll(".option-group").forEach((group) => {
-                    group.addEventListener("click", (e) => {
-                        const selectedOption = e.target.closest(".option");
-                        if (selectedOption) {
-                            group.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
-                            selectedOption.classList.add("selected");
-                            if (group.id === "functionMode" || group.id === "encryptionMode") {
-                                toggleUI();
-                            }
-                        }
-                    });
-                });
-            }
-
-            function getSelectedValue(groupId) {
-                return document.querySelector(`#${groupId} .selected`).dataset.value;
-            }
-
-            function copyText(id) {
-                const element = document.getElementById(id);
-                navigator.clipboard.writeText(element.value).then(() => {
-                    document.getElementById("status").textContent = "已複製到剪貼簿";
-                });
-            }
-
-            function pasteText(id) {
-                navigator.clipboard.readText().then((text) => (document.getElementById(id).value = text));
-            }
-
-            function clearText(id) {
-                document.getElementById(id).value = "";
-            }
-
-            function swapText() {
-                const text = document.getElementById("text").value;
-                document.getElementById("text").value = document.getElementById("result").value;
-                document.getElementById("result").value = text;
-                document.getElementById("status").textContent = "已交換原始文字與加（解）密文字";
-            }
-
-            function resetForm() {
-                document.querySelectorAll("textarea, input[type='text']").forEach((input) => (input.value = ""));
-                document.getElementById("msgKeyError").textContent = "";
-                document.getElementById("msgIVError").textContent = "";
-                document.getElementById("status").textContent = "";
-                document.querySelectorAll(".option-group .option.selected").forEach((option) => option.click());
-            }
-
-            function validateSecretKey(secretKey, keySize) {
-                const requiredLength = keySize / 8; // bits to bytes
-                if (secretKey.length !== requiredLength) {
-                    return `* Secret Key 的字串長度必須為 ${requiredLength} 字元（${keySize} bits），目前長度為 ${secretKey.length} 字元`;
-                }
-                return null;
-            }
-
-            function validateInitialVector(iv, expectedLength = 16) {
-                if (iv.length !== expectedLength) {
-                    return `* Initial Vector 的字串長度必須為 ${expectedLength} 字元，目前長度為 ${iv.length} 字元`;
-                }
-                return null;
-            }
-
-            function displayError(message, elementId) {
-                const element = document.getElementById(elementId);
-                if (element) element.textContent = message;
-            }
-
-            // 初始化事件綁定
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("FunctionEncrypt").click();
+            toggleUI();
             bindOptionGroupEvents();
-        </script>
-    </body>
+        });
+
+        const UI_CONFIG = [
+            { mode: "GCM", padding: 0, keySize: 1, iv: 1, tagLength: 1 },
+            { mode: "CTR", padding: 0, keySize: 1, iv: 1, tagLength: 0 },
+            { mode: "CBC", padding: 1, keySize: 1, iv: 1, tagLength: 0 },
+            { mode: "ECB", padding: 1, keySize: 1, iv: 0, tagLength: 0 },
+        ];
+
+        function toggleUI() {
+            const func = getSelectedValue("functionMode");
+            const mode = getSelectedValue("encryptionMode");
+            const config = UI_CONFIG.find((c) => c.mode === mode);
+
+            if (!config) {
+                updateStatus(`未知的加密模式: '${mode}'`, true);
+                return;
+            }
+
+            document.getElementById("paddingGroup").style.display = config.padding ? "block" : "none";
+            document.getElementById("ivGroup").style.display = config.iv ? "block" : "none";
+            // Removed maxlength for IV input: document.getElementById("iv").setAttribute("maxlength", config.iv ? 32 : 0);
+
+            document.getElementById("tagLengthGroup").style.display = config.tagLength ? "block" : "none";
+            document.getElementById("ecbWarning").style.display = (mode === "ECB") ? "block" : "none";
+
+            if (config.padding) {
+                 const paddingType = getSelectedValue("padding");
+                 document.getElementById("noPaddingNote").style.display = (paddingType === "NoPadding") ? "block" : "none";
+            } else {
+                document.getElementById("noPaddingNote").style.display = "none";
+            }
+
+            const processButton = document.getElementById("btnExecute");
+            processButton.textContent = func === "encrypt" ? "加密 (Encrypt)" : "解密 (Decrypt)";
+            processButton.className = func === "encrypt" ? "encryptButton" : "decryptButton";
+            document.body.className = func === "encrypt" ? "encrypt-mode" : "decrypt-mode";
+
+            document.getElementById("inputCiphertextFormatGroup").style.display = func === "decrypt" ? "block" : "none";
+
+            const outputFormatGroup = document.getElementById("outputFormat");
+            outputFormatGroup.querySelectorAll(".option").forEach((option) => option.classList.remove("selected"));
+            let defaultOutputOptionValue;
+            if (func === "encrypt") {
+                document.getElementById("optTextFormat").style.display = "none";
+                document.getElementById("optBase64Format").style.display = "block";
+                document.getElementById("optHexFormat").style.display = "block";
+                defaultOutputOptionValue = "base64";
+            } else { // decrypt
+                document.getElementById("optTextFormat").style.display = "block";
+                document.getElementById("optBase64Format").style.display = "none";
+                document.getElementById("optHexFormat").style.display = "none";
+                defaultOutputOptionValue = "plaintext";
+            }
+            const defaultOptionElement = outputFormatGroup.querySelector(`[data-value='${defaultOutputOptionValue}']`);
+            if (defaultOptionElement) defaultOptionElement.classList.add("selected");
+            else if (outputFormatGroup.querySelector(".option")) outputFormatGroup.querySelector(".option").classList.add("selected");
+
+            if (func === "decrypt") {
+                const inputCiphertextFormatGroup = document.getElementById("inputCiphertextFormat");
+                if (!inputCiphertextFormatGroup.querySelector(".option.selected")) {
+                    inputCiphertextFormatGroup.querySelectorAll(".option").forEach(opt => opt.classList.remove("selected"));
+                    inputCiphertextFormatGroup.querySelector("[data-value='base64']").classList.add("selected");
+                }
+            }
+        }
+
+        async function processData() {
+            const func = getSelectedValue("functionMode");
+            const mode = getSelectedValue("encryptionMode");
+            const paddingValue = document.getElementById("paddingGroup").style.display !== "none" ? getSelectedValue("padding") : "NoPadding";
+            const text = document.getElementById("text").value;
+            const secretKeyText = document.getElementById("secretKey").value; // Text input
+            const keySize = parseInt(getSelectedValue("keySize"));
+            const ivText = document.getElementById("ivGroup").style.display !== "none" ? document.getElementById("iv").value : ""; // Text input
+            const tagLength = document.getElementById("tagLengthGroup").style.display !== "none" ? parseInt(getSelectedValue("tagLength")) : 128;
+            const outputFormat = getSelectedValue("outputFormat");
+            const inputCiphertextFormat = func === "decrypt" ? getSelectedValue("inputCiphertextFormat") : null;
+
+            document.getElementById("msgKeyError").textContent = "";
+            document.getElementById("msgIVError").textContent = "";
+            updateStatus("", false);
+
+            const keyValidationError = validateSecretKey(secretKeyText, keySize);
+            if (keyValidationError) return displayError(keyValidationError, "msgKeyError");
+
+            const currentModeConfig = UI_CONFIG.find(c => c.mode === mode);
+            if (currentModeConfig && currentModeConfig.iv) {
+                const ivValidationError = validateInitialVector(ivText);
+                if (ivValidationError) return displayError(ivValidationError, "msgIVError");
+            }
+
+            if (func === "encrypt" && (mode === "CBC" || mode === "ECB") && paddingValue === "NoPadding") {
+                const plaintextBytes = new TextEncoder().encode(text);
+                if (plaintextBytes.byteLength % 16 !== 0) {
+                    updateStatus("警告：使用 NoPadding 時，明文 (UTF-8編碼後) 長度應為16位元組的倍數。目前長度：" + plaintextBytes.byteLength + " 位元組。加密可能產生非預期結果。", true, "warning");
+                }
+            }
+
+            try {
+                let result;
+                if (func === "encrypt") {
+                    result = await performEncryption(
+                        mode, text, secretKeyText, ivText, tagLength, paddingValue, outputFormat
+                    );
+                } else {
+                    result = await performDecryption(
+                        mode, text, secretKeyText, ivText, tagLength, paddingValue, inputCiphertextFormat
+                    );
+                    if ((mode === "CBC" || mode === "ECB") && result === "" && text.trim() !== "") {
+                         updateStatus("解密成功，但結果為空。如果原始明文非空，這可能表示解密失敗 (例如金鑰錯誤或密文損壞)。", false, "warning-append");
+                    }
+                }
+                document.getElementById("result").value = result;
+                if (!document.getElementById("status").textContent.includes("警告")) {
+                     updateStatus(`${func === "encrypt" ? "加密" : "解密"}成功`, false);
+                }
+            } catch (error) {
+                console.error("Processing Error:", error);
+                updateStatus(`錯誤: ${error.message}`, true);
+            }
+        }
+
+        async function performEncryption(mode, text, secretKeyText, ivText, tagLength, paddingValue, outputFormat) {
+            const apiModeName = `AES-${mode.toUpperCase()}`;
+            let keyBytesForWebCrypto, ivBytesForWebCrypto; // These will be Uint8Array
+
+            if (mode === "GCM" || mode === "CTR") {
+                keyBytesForWebCrypto = new TextEncoder().encode(secretKeyText);
+                if (ivText) ivBytesForWebCrypto = new TextEncoder().encode(ivText);
+
+                const cryptoKey = await window.crypto.subtle.importKey("raw", keyBytesForWebCrypto, { name: apiModeName }, false, ["encrypt"]);
+                const algorithm = { name: apiModeName, iv: ivBytesForWebCrypto };
+                if (mode === "GCM") algorithm.tagLength = tagLength;
+                if (mode === "CTR") algorithm.counter = ivBytesForWebCrypto;
+
+                const encryptedData = await window.crypto.subtle.encrypt(algorithm, cryptoKey, new TextEncoder().encode(text));
+                if (outputFormat === "hex") return arrayBufferToHex(encryptedData);
+                return arrayBufferToBase64(encryptedData);
+            } else { // CBC or ECB using CryptoJS
+                const key = CryptoJS.enc.Utf8.parse(secretKeyText); // Parse text as Utf8
+                const iv = ivText ? CryptoJS.enc.Utf8.parse(ivText) : undefined;
+                const config = {
+                    mode: CryptoJS.mode[mode],
+                    padding: CryptoJS.pad[paddingValue],
+                    ...(iv && { iv: iv }),
+                };
+                const encrypted = CryptoJS.AES.encrypt(text, key, config);
+                if (outputFormat === "hex") return encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+                return encrypted.toString();
+            }
+        }
+
+        async function performDecryption(mode, text, secretKeyText, ivText, tagLength, paddingValue, inputCiphertextFormat) {
+            const apiModeName = `AES-${mode.toUpperCase()}`;
+            let dataToDecrypt; // ArrayBuffer for WebCrypto, specific format for CryptoJS
+
+            // Prepare key/IV bytes
+            let keyBytesForWebCrypto, ivBytesForWebCrypto;
+            if (mode === "GCM" || mode === "CTR") {
+                keyBytesForWebCrypto = new TextEncoder().encode(secretKeyText);
+                if (ivText) ivBytesForWebCrypto = new TextEncoder().encode(ivText);
+            }
+
+
+            if (inputCiphertextFormat === "base64") {
+                try { dataToDecrypt = base64ToArrayBuffer(text); }
+                catch (e) { throw new Error("輸入的Base64密文格式無效。"); }
+            } else if (inputCiphertextFormat === "hex") {
+                 try { dataToDecrypt = hexToArrayBuffer(text); }
+                 catch (e) { throw new Error("輸入的Hex密文格式無效。"); }
+            } else {
+                throw new Error("未知的輸入密文格式。");
+            }
+
+            if (mode === "GCM" || mode === "CTR") {
+                const cryptoKey = await window.crypto.subtle.importKey("raw", keyBytesForWebCrypto, { name: apiModeName }, false, ["decrypt"]);
+                const algorithm = { name: apiModeName, iv: ivBytesForWebCrypto };
+                if (mode === "GCM") algorithm.tagLength = tagLength;
+                if (mode === "CTR") algorithm.counter = ivBytesForWebCrypto;
+
+                const decryptedData = await window.crypto.subtle.decrypt(algorithm, cryptoKey, dataToDecrypt);
+                return new TextDecoder().decode(decryptedData);
+            } else { // CBC or ECB using CryptoJS
+                const key = CryptoJS.enc.Utf8.parse(secretKeyText);
+                const iv = ivText ? CryptoJS.enc.Utf8.parse(ivText) : undefined;
+                const config = {
+                    mode: CryptoJS.mode[mode],
+                    padding: CryptoJS.pad[paddingValue],
+                    ...(iv && { iv: iv }),
+                };
+
+                let ciphertextForCryptoJS;
+                // CryptoJS.AES.decrypt expects Base64 string or CipherParams object.
+                // dataToDecrypt is currently an ArrayBuffer. Convert to Base64 for CryptoJS.
+                if (inputCiphertextFormat === "base64") {
+                     ciphertextForCryptoJS = text; // Original base64 string
+                } else { // if input was hex, dataToDecrypt is ArrayBuffer. Convert to Base64 for CryptoJS.
+                     ciphertextForCryptoJS = arrayBufferToBase64(dataToDecrypt);
+                }
+
+                const decrypted = CryptoJS.AES.decrypt(ciphertextForCryptoJS, key, config);
+                try {
+                    return decrypted.toString(CryptoJS.enc.Utf8);
+                } catch (e) {
+                    throw new Error("解密成功，但結果無法正確解析為UTF-8文本。可能密文已損壞或金鑰/IV/模式錯誤。");
+                }
+            }
+        }
+
+        function arrayBufferToBase64(buffer) {
+            let binary = "";
+            const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function arrayBufferToHex(buffer) {
+            return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+        }
+        
+        function isHex(hexString) { // Helper for hexToArrayBuffer, though not directly used in validation path now
+            return /^[0-9a-fA-F]+$/.test(hexString) && (hexString.length % 2 === 0);
+        }
+
+        function hexToArrayBuffer(hex) {
+            if (!/^[0-9a-fA-F]+$/.test(hex) || hex.length % 2 !== 0) { // Basic hex validation
+                 throw new Error("無效的Hex字串: " + hex.substring(0,10) + "...");
+            }
+            const bytes = new Uint8Array(hex.length / 2);
+            for (let i = 0; i < hex.length; i += 2) {
+                bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+            }
+            return bytes.buffer;
+        }
+
+        function bindOptionGroupEvents() {
+            document.querySelectorAll(".option-group").forEach((group) => {
+                group.addEventListener("click", (e) => {
+                    const selectedOption = e.target.closest(".option");
+                    if (selectedOption && !selectedOption.classList.contains("disabled")) {
+                        group.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
+                        selectedOption.classList.add("selected");
+                        if (group.id === "functionMode" || group.id === "encryptionMode" || group.id === "padding") {
+                            toggleUI();
+                        }
+                    }
+                });
+            });
+        }
+
+        function getSelectedValue(groupId) {
+            const selected = document.querySelector(`#${groupId} .option.selected`);
+            return selected ? selected.dataset.value : null;
+        }
+
+        function copyText(id) {
+            const element = document.getElementById(id);
+            navigator.clipboard.writeText(element.value).then(() => {
+                updateStatus("已複製到剪貼簿", false);
+            }).catch(err => {
+                updateStatus("複製失敗: " + err, true);
+            });
+        }
+
+        async function pasteText(id) {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById(id).value = text;
+            } catch (err) {
+                updateStatus("貼上失敗: " + err, true);
+            }
+        }
+
+        function clearText(id) {
+            document.getElementById(id).value = "";
+        }
+
+        function swapText() {
+            const textVal = document.getElementById("text").value;
+            const resultVal = document.getElementById("result").value;
+            document.getElementById("text").value = resultVal;
+            document.getElementById("result").value = textVal;
+            updateStatus("已交換原始文字與結果文字", false);
+        }
+
+        function resetForm() {
+            document.querySelectorAll("textarea, input[type='text']").forEach((input) => (input.value = ""));
+            document.getElementById("msgKeyError").textContent = "";
+            document.getElementById("msgIVError").textContent = "";
+            updateStatus("", false); 
+
+            document.getElementById("FunctionEncrypt").click(); 
+            document.querySelector("#encryptionMode .option[data-value='GCM']").click();
+            document.querySelector("#keySize .option[data-value='128']").click();
+            const paddingPkcs7 = document.querySelector("#padding .option[data-value='Pkcs7']");
+            if (paddingPkcs7) paddingPkcs7.click();
+            const tagLength128 = document.querySelector("#tagLength .option[data-value='128']");
+            if (tagLength128) tagLength128.click();
+            const outputBase64 = document.querySelector("#outputFormat .option[data-value='base64']");
+            if(outputBase64) outputBase64.click();
+            const inputBase64 = document.querySelector("#inputCiphertextFormat .option[data-value='base64']");
+            if(inputBase64) inputBase64.click();
+            toggleUI(); 
+        }
+
+        function validateSecretKey(secretKeyText, keySize) {
+            if (!secretKeyText) return "* 金鑰為必填。";
+            const keyBytes = new TextEncoder().encode(secretKeyText);
+            const actualByteLength = keyBytes.byteLength;
+            const requiredByteLength = keySize / 8;
+            if (actualByteLength !== requiredByteLength) {
+                return `* 金鑰 (UTF-8編碼後) 為 ${actualByteLength} 位元組，不符合選定金鑰長度所需的 ${requiredByteLength} 位元組。請調整輸入文字。`;
+            }
+            return null;
+        }
+
+        function validateInitialVector(ivText) {
+            const REQUIRED_IV_BYTE_LENGTH = 16;
+            if (!ivText && document.getElementById("ivGroup").style.display !== "none") { // Check if IV group is visible
+                 // Only validate if IV is actually needed and visible
+                 const currentMode = getSelectedValue("encryptionMode");
+                 const config = UI_CONFIG.find(c => c.mode === currentMode);
+                 if (config && config.iv) { // If current mode requires IV
+                    return "* IV 為必填。";
+                 }
+            }
+            if (ivText) { // If IV text is provided, validate its byte length
+                const ivBytes = new TextEncoder().encode(ivText);
+                const actualByteLength = ivBytes.byteLength;
+                if (actualByteLength !== REQUIRED_IV_BYTE_LENGTH) {
+                    return `* IV (UTF-8編碼後) 為 ${actualByteLength} 位元組，不符合所需的 ${REQUIRED_IV_BYTE_LENGTH} 位元組。請調整輸入文字。`;
+                }
+            }
+            return null;
+        }
+
+        function displayError(message, elementId) {
+            const element = document.getElementById(elementId);
+            if (element) element.textContent = message;
+            updateStatus("輸入驗證失敗，請檢查錯誤訊息。", true);
+        }
+
+        function updateStatus(message, isError, mode = "normal") { 
+            const statusElement = document.getElementById("status");
+            if (mode === "append" || mode === "warning-append") {
+                statusElement.innerHTML += "<br>" + message;
+                 if (mode === "warning-append") { 
+                    if (!statusElement.className.includes("status-success")) statusElement.className = 'status-message status-success';
+                 }
+            } else {
+                statusElement.textContent = message;
+                if (message) {
+                    statusElement.className = isError ? 'status-message status-error' : 'status-message status-success';
+                     if (mode === "warning") { 
+                         statusElement.className = 'status-message status-error'; 
+                     }
+                } else {
+                    statusElement.className = 'status-message'; 
+                }
+            }
+        }
+    </script>
+</body>
 </html>
