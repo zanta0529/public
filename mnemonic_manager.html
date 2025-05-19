@@ -93,9 +93,9 @@
 <header>🔐 助記詞管理工具（AES-GCM + QR Code）</header>
 <main>
 <div class="card">
-    <label for="mnemonic">助記詞或未加密文字</label>
+    <label for="mnemonic">助記詞或未加密文字 Text</label>
     <textarea id="mnemonic" rows="10" cols="80" placeholder="請輸入助記詞或想要加密的文字"></textarea>
-    <label for="passphrase">密碼短語（註：非加密金鑰）</label>
+    <label for="passphrase">密碼短語 Passphrase（註：非加密金鑰）</label>
     <input type="password" id="passphrase" placeholder="輸入密碼短語以產生加密用的金鑰">
     <button onclick="encrypt()">加密並產生 QR Code</button>
     <div><canvas id="qrCanvas" style="display:none"></canvas><div>
@@ -113,7 +113,7 @@
     <h3>🔍 工具說明</h3>
     <p>本工具使用 AES-GCM 加密助記詞，PBKDF2 產生金鑰，支援 QR Code 匯出與還原。加密後的 JSON 包含 salt、iterations、keySize、iv、ciphertext、tag 等參數。</p>
     <p>此工具不使用 AAD，完全在本地端執行，適合冷錢包環境使用。</p>
-    <p><strong>重要提示：</strong>請務必牢記您的密碼，密碼遺失將無法還原助記詞。請將密文 (Base64 或 QR Code) 妥善保管。</p>
+    <p><strong>重要提示：</strong>請務必牢記您的密碼短語，密碼短語遺失將無法還原助記詞。請將密文 (Base64 或 QR Code) 妥善保管。</p>
 </div>
 </main>
 <script>
@@ -127,7 +127,7 @@
       outputDiv.classList.remove('success');
 
       if (!mnemonic || !passphrase) {
-        outputDiv.textContent = "請輸入助記詞和密碼";
+        outputDiv.textContent = "請輸入助記詞和密碼短語";
         return;
       }
 
@@ -195,7 +195,7 @@
       outputDiv.classList.remove('success');
 
       if (!passphrase || !base64json) {
-         outputDiv.textContent = "請輸入密文與密碼";
+         outputDiv.textContent = "請輸入密文與密碼短語";
          return;
       }
 
@@ -249,7 +249,7 @@
 
       } catch (e) {
         console.error("解密失敗:", e);
-        outputDiv.textContent = "❌ 解密失敗，請確認密碼、密文，或密文格式錯誤。";
+        outputDiv.textContent = "❌ 解密失敗，請確認密碼短語、密文內容或格式。";
         outputDiv.classList.remove('success');
       }
     }
