@@ -64,7 +64,7 @@
             input[type="text"],
             input[type="file"],
             textarea {
-                width: calc(100% - 22px); /* Adjusted for padding and border */
+                width: calc(100% - 22px);
                 padding: 10px;
                 border: 1px solid #ccc;
                 border-radius: 4px;
@@ -406,14 +406,10 @@
         </div>
 
         <script>
-            // ---- Polyfills & Utility Setup ----
-            // For TextEncoder/Decoder in older environments if needed, though modern browsers are fine.
-            // (Consider a note if targeting very old browsers)
-
             // ---- Constants & Configuration ----
             const APP_NAME_SETTINGS = "aesAdvancedToolSettings";
             const UI_CONFIG = [
-                /* Unchanged */ { mode: "GCM", padding: 0, keySize: 1, iv: 1, tagLength: 1, aad: 1 },
+                { mode: "GCM", padding: 0, keySize: 1, iv: 1, tagLength: 1, aad: 1 },
                 { mode: "CTR", padding: 0, keySize: 1, iv: 1, tagLength: 0, aad: 0 },
                 { mode: "CBC", padding: 1, keySize: 1, iv: 1, tagLength: 0, aad: 0 },
                 { mode: "ECB", padding: 1, keySize: 1, iv: 0, tagLength: 0, aad: 0 },
@@ -634,7 +630,7 @@
                         DOMElements.aad,
                         DOMElements.result,
                     ].forEach((el) => (el.value = ""));
-                    DOMElements.fileInput.value = ""; // Clear file input
+                    DOMElements.fileInput.value = "";
                     AppState.loadedFileName = null;
                     AppState.loadedFileBuffer = null;
                     DOMElements.fileNameDisplay.textContent = "";
@@ -646,7 +642,7 @@
 
                     // Reset to default AppState settings and apply
                     AppState.currentSettings = {
-                        /* original defaults */ functionMode: "encrypt",
+                        functionMode: "encrypt",
                         inputSource: "text",
                         encryptionMode: "GCM",
                         padding: "Pkcs7",
@@ -656,7 +652,7 @@
                         outputFormat: "base64",
                     };
                     saveSettings();
-                    applySettingsToUI(); // This will also call toggleUI
+                    applySettingsToUI();
                 },
 
                 handleFileUpload: function (event) {
