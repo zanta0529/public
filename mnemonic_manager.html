@@ -6,21 +6,101 @@
 <title>助記詞管理工具（AES-GCM + QR Code）</title>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <style>
-body{font-family:"Segoe UI",sans-serif;background:#1e1e2f;color:#fff;margin:0;padding:0}header{background:#292945;padding:1em;text-align:center;font-size:1.5em;font-weight:700}main{padding:2em;max-width:700px;margin:auto}.card{background:#2f2f4f;border-radius:10px;padding:1.5em;margin-bottom:2em;box-shadow:0 0 10px rgba(0,0,0,.4)}label{display:block;margin-top:1em;font-weight:700}input,textarea{width:100%;padding:.7em;margin-top:.5em;border:none;border-radius:5px;background:#444;color:#fff}button{margin-top:1em;padding:.7em 1.2em;border:none;background:#5865f2;color:#fff;border-radius:5px;cursor:pointer}button:hover{background:#4752c4}canvas{margin-top:1em;background:#fff;border-radius:10px}.output{white-space:pre-wrap;word-break:break-word;margin-top:1em;color:red}.output.success{color:#0f0}
+    :root {
+      --bg-main: #1e1e2f;
+      --bg-card: #2f2f4f;
+      --bg-header: #292945;
+      --primary: #5865f2;
+      --primary-hover: #4752c4;
+      --input-bg: #444;
+      --success: #0f0;
+      --error: #f44;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: var(--bg-main);
+      color: #fff;
+      margin: 0;
+    }
+    header {
+      background: var(--bg-header);
+      padding: 1em;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: 700;
+    }
+    main {
+      padding: 2em;
+      max-width: 80%;
+      margin: auto;
+    }
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 1.5em;
+      margin-bottom: 2em;
+      box-shadow: 0 0 10px #0006;
+    }
+    label {
+      display: block;
+      margin-top: 1em;
+      font-weight: 700;
+    }
+    input,
+    textarea {
+      width: 100%;
+      padding: .7em;
+      margin-top: .5em;
+      border: none;
+      border-radius: 5px;
+      background: var(--input-bg);
+      color: #fff;
+      font-size: 1.0em;
+    }
+    button {
+      margin-top: 1em;
+      padding: .7em 1.2em;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    button:hover {
+      background: var(--primary-hover);
+    }
+    canvas {
+      margin-top: 1em;
+      background: #fff;
+      border-radius: var(--radius);
+    }
+    .output {
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 1em;
+      color: var(--error);
+    }
+    .output.success {
+      color: var(--success);
+    }
 </style>
 </head>
 <body>
 <header>🔐 助記詞管理工具（AES-GCM + QR Code）</header>
 <main>
 <div class="card">
-    <label for="mnemonic">助記詞</label>
-    <textarea id="mnemonic" rows="3" placeholder="請輸入助記詞或想要加密的文字"></textarea>
+    <label for="mnemonic">助記詞或未加密文字</label>
+    <textarea id="mnemonic" rows="10" cols="80" placeholder="請輸入助記詞或想要加密的文字"></textarea>
     <label for="passphrase">密碼短語（註：非加密金鑰）</label>
     <input type="password" id="passphrase" placeholder="輸入密碼短語以產生加密用的金鑰">
     <button onclick="encrypt()">加密並產生 QR Code</button>
     <div><canvas id="qrCanvas" style="display:none"></canvas><div>
     <label for="base64json">輸入密文（Base64）</label>
-    <textarea id="base64json" rows="4"></textarea>
+    <textarea id="base64json" rows="10" cols="80"></textarea>
     <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:1em">
         <button onclick="decrypt()">解密</button>
         <button onclick="copyCipher()">複製</button>

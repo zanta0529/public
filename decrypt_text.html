@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Zanta's AES-GCM 文字解密工具</title>
+    </head>
+    <body>
+        <h2>Zanta's AES-GCM 文字解密工具</h2>
+        <p>
+            <label for="jsonInput">請貼上 JSON 資料：</label><br />
+            <textarea id="jsonInput" rows="10" cols="80"></textarea>
+            <div style="font-size: 0.75em; color: green">
+                <strong>注意：</strong>請確保 JSON 資料格式正確，並包含以下欄位：
+                <code>salt</code>、<code>iterations</code>、<code>keySize</code>、
+                <code>iv</code>、<code>ciphertext</code>、<code>tag</code>
+            </div>
+        </p>
+
+        <p>
+            <label for="passphrase">請輸入密碼短語：</label><br />
+            <input type="password" id="passphrase" size="50" /><br /><br />
+        </p>
+
+        <button id="decryptBtn">解密</button><br /><br />
+
+        <h3>解密結果：</h3>
+        <pre id="output"></pre>
+
+        <script>
+            async function base64ToArrayBuffer(base64) {
+                return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+            }
+
+            async function deriveKey(passphrase, salt, iterations, keySize) {
+                const encoder = new TextEncoder();
+                const passphraseKey = await window.crypto.subtle.importKey(
+                    "raw",
+                    encoder.encode(passphrase),
+                    "PBKDF2",
+                    false,
+                    ["deriveKey"]
+                );
+
+                return window.crypto.subtle.deriveKey(
+                    {
+                        name: "PBKDF2",
+                        salt,
+                        iterations,
+                        hash: "SHA-256",
+                    },
+                    passphraseKey,
+                    {
+                        name: "AES-GCM",
+                        length: keySize,
+                    },
+                    false,
+                    ["decrypt"]
+                );
+            }
+
+            async function decryptData(jsonData, passphrase) {
+                try {
+                    const { salt, iterations, keySize, iv, ciphertext, tag } = jsonData;
+
+                    const saltBuf = await base64ToArrayBuffer(salt);
+                    const ivBuf = await base64ToArrayBuffer(iv);
+                    const tagBuf = await base64ToArrayBuffer(tag);
+                    const ciphertextBuf = await base64ToArrayBuffer(ciphertext);
+
+                    // 合併 ciphertext + tag（WebCrypto 的 decrypt 需要 tag 在密文尾部）
+                    const combined = new Uint8Array(ciphertextBuf.length + tagBuf.length);
+                    combined.set(ciphertextBuf);
+                    combined.set(tagBuf, ciphertextBuf.length);
+
+                    const key = await deriveKey(passphrase, saltBuf, iterations, keySize);
+                    const decrypted = await window.crypto.subtle.decrypt(
+                        {
+                            name: "AES-GCM",
+                            iv: ivBuf,
+                            tagLength: 128,
+                        },
+                        key,
+                        combined
+                    );
+
+                    const decoder = new TextDecoder();
+                    return decoder.decode(decrypted);
+                } catch (e) {
+                    return "解密失敗：" + e.message;
+                }
+            }
+
+            document.getElementById("decryptBtn").addEventListener("click", async () => {
+                const jsonText = document.getElementById("jsonInput").value;
+                const passphrase = document.getElementById("passphrase").value;
+                const output = document.getElementById("output");
+
+                try {
+                    const jsonData = JSON.parse(jsonText);
+                    const result = await decryptData(jsonData, passphrase);
+                    output.textContent = result;
+                } catch (e) {
+                    output.textContent = "JSON 解析錯誤或輸入格式不正確。";
+                }
+            });
+        </script>
+    </body>
+</html>
