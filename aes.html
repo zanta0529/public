@@ -4,12 +4,14 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>進階 AES 加密/解密工具 (文字/檔案)</title>
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
         <style>
-            /* ... (Existing styles, plus new styles for file input, AAD, security section, test results) ... */
+            * {
+                font-family: "Noto Sans TC", Arial, sans-serif;
+            }
             body {
                 transition: background-color 0.3s ease;
-                font-family: Arial, sans-serif;
                 font-size: 16px; /* Base font size */
             }
             body.encrypt-mode {
@@ -19,7 +21,7 @@
                 background-color: #ffe6e6;
             }
             .container {
-                max-width: 900px;
+                max-width: 80%;
                 margin: 20px auto;
                 padding: 20px;
                 background-color: white;
@@ -71,7 +73,7 @@
             }
             textarea {
                 width: 100%;
-            } /* Simpler with box-sizing */
+            }
             .button-group {
                 display: flex;
                 flex-direction: column;
@@ -117,12 +119,6 @@
             #FunctionDecrypt.selected {
                 background-color: #bb3d00;
             }
-            .note {
-                color: #ae00ae;
-                font-size: 0.875em;
-                margin-top: 5px;
-                margin-bottom: 10px;
-            }
             .error-message {
                 color: red;
                 font-size: 1em;
@@ -142,6 +138,7 @@
                 color: #721c24;
                 border: 1px solid #f5c6cb;
             }
+            .note,
             .security-note,
             .best-practices {
                 font-size: 0.9em;
@@ -151,7 +148,11 @@
                 border-radius: 4px;
                 margin-top: 10px;
                 margin-bottom: 20px;
-                border: 1px solid #f5c6cb;
+            }
+            .note {
+                background-color: #baf1ac;
+                color: #083b06;
+                border-color: #a2f58d;
             }
             .best-practices {
                 background-color: #fff3cd;
@@ -167,7 +168,7 @@
             }
             #aadGroup {
                 display: none;
-            } /* Initially hidden */
+            }
             #fileInputGroup {
                 margin-top: 15px;
             }
@@ -214,10 +215,10 @@
     </head>
     <body class="encrypt-mode">
         <div class="container">
-            <h1>進階 AES 加密/解密工具 (文字/檔案)</h1>
+            <h1>進階 AES 加密/解密工具（文字/檔案）</h1>
 
             <details class="best-practices">
-                <summary>🔐 安全性與最佳實踐 (點擊展開)</summary>
+                <summary>🔐 <strong>安全性與最佳實踐（點擊展開）</strong></summary>
                 <ul>
                     <li>
                         <strong>金鑰管理：</strong>
@@ -268,29 +269,29 @@
                 <div id="FunctionDecrypt" class="option" data-value="decrypt">解密模式</div>
             </div>
 
-            <label class="label-text">輸入來源 (Input Source)</label>
+            <label class="label-text">輸入來源（Input Source）</label>
             <div id="inputSource" class="option-group">
                 <div class="option selected" data-value="text">文字輸入</div>
                 <div class="option" data-value="file">檔案輸入</div>
             </div>
 
             <div id="textInputGroup" class="input-group">
-                <label for="text">原始文字、明文 (Text)</label>
+                <label for="text">原始文字、明文（Text）</label>
                 <div class="button-group">
                     <button id="copyTextButton">複製</button>
                     <button id="pasteTextButton">貼上</button>
                     <button id="clearTextButton">清除</button>
                 </div>
-                <textarea id="text" rows="5" placeholder="在此輸入要加密的明文或要解密的密文 (Base64/Hex)"></textarea>
+                <textarea id="text" rows="5" placeholder="在此輸入要加密的明文或要解密的密文（Base64/Hex）"></textarea>
             </div>
 
             <div id="fileInputGroup" class="input-group" style="display: none">
-                <label for="fileInput">選擇檔案 (Select File)</label>
+                <label for="fileInput">選擇檔案（Select File）</label>
                 <input type="file" id="fileInput" />
                 <span id="fileNameDisplay" class="note"></span>
             </div>
 
-            <label class="label-text">加密演算法模式 (Encryption Mode)</label>
+            <label class="label-text">加密演算法模式（Encryption Mode）</label>
             <div id="encryptionMode" class="option-group">
                 <div class="option selected" data-value="GCM">GCM</div>
                 <div class="option" data-value="CTR">CTR</div>
@@ -303,17 +304,17 @@
             </div>
 
             <div id="paddingGroup" style="display: none">
-                <label class="label-text">填充模式 (Padding)</label>
+                <label class="label-text">填充模式（Padding）</label>
                 <div id="padding" class="option-group">
                     <div class="option selected" data-value="Pkcs7">PKCS7</div>
                     <div class="option" data-value="NoPadding">NoPadding</div>
                 </div>
                 <div class="note" id="noPaddingNote" style="display: none">
-                    🔍 使用 NoPadding 時，CBC / ECB 模式的明文長度 (UTF-8 編碼後的位元組) 必須是 16 的倍數。
+                    🔍 使用 NoPadding 時，CBC / ECB 模式的明文長度（UTF-8 編碼後的位元組）必須是 16 的倍數。
                 </div>
             </div>
 
-            <label class="label-text">金鑰長度 (Encryption Key Size)</label>
+            <label class="label-text">金鑰長度（Encryption Key Size）</label>
             <div id="keySize" class="option-group">
                 <div class="option selected" data-value="128">128 位元</div>
                 <div class="option" data-value="192">192 位元</div>
@@ -321,7 +322,7 @@
             </div>
 
             <div class="input-group">
-                <label for="secretKey">金鑰 (Secret Key) - 純文字格式</label>
+                <label for="secretKey">金鑰（Secret Key）- 純文字格式</label>
                 <input type="text" id="secretKey" placeholder="輸入金鑰文字" />
                 <div class="note">
                     🔍 金鑰文字將以 UTF-8 編碼。編碼後的 <strong>* 位元組長度 *</strong> 需符合所選金鑰長度。
@@ -330,7 +331,7 @@
             </div>
 
             <div id="ivGroup" class="input-group">
-                <label for="iv">初始向量 (IV) - 純文字格式</label>
+                <label for="iv">初始向量（IV）- 純文字格式</label>
                 <div style="display: flex; gap: 10px; margin-bottom: 5px">
                     <input type="text" id="iv" placeholder="輸入 IV 文字 (通常需 16 位元組)" style="flex-grow: 1" />
                     <button id="generateIvButton" style="padding: 8px 10px; font-size: 0.8em">產生隨機IV</button>
@@ -345,14 +346,14 @@
             </div>
 
             <div id="aadGroup" class="input-group" style="display: none">
-                <label for="aad">附加驗證資料 (AAD) - 純文字格式 (GCM 模式)</label>
-                <textarea id="aad" rows="2" placeholder="輸入 AAD 文字 (可選)"></textarea>
+                <label for="aad">附加驗證資料（AAD）- 純文字格式（僅 GCM 模式）</label>
+                <textarea id="aad" rows="2" placeholder="輸入 AAD 文字（可選）"></textarea>
                 <div class="note">🔍 AAD 文字將以 UTF-8 編碼。此資料不會被加密，但會影響認證標籤。</div>
                 <label id="msgAadError" class="error-message"></label>
             </div>
 
             <div id="tagLengthGroup" class="input-group" style="display: none">
-                <label class="label-text">認證標籤長度 (Tag Length for GCM)</label>
+                <label class="label-text">認證標籤長度（Tag Length for GCM）</label>
                 <div id="tagLength" class="option-group">
                     <div class="option selected" data-value="128">128 位元</div>
                     <div class="option" data-value="120">120 位元</div>
@@ -363,29 +364,29 @@
             </div>
 
             <div id="inputCiphertextFormatGroup" class="input-group" style="display: none">
-                <label class="label-text">輸入密文格式 (Input Ciphertext Format)</label>
+                <label class="label-text">輸入密文格式（Input Ciphertext Format）</label>
                 <div id="inputCiphertextFormat" class="option-group">
                     <div class="option selected" data-value="base64">Base64</div>
                     <div class="option" data-value="hex">Hex</div>
                 </div>
             </div>
 
-            <label class="label-text">輸出格式 (Output Format)</label>
+            <label class="label-text">輸出格式（Output Format）</label>
             <div id="outputFormat" class="option-group">
-                <div id="optTextFormat" class="option" data-value="plaintext">明文 (Plain-Text)</div>
+                <div id="optTextFormat" class="option" data-value="plaintext">明文（Plain-Text）</div>
                 <div id="optBase64Format" class="option selected" data-value="base64">Base64</div>
                 <div id="optHexFormat" class="option" data-value="hex">Hex</div>
                 <div id="optBinaryFileFormat" class="option" data-value="binaryfile" style="display: none">
-                    二進位檔案 (Binary File)
+                    二進位檔案（Binary File）
                 </div>
             </div>
 
             <div class="button-group">
-                <button id="btnExecute" class="encryptButton">加密 (Encrypt)</button>
+                <button id="btnExecute" class="encryptButton">加密（Encrypt）</button>
             </div>
 
             <div class="input-group">
-                <label for="result">結果 (Result)</label>
+                <label for="result">結果（Result）</label>
                 <div class="button-group">
                     <button id="copyResultButton">複製</button>
                     <button id="clearResultButton">清除</button>
@@ -401,7 +402,7 @@
             <button id="runTestsButton" style="background-color: #ffc107; color: black; margin-top: 10px">
                 執行單元測試
             </button>
-            <div id="testResults" style="display: none"><h4>測試結果:</h4></div>
+            <div id="testResults" style="display: none"><h4>測試結果：</h4></div>
         </div>
 
         <script>
@@ -553,7 +554,7 @@
                     const config = UI_CONFIG.find((c) => c.mode === mode);
 
                     if (!config) {
-                        StatusModule.update(`未知的加密模式: '${mode}'`, true);
+                        StatusModule.update(`未知的加密模式：'${mode}'`, true);
                         return;
                     }
 
@@ -574,7 +575,7 @@
                         DOMElements.noPaddingNote.style.display = "none";
                     }
 
-                    DOMElements.btnExecute.textContent = func === "encrypt" ? "加密 (Encrypt)" : "解密 (Decrypt)";
+                    DOMElements.btnExecute.textContent = func === "encrypt" ? "加密（Encrypt）" : "解密（Decrypt）";
                     DOMElements.btnExecute.className = func === "encrypt" ? "encryptButton" : "decryptButton";
                     document.body.className = func === "encrypt" ? "encrypt-mode" : "decrypt-mode";
 
@@ -621,7 +622,7 @@
                         DOMElements.text.placeholder = "在此輸入要加密的明文";
                     } else {
                         // decrypt
-                        DOMElements.text.placeholder = "在此輸入要解密的密文 (Base64/Hex)";
+                        DOMElements.text.placeholder = "在此輸入要解密的密文（Base64/Hex）";
                     }
                 },
 
@@ -720,7 +721,7 @@
                 hexToArrayBuffer: function (hex) {
                     /* Unchanged - but ensure robust error handling */
                     if (!/^[0-9a-fA-F]+$/.test(hex) || hex.length % 2 !== 0) {
-                        throw new Error("無效的Hex字串格式。");
+                        throw new Error("無效的 Hex 字串格式。");
                     }
                     const bytes = new Uint8Array(hex.length / 2);
                     for (let i = 0; i < hex.length; i += 2) {
@@ -807,7 +808,7 @@
 
                         if (plainBytesLength % 16 !== 0) {
                             StatusModule.update(
-                                `警告：使用 NoPadding 時，明文 (UTF-8編碼後或檔案) 長度應為16位元組的倍數。目前長度：${plainBytesLength} 位元組。加密可能產生非預期結果。`,
+                                `警告：使用 NoPadding 時，明文（UTF-8 編碼後或檔案）長度應為 16 位元組的倍數。目前長度：${plainBytesLength} 位元組。加密可能產生非預期結果。`,
                                 true,
                                 "warning-append"
                             );
@@ -818,18 +819,16 @@
                 },
 
                 validateSecretKey: function (secretKeyText, keySize) {
-                    /* Mostly unchanged, use EncodingUtils */
                     if (!secretKeyText) return "* 金鑰為必填。";
                     const keyBytes = new TextEncoder().encode(secretKeyText); // Direct to Uint8Array
                     const actualByteLength = keyBytes.byteLength;
                     const requiredByteLength = keySize / 8;
                     if (actualByteLength !== requiredByteLength) {
-                        return `* 金鑰 (UTF-8編碼後) 為 ${actualByteLength} 位元組，不符合選定金鑰長度所需的 ${requiredByteLength} 位元組。`;
+                        return `* 金鑰（UTF-8 編碼後）為 ${actualByteLength} 位元組，不符合選定金鑰長度所需的 ${requiredByteLength} 位元組。`;
                     }
                     return null;
                 },
                 validateInitialVector: function (ivText) {
-                    /* Mostly unchanged, use EncodingUtils */
                     const currentMode = AppState.currentSettings.encryptionMode;
                     const config = UI_CONFIG.find((c) => c.mode === currentMode);
 
@@ -843,7 +842,7 @@
                         const actualByteLength = ivBytes.byteLength;
                         if (actualByteLength !== REQUIRED_IV_BYTE_LENGTH) {
                             // Using constant
-                            return `* IV (UTF-8編碼後) 為 ${actualByteLength} 位元組，不符合通常所需的 ${REQUIRED_IV_BYTE_LENGTH} 位元組。`;
+                            return `* IV（UTF-8 編碼後）為 ${actualByteLength} 位元組，不符合通常所需的 ${REQUIRED_IV_BYTE_LENGTH} 位元組。`;
                         }
                     }
                     return null;
@@ -957,7 +956,7 @@
                             (error.name && error.name === "OperationError")
                         ) {
                             StatusModule.update(
-                                " (GCM/CTR模式下，這通常表示金鑰、IV、密文或AAD不匹配，或密文被篡改)",
+                                " (GCM/CTR 模式下，這通常表示金鑰、IV、密文或 AAD 不匹配，或密文已被篡改)",
                                 true,
                                 "append"
                             );
@@ -1004,7 +1003,10 @@
                             algorithm.tagLength = tagLength;
                             if (aadBytesForWebCrypto) algorithm.additionalData = aadBytesForWebCrypto;
                         }
-                        if (mode === "CTR") algorithm.counter = ivBytesForWebCrypto; // CTR uses IV as counter
+                        if (mode === "CTR") {
+                            algorithm.counter = ivBytesForWebCrypto; // CTR uses IV as counter
+                            algorithm.length = 64; // Add the required length property (e.g., 64 bits)
+                        }
 
                         return await window.crypto.subtle.encrypt(algorithm, cryptoKey, plainBuffer); // Returns ArrayBuffer
                     } else {
@@ -1044,13 +1046,13 @@
                             try {
                                 dataToDecryptBuffer = EncodingUtils.base64ToArrayBuffer(cipherData);
                             } catch (e) {
-                                throw new Error("輸入的Base64密文格式無效。");
+                                throw new Error("輸入的 Base64 密文格式無效。");
                             }
                         } else if (inputCiphertextFormat === "hex") {
                             try {
                                 dataToDecryptBuffer = EncodingUtils.hexToArrayBuffer(cipherData);
                             } catch (e) {
-                                throw new Error("輸入的Hex密文格式無效。");
+                                throw new Error("輸入的 Hex 密文格式無效。");
                             }
                         } else {
                             throw new Error("未知的輸入密文格式。");
@@ -1078,7 +1080,10 @@
                             algorithm.tagLength = tagLength;
                             if (aadBytesForWebCrypto) algorithm.additionalData = aadBytesForWebCrypto;
                         }
-                        if (mode === "CTR") algorithm.counter = ivBytesForWebCrypto;
+                        if (mode === "CTR") {
+                            algorithm.counter = ivBytesForWebCrypto; // CTR uses IV as counter
+                            algorithm.length = 64; // Add the required length property (e.g., 64 bits)
+                        }
 
                         return await window.crypto.subtle.decrypt(algorithm, cryptoKey, dataToDecryptBuffer); // Returns ArrayBuffer
                     } else {
@@ -1112,7 +1117,7 @@
                             // Error during Utf8 conversion often means bad decryption
                             console.error("CryptoJS Decryption to Utf8 Error:", e);
                             throw new Error(
-                                "解密成功，但結果無法正確解析為UTF-8文本。可能密文已損壞或金鑰/IV/模式錯誤。"
+                                "解密成功，但結果無法正確解析為 UTF-8 文字。可能原因：密文已損壞、金鑰/IV/模式錯誤。"
                             );
                         }
                     }
