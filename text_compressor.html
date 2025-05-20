@@ -1,298 +1,481 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文字壓縮/解壓縮工具</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .mode-selector {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .mode-selector label {
-            margin: 0 10px;
-            cursor: pointer;
-        }
-        textarea {
-            width: 98%;
-            min-height: 150px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            font-size: 1em;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .stats {
-            margin-top: 15px;
-            font-size: 0.9em;
-            background-color: #e9ecef;
-            padding: 10px;
-            border-radius: 4px;
-        }
-        footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            text-align: left;
-        }
-        footer h2 {
-            font-size: 1.2em;
-        }
-        footer p {
-            font-size: 0.9em;
-            line-height: 1.6;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>文字壓縮/解壓縮工具</h1>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>文字壓縮/解壓縮工具</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            /* CSS 變數 */
+            :root {
+                --primary-color: #007bff;
+                --primary-dark-color: #0056b3;
+                --background-color: #f8f9fa;
+                --surface-color: #ffffff;
+                --text-color: #212529;
+                --border-color: #ced4da;
+                --light-bg-color: #e9ecef;
+                --spacing-unit: 1rem;
+                --border-radius: 0.5rem;
+                --box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+            }
 
-        <div class="mode-selector">
-            <label>
-                <input type="radio" name="mode" value="compress" checked> 壓縮模式
-            </label>
-            <label>
-                <input type="radio" name="mode" value="decompress"> 解壓縮模式
-            </label>
-        </div>
+            body {
+                font-family: "Noto Sans TC", sans-serif;
+                margin: 0;
+                padding: var(--spacing-unit) * 2;
+                background-color: var(--background-color);
+                color: var(--text-color);
+                line-height: 1.6;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-height: 100vh;
+                box-sizing: border-box;
+            }
 
-        <div>
-            <label for="inputText">輸入文字:</label><br>
-            <textarea id="inputText" placeholder="在此輸入文字..."></textarea>
-        </div>
+            .container {
+                background-color: var(--surface-color);
+                padding: var(--spacing-unit) * 2;
+                border-radius: var(--border-radius);
+                box-shadow: var(--box-shadow);
+                width: 80%;
+                margin-bottom: var(--spacing-unit) * 2;
+                box-sizing: border-box;
+                padding-left: 20px;
+                padding-right: 20px;
+            }
 
-        <div>
+            h1 {
+                text-align: center;
+                color: var(--text-color);
+                margin-bottom: var(--spacing-unit) * 2;
+                font-weight: 700;
+            }
+
+            .mode-selector {
+                display: flex;
+                justify-content: center;
+                gap: var(--spacing-unit);
+                margin-bottom: var(--spacing-unit) * 1.5;
+            }
+
+            .mode-selector label {
+                background-color: var(--light-bg-color);
+                padding: 0.75rem 1.25rem;
+                border-radius: var(--border-radius);
+                cursor: pointer;
+                transition: background-color 0.2s ease, transform 0.1s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-weight: 500;
+            }
+
+            .mode-selector label:hover {
+                background-color: #e2e6ea;
+                transform: translateY(-2px);
+            }
+
+            .mode-selector input[type="radio"] {
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                width: 1.25rem;
+                height: 1.25rem;
+                border: 2px solid var(--primary-color);
+                border-radius: 50%;
+                outline: none;
+                cursor: pointer;
+                position: relative;
+                display: grid;
+                place-content: center;
+            }
+
+            .mode-selector input[type="radio"]::before {
+                content: "";
+                width: 0.75rem;
+                height: 0.75rem;
+                border-radius: 50%;
+                transform: scale(0);
+                transition: transform 0.2s ease-in-out;
+                box-shadow: inset 1em 1em var(--primary-color);
+            }
+
+            .mode-selector input[type="radio"]:checked::before {
+                transform: scale(1);
+            }
+
+            .form-group {
+                margin-bottom: var(--spacing-unit);
+            }
+
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+                color: var(--text-color);
+            }
+
+            textarea {
+                width: 100%;
+                min-height: 120px;
+                padding: 0.75rem;
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius);
+                margin-bottom: var(--spacing-unit);
+                font-size: 1em;
+                resize: vertical;
+                box-sizing: border-box;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            textarea:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                outline: none;
+            }
+
+            button {
+                display: block; /* Make button full width */
+                width: 100%;
+                padding: 0.75rem 1.5rem;
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: var(--border-radius);
+                cursor: pointer;
+                font-size: 1.1em;
+                font-weight: 600;
+                transition: background-color 0.3s ease, transform 0.1s ease;
+                margin-top: var(--spacing-unit);
+                margin-bottom: var(--spacing-unit);
+            }
+
+            button:hover:not(:disabled) {
+                background-color: var(--primary-dark-color);
+                transform: translateY(-2px);
+            }
+
+            button:active:not(:disabled) {
+                transform: translateY(0);
+            }
+
+            button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+
+            .stats {
+                margin-top: var(--spacing-unit) * 1.5;
+                font-size: 0.95em;
+                background-color: var(--light-bg-color);
+                padding: var(--spacing-unit);
+                border-radius: var(--border-radius);
+                border: 1px solid #dee2e6;
+            }
+
+            .stats p {
+                margin: 0.5rem 0;
+            }
+
+            .stats span {
+                font-weight: 700;
+                color: var(--primary-dark-color);
+            }
+
+            footer {
+                margin-top: var(--spacing-unit) * 3;
+                padding-top: var(--spacing-unit) * 1.5;
+                border-top: 1px solid var(--border-color);
+                width: 80%;
+                text-align: left;
+                box-sizing: border-box;
+            }
+
+            footer h2 {
+                font-size: 1.4em;
+                margin-bottom: var(--spacing-unit);
+                color: var(--text-color);
+                font-weight: 700;
+            }
+
+            footer p,
+            footer ul {
+                font-size: 0.9em;
+                line-height: 1.8;
+                margin-bottom: 1rem;
+            }
+
+            footer ul {
+                padding-left: 1.5rem;
+            }
+
+            footer ul li {
+                margin-bottom: 0.5rem;
+            }
+
+            strong {
+                font-weight: 700;
+            }
+
+            /* Responsive adjustments */
+            @media (max-width: 600px) {
+                body {
+                    padding: var(--spacing-unit);
+                }
+                .container {
+                    padding: var(--spacing-unit);
+                }
+                .mode-selector {
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+                .mode-selector label {
+                    width: 100%;
+                    justify-content: center;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>文字壓縮/解壓縮工具</h1>
+
+            <div class="mode-selector">
+                <label for="compressMode">
+                    <input type="radio" id="compressMode" name="mode" value="compress" checked /> 壓縮模式
+                </label>
+                <label for="decompressMode">
+                    <input type="radio" id="decompressMode" name="mode" value="decompress" /> 解壓縮模式
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="inputText">輸入文字:</label>
+                <textarea id="inputText" placeholder="在此輸入文字..."></textarea>
+            </div>
+
             <button id="actionButton">壓縮</button>
+
+            <div class="form-group">
+                <label for="outputText">結果:</label>
+                <textarea id="outputText" readonly placeholder="結果將顯示在此..."></textarea>
+            </div>
+
+            <div id="stats" class="stats" role="status" aria-live="polite" style="display: none">
+                <p>原始大小: <span id="originalSize">0</span> bytes</p>
+                <p>結果大小: <span id="resultSize">0</span> characters</p>
+                <p>壓縮比: <span id="compressionRatio">N/A</span></p>
+            </div>
         </div>
 
-        <div>
-            <label for="outputText">結果:</label><br>
-            <textarea id="outputText" readonly placeholder="結果將顯示在此..."></textarea>
-        </div>
+        <footer>
+            <h2>程式用途與功能</h2>
+            <p>本工具提供純文字內容的壓縮與解壓縮功能，完全在您的瀏覽器端執行，確保資料隱私。</p>
+            <ul>
+                <li>
+                    <strong>壓縮模式:</strong> 將您輸入的長文字內容使用 Gzip
+                    演算法進行壓縮，然後將壓縮後的二進位資料轉換為 Base64
+                    編碼的文字字串。這有助於減少儲存空間或網路傳輸量。程式會顯示原始文字的位元組大小、Base64
+                    編碼後字串的長度，以及壓縮比率。
+                </li>
+                <li>
+                    <strong>解壓縮模式:</strong> 將符合格式的 Base64 編碼字串（先前由本工具或使用 Gzip + Base64
+                    方式壓縮的內容）還原為原始的可讀文字。
+                </li>
+            </ul>
+            <p><strong>注意:</strong> 壓縮比會因輸入文字的重複性和內容而異。高度重複的文字通常能獲得較好的壓縮效果。</p>
+        </footer>
 
-        <div id="stats" class="stats" style="display:none;">
-            <p>原始大小: <span id="originalSize"></span> bytes</p>
-            <p>結果大小: <span id="resultSize"></span> characters</p>
-            <p>壓縮比: <span id="compressionRatio"></span></p>
-        </div>
-    </div>
+        <script>
+            // DOM 元素引用
+            const inputText = document.getElementById("inputText");
+            const outputText = document.getElementById("outputText");
+            const actionButton = document.getElementById("actionButton");
+            const modeRadios = document.querySelectorAll('input[name="mode"]');
+            const statsDiv = document.getElementById("stats");
+            const originalSizeSpan = document.getElementById("originalSize");
+            const resultSizeSpan = document.getElementById("resultSize");
+            const compressionRatioSpan = document.getElementById("compressionRatio");
 
-    <footer>
-        <h2>程式用途與功能</h2>
-        <p>
-            本工具提供純文字內容的壓縮與解壓縮功能，完全在您的瀏覽器端執行，確保資料隱私。
-        </p>,
-        <ul>
-            <li><strong>壓縮模式:</strong> 將您輸入的長文字內容使用 Gzip 演算法進行壓縮，然後將壓縮後的二進位資料轉換為 Base64 編碼的文字字串。這有助於減少儲存空間或網路傳輸量。程式會顯示原始文字的位元組大小、Base64 編碼後字串的長度，以及壓縮比率。</li>
-            <li><strong>解壓縮模式:</strong> 將符合格式的 Base64 編碼字串（先前由本工具或使用 Gzip + Base64 方式壓縮的內容）還原為原始的可讀文字。</li>
-        </ul>
-        <p>
-            <strong>注意:</strong> 壓縮比會因輸入文字的重複性和內容而異。高度重複的文字通常能獲得較好的壓縮效果。
-        </p>
-    </footer>
+            // 當前模式，預設為壓縮
+            let currentMode = "compress";
 
-    <script>
-        const inputText = document.getElementById('inputText');
-        const outputText = document.getElementById('outputText');
-        const actionButton = document.getElementById('actionButton');
-        const modeRadios = document.querySelectorAll('input[name="mode"]');
-        const statsDiv = document.getElementById('stats');
-        const originalSizeSpan = document.getElementById('originalSize');
-        const resultSizeSpan = document.getElementById('resultSize');
-        const compressionRatioSpan = document.getElementById('compressionRatio');
+            /**
+             * 將 ReadableStream 讀取為 Uint8Array。
+             * @param {ReadableStream} readableStream
+             * @returns {Promise<Uint8Array>}
+             */
+            async function streamToUint8Array(readableStream) {
+                const reader = readableStream.getReader();
+                const chunks = [];
+                let totalLength = 0;
 
-        let currentMode = 'compress'; // 'compress' or 'decompress'
-
-        // --- Helper function to read a ReadableStream into a Uint8Array ---
-        async function streamToUint8Array(readableStream) {
-            const reader = readableStream.getReader();
-            const chunks = [];
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                chunks.push(value);
-            }
-
-            // Concatenate all Uint8Array chunks
-            const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-            const result = new Uint8Array(totalLength);
-            let offset = 0;
-            for (const chunk of chunks) {
-                result.set(chunk, offset);
-                offset += chunk.length;
-            }
-            return result;
-        }
-
-        // --- Compression ---
-        async function compressText(text) {
-            if (!text) {
-                outputText.value = '錯誤：輸入文字不能為空。';
-                statsDiv.style.display = 'none';
-                return;
-            }
-            try {
-                actionButton.disabled = true;
-                actionButton.textContent = '壓縮中...';
-
-                const encoder = new TextEncoder(); // UTF-8 encoder
-                const data = encoder.encode(text);
-
-                const compressionStream = new CompressionStream('gzip');
-                const writer = compressionStream.writable.getWriter();
-                writer.write(data);
-                writer.close();
-
-                const compressedData = await streamToUint8Array(compressionStream.readable);
-
-                // Convert Uint8Array to a "binary string" for btoa
-                let binaryString = '';
-                compressedData.forEach(byte => {
-                    binaryString += String.fromCharCode(byte);
-                });
-                const base64Encoded = btoa(binaryString);
-
-                outputText.value = base64Encoded;
-
-                // Stats
-                const originalByteLength = data.length;
-                const resultCharLength = base64Encoded.length;
-                originalSizeSpan.textContent = originalByteLength;
-                resultSizeSpan.textContent = resultCharLength;
-
-                if (originalByteLength > 0) {
-                    const ratio = (resultCharLength / originalByteLength);
-                    // 壓縮比通常指 原始大小/壓縮後大小，或 (1 - 壓縮後大小/原始大小) * 100%
-                    // 這裡我們顯示 壓縮後大小佔原始大小百分比
-                    compressionRatioSpan.textContent = `${(ratio * 100).toFixed(2)}% (結果大小 / 原始大小)`;
-                } else {
-                    compressionRatioSpan.textContent = 'N/A';
-                }
-                statsDiv.style.display = 'block';
-
-            } catch (error) {
-                console.error('Compression error:', error);
-                outputText.value = `壓縮錯誤: ${error.message}`;
-                statsDiv.style.display = 'none';
-            } finally {
-                actionButton.disabled = false;
-                actionButton.textContent = '壓縮';
-            }
-        }
-
-        // --- Decompression ---
-        async function decompressText(base64Text) {
-            if (!base64Text) {
-                outputText.value = '錯誤：輸入文字不能為空。';
-                return;
-            }
-            try {
-                actionButton.disabled = true;
-                actionButton.textContent = '解壓縮中...';
-
-                // Convert Base64 string to "binary string", then to Uint8Array
-                const binaryString = atob(base64Text);
-                const compressedData = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    compressedData[i] = binaryString.charCodeAt(i);
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    chunks.push(value);
+                    totalLength += value.length;
                 }
 
-                const decompressionStream = new DecompressionStream('gzip');
-                const writer = decompressionStream.writable.getWriter();
-                writer.write(compressedData);
-                writer.close();
-
-                const decompressedData = await streamToUint8Array(decompressionStream.readable);
-
-                const decoder = new TextDecoder(); // UTF-8 decoder
-                const originalText = decoder.decode(decompressedData);
-
-                outputText.value = originalText;
-                statsDiv.style.display = 'none'; // No stats for decompression usually
-
-            } catch (error) {
-                console.error('Decompression error:', error);
-                outputText.value = `解壓縮錯誤: ${error.message}. 請確認輸入的是有效的Base64編碼Gzip壓縮字串。`;
-                statsDiv.style.display = 'none';
-            } finally {
-                actionButton.disabled = false;
-                actionButton.textContent = '解壓縮';
+                const result = new Uint8Array(totalLength);
+                let offset = 0;
+                for (const chunk of chunks) {
+                    result.set(chunk, offset);
+                    offset += chunk.length;
+                }
+                return result;
             }
-        }
 
-        // --- Event Listeners ---
-        actionButton.addEventListener('click', () => {
-            const text = inputText.value;
-            if (currentMode === 'compress') {
-                compressText(text);
-            } else {
-                decompressText(text);
+            /**
+             * 壓縮文字。
+             * @param {string} text - 待壓縮的原始文字。
+             */
+            async function compressText(text) {
+                if (!text) {
+                    outputText.value = "錯誤：輸入文字不能為空。";
+                    statsDiv.style.display = "none";
+                    return;
+                }
+
+                actionButton.disabled = true;
+                actionButton.textContent = "壓縮中...";
+
+                try {
+                    const encoder = new TextEncoder(); // UTF-8 編碼器
+                    const data = encoder.encode(text);
+
+                    // 壓縮資料流
+                    const compressionStream = new CompressionStream("gzip");
+                    const writer = compressionStream.writable.getWriter();
+                    writer.write(data);
+                    writer.close();
+
+                    // 讀取壓縮後的資料
+                    const compressedData = await streamToUint8Array(compressionStream.readable);
+
+                    // 將 Uint8Array 轉換為 Base64 編碼字串
+                    // 使用 TextDecoder('latin1') 和 btoa 更可靠地處理二進位資料
+                    const base64Encoded = btoa(String.fromCharCode(...compressedData));
+
+                    outputText.value = base64Encoded;
+
+                    // 更新統計資訊
+                    const originalByteLength = data.byteLength;
+                    const resultCharLength = base64Encoded.length;
+
+                    originalSizeSpan.textContent = originalByteLength;
+                    resultSizeSpan.textContent = resultCharLength;
+
+                    if (originalByteLength > 0) {
+                        const ratio = resultCharLength / originalByteLength;
+                        compressionRatioSpan.textContent = `${(ratio * 100).toFixed(2)}% (結果大小 / 原始大小)`;
+                    } else {
+                        compressionRatioSpan.textContent = "N/A";
+                    }
+                    statsDiv.style.display = "block";
+                } catch (error) {
+                    console.error("壓縮錯誤:", error);
+                    outputText.value = `壓縮錯誤: ${error.message}`;
+                    statsDiv.style.display = "none";
+                } finally {
+                    actionButton.disabled = false;
+                    actionButton.textContent = "壓縮";
+                }
             }
-        });
 
-        modeRadios.forEach(radio => {
-            radio.addEventListener('change', (event) => {
-                currentMode = event.target.value;
-                inputText.value = ''; // Clear text areas on mode change
-                outputText.value = '';
-                statsDiv.style.display = 'none';
+            /**
+             * 解壓縮文字。
+             * @param {string} base64Text - 待解壓縮的 Base64 編碼字串。
+             */
+            async function decompressText(base64Text) {
+                if (!base64Text) {
+                    outputText.value = "錯誤：輸入文字不能為空。";
+                    return;
+                }
 
-                if (currentMode === 'compress') {
-                    actionButton.textContent = '壓縮';
-                    inputText.placeholder = '在此輸入要壓縮的文字...';
-                    outputText.placeholder = '壓縮後的Base64結果將顯示在此...';
+                actionButton.disabled = true;
+                actionButton.textContent = "解壓縮中...";
+
+                try {
+                    // 將 Base64 字串轉換為二進位字串，然後轉為 Uint8Array
+                    const binaryString = atob(base64Text);
+                    const compressedData = Uint8Array.from(binaryString, (char) => char.charCodeAt(0));
+
+                    // 解壓縮資料流
+                    const decompressionStream = new DecompressionStream("gzip");
+                    const writer = decompressionStream.writable.getWriter();
+                    writer.write(compressedData);
+                    writer.close();
+
+                    // 讀取解壓縮後的資料
+                    const decompressedData = await streamToUint8Array(decompressionStream.readable);
+
+                    const decoder = new TextDecoder("utf-8"); // UTF-8 解碼器
+                    const originalText = decoder.decode(decompressedData);
+
+                    outputText.value = originalText;
+                    statsDiv.style.display = "none"; // 解壓縮通常不顯示統計資訊
+                } catch (error) {
+                    console.error("解壓縮錯誤:", error);
+                    outputText.value = `解壓縮錯誤: ${error.message}. 請確認輸入的是有效的Base64編碼Gzip壓縮字串。`;
+                    statsDiv.style.display = "none";
+                } finally {
+                    actionButton.disabled = false;
+                    actionButton.textContent = "解壓縮";
+                }
+            }
+
+            /**
+             * 處理模式切換。
+             */
+            function handleModeChange() {
+                currentMode = this.value;
+                inputText.value = ""; // 切換模式時清空輸入輸出區域
+                outputText.value = "";
+                statsDiv.style.display = "none";
+
+                if (currentMode === "compress") {
+                    actionButton.textContent = "壓縮";
+                    inputText.placeholder = "在此輸入要壓縮的文字...";
+                    outputText.placeholder = "壓縮後的Base64結果將顯示在此...";
                 } else {
-                    actionButton.textContent = '解壓縮';
-                    inputText.placeholder = '在此貼上Base64編碼的壓縮文字...';
-                    outputText.placeholder = '解壓縮後的原始文字將顯示在此...';
+                    actionButton.textContent = "解壓縮";
+                    inputText.placeholder = "在此貼上Base64編碼的壓縮文字...";
+                    outputText.placeholder = "解壓縮後的原始文字將顯示在此...";
+                }
+            }
+
+            /**
+             * 處理動作按鈕點擊。
+             */
+            function handleActionButtonClick() {
+                const text = inputText.value.trim(); // 移除首尾空白
+                if (currentMode === "compress") {
+                    compressText(text);
+                } else {
+                    decompressText(text);
+                }
+            }
+
+            // 事件監聽器
+            actionButton.addEventListener("click", handleActionButtonClick);
+            modeRadios.forEach((radio) => {
+                radio.addEventListener("change", handleModeChange);
+            });
+
+            // 初始設定 (根據預設選中的 radio 設置介面)
+            document.addEventListener("DOMContentLoaded", () => {
+                const initialModeRadio = document.querySelector('input[name="mode"]:checked');
+                if (initialModeRadio) {
+                    initialModeRadio.dispatchEvent(new Event("change")); // 觸發一次 change 事件來初始化介面
                 }
             });
-        });
-
-        // Initial setup
-        if (currentMode === 'compress') {
-            actionButton.textContent = '壓縮';
-            inputText.placeholder = '在此輸入要壓縮的文字...';
-            outputText.placeholder = '壓縮後的Base64結果將顯示在此...';
-        } else { // Should not happen on load with default checked, but good practice
-            actionButton.textContent = '解壓縮';
-            inputText.placeholder = '在此貼上Base64編碼的壓縮文字...';
-            outputText.placeholder = '解壓縮後的原始文字將顯示在此...';
-        }
-    </script>
-</body>
+        </script>
+    </body>
 </html>
