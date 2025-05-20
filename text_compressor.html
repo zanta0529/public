@@ -21,6 +21,7 @@
                 --spacing-unit: 1rem;
                 --border-radius: 0.5rem;
                 --box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+                --max-width: 1024px;
             }
 
             body {
@@ -42,7 +43,8 @@
                 padding: var(--spacing-unit) * 2;
                 border-radius: var(--border-radius);
                 box-shadow: var(--box-shadow);
-                width: 80%;
+                width: 100%;
+                max-width: var(--max-width);
                 margin-bottom: var(--spacing-unit) * 2;
                 box-sizing: border-box;
                 padding-left: 20px;
@@ -122,7 +124,7 @@
 
             textarea {
                 width: 100%;
-                min-height: 120px;
+                min-height: 200px;
                 padding: 0.75rem;
                 border: 1px solid var(--border-color);
                 border-radius: var(--border-radius);
@@ -139,9 +141,15 @@
                 outline: none;
             }
 
-            button {
-                display: block; /* Make button full width */
-                width: 100%;
+            .button-group {
+                display: flex;
+                gap: var(--spacing-unit);
+                margin-top: var(--spacing-unit);
+                margin-bottom: var(--spacing-unit);
+            }
+
+            .button-group button {
+                flex: 1; /* Make buttons take equal width */
                 padding: 0.75rem 1.5rem;
                 background-color: var(--primary-color);
                 color: white;
@@ -151,23 +159,31 @@
                 font-size: 1.1em;
                 font-weight: 600;
                 transition: background-color 0.3s ease, transform 0.1s ease;
-                margin-top: var(--spacing-unit);
-                margin-bottom: var(--spacing-unit);
+                box-sizing: border-box; /* Include padding in width */
             }
 
-            button:hover:not(:disabled) {
+            .button-group button:hover:not(:disabled) {
                 background-color: var(--primary-dark-color);
                 transform: translateY(-2px);
             }
 
-            button:active:not(:disabled) {
+            .button-group button:active:not(:disabled) {
                 transform: translateY(0);
             }
 
-            button:disabled {
+            .button-group button:disabled {
                 background-color: #ccc;
                 cursor: not-allowed;
                 opacity: 0.7;
+            }
+
+            /* Adjustments for the copy button specifically */
+            #copyButton {
+                background-color: #28a745; /* Green for copy */
+            }
+
+            #copyButton:hover:not(:disabled) {
+                background-color: #218838;
             }
 
             .stats {
@@ -192,7 +208,8 @@
                 margin-top: var(--spacing-unit) * 3;
                 padding-top: var(--spacing-unit) * 1.5;
                 border-top: 1px solid var(--border-color);
-                width: 80%;
+                width: 100%;
+                max-width: var(--max-width);
                 text-align: left;
                 box-sizing: border-box;
             }
@@ -239,6 +256,9 @@
                     width: 100%;
                     justify-content: center;
                 }
+                .button-group {
+                    flex-direction: column; /* Stack buttons vertically on small screens */
+                }
             }
         </style>
     </head>
@@ -260,11 +280,17 @@
                 <textarea id="inputText" placeholder="在此輸入文字..."></textarea>
             </div>
 
-            <button id="actionButton">壓縮</button>
+            <div class="button-group">
+                <button id="actionButton">壓縮</button>
+            </div>
 
             <div class="form-group">
                 <label for="outputText">結果:</label>
                 <textarea id="outputText" readonly placeholder="結果將顯示在此..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button id="copyButton" disabled>複製結果</button>
             </div>
 
             <div id="stats" class="stats" role="status" aria-live="polite" style="display: none">
@@ -297,6 +323,7 @@
             const inputText = document.getElementById("inputText");
             const outputText = document.getElementById("outputText");
             const actionButton = document.getElementById("actionButton");
+            const copyButton = document.getElementById("copyButton"); // 新增複製按鈕的引用
             const modeRadios = document.querySelectorAll('input[name="mode"]');
             const statsDiv = document.getElementById("stats");
             const originalSizeSpan = document.getElementById("originalSize");
@@ -340,11 +367,13 @@
                 if (!text) {
                     outputText.value = "錯誤：輸入文字不能為空。";
                     statsDiv.style.display = "none";
+                    copyButton.disabled = true; // 無結果時禁用複製按鈕
                     return;
                 }
 
                 actionButton.disabled = true;
                 actionButton.textContent = "壓縮中...";
+                copyButton.disabled = true; // 處理過程中禁用複製按鈕
 
                 try {
                     const encoder = new TextEncoder(); // UTF-8 編碼器
@@ -364,6 +393,7 @@
                     const base64Encoded = btoa(String.fromCharCode(...compressedData));
 
                     outputText.value = base64Encoded;
+                    copyButton.disabled = false; // 有結果時啟用複製按鈕
 
                     // 更新統計資訊
                     const originalByteLength = data.byteLength;
@@ -383,6 +413,7 @@
                     console.error("壓縮錯誤:", error);
                     outputText.value = `壓縮錯誤: ${error.message}`;
                     statsDiv.style.display = "none";
+                    copyButton.disabled = true; // 錯誤時禁用複製按鈕
                 } finally {
                     actionButton.disabled = false;
                     actionButton.textContent = "壓縮";
@@ -396,11 +427,13 @@
             async function decompressText(base64Text) {
                 if (!base64Text) {
                     outputText.value = "錯誤：輸入文字不能為空。";
+                    copyButton.disabled = true; // 無結果時禁用複製按鈕
                     return;
                 }
 
                 actionButton.disabled = true;
                 actionButton.textContent = "解壓縮中...";
+                copyButton.disabled = true; // 處理過程中禁用複製按鈕
 
                 try {
                     // 將 Base64 字串轉換為二進位字串，然後轉為 Uint8Array
@@ -420,11 +453,13 @@
                     const originalText = decoder.decode(decompressedData);
 
                     outputText.value = originalText;
+                    copyButton.disabled = false; // 有結果時啟用複製按鈕
                     statsDiv.style.display = "none"; // 解壓縮通常不顯示統計資訊
                 } catch (error) {
                     console.error("解壓縮錯誤:", error);
                     outputText.value = `解壓縮錯誤: ${error.message}. 請確認輸入的是有效的Base64編碼Gzip壓縮字串。`;
                     statsDiv.style.display = "none";
+                    copyButton.disabled = true; // 錯誤時禁用複製按鈕
                 } finally {
                     actionButton.disabled = false;
                     actionButton.textContent = "解壓縮";
@@ -439,6 +474,7 @@
                 inputText.value = ""; // 切換模式時清空輸入輸出區域
                 outputText.value = "";
                 statsDiv.style.display = "none";
+                copyButton.disabled = true; // 切換模式時禁用複製按鈕
 
                 if (currentMode === "compress") {
                     actionButton.textContent = "壓縮";
@@ -463,8 +499,22 @@
                 }
             }
 
+            /**
+             * 複製結果文字到剪貼簿。
+             */
+            async function copyOutputText() {
+                try {
+                    await navigator.clipboard.writeText(outputText.value);
+                    alert("結果已複製到剪貼簿！");
+                } catch (err) {
+                    console.error("無法複製文字: ", err);
+                    alert("複製失敗，請手動複製。");
+                }
+            }
+
             // 事件監聽器
             actionButton.addEventListener("click", handleActionButtonClick);
+            copyButton.addEventListener("click", copyOutputText); // 新增複製按鈕的事件監聽
             modeRadios.forEach((radio) => {
                 radio.addEventListener("change", handleModeChange);
             });
