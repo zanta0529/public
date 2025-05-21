@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>客製化 AES-GCM 文字解密工具</title>
+        <title>助記詞解密器</title>
         <style>
             :root {
                 --header-color: #007bff;
@@ -28,16 +28,16 @@
                 --primary-color: #1e90ff; /* Slightly adjusted bright blue for new dark bg */
                 --secondary-color: #778899; /* Lighter slate gray for new dark bg */
                 --bg-color: #1e1e2f; /* New user-defined dark base - Dark desaturated blue/purple */
-                --container-bg: #2f2f4f; /* Slightly lighter than bg-color */
+                --container-bg: #2f2f4f; /* Slightly lighter than bg-color -- FROM UPLOADED FILE */
                 --text-color: #e8e8f0; /* Off-white/very light lavender for text */
                 --note-color: #c0c0e0; /* Light grayish lavender for note text */
-                --note-bgcolor: #273f2a; /* Muted dark blue/purple for note bg */
+                --note-bgcolor: #273f2a; /* Muted dark blue/purple for note bg -- FROM UPLOADED FILE */
                 --border-color: #4a4a5f; /* Visible border */
                 --error-color: #ff7f7f; /* Slightly brighter red for contrast */
                 --error-bg: #4f2e2e; /* Darker, more desaturated red bg */
                 --success-color: #60d978; /* Brighter green for contrast */
                 --success-bg: #2a4a30; /* Darker, more desaturated green bg */
-                --input-bg: #444; /* Darker than container, for inputs, matching blue/purple tone */
+                --input-bg: #444; /* Darker than container, for inputs -- FROM UPLOADED FILE */
                 --input-focus-shadow: rgba(30, 144, 255, 0.4); /* Adjusted shadow color */
             }
 
@@ -245,20 +245,20 @@
     <body>
         <div class="container">
             <header>
-                <h1>客製化 AES-GCM 文字解密工具</h1>
+                <h1>加密貨幣錢包助記詞解密器</h1>
             </header>
             <main>
                 <section class="input-section">
                     <div class="form-group">
-                        <label for="jsonInput">JSON 資料</label>
+                        <label for="jsonInput">加密資料 (JSON 或 Base64 編碼的 JSON)</label>
                         <textarea
                             id="jsonInput"
                             rows="8"
-                            placeholder="貼上包含 salt, iterations, keySize, iv, ciphertext, tag 的 JSON"
+                            placeholder="貼上純 JSON 資料，或經 Base64 編碼的 JSON 資料"
                         ></textarea>
                         <div class="field-note">
-                            <strong>💡 注意：</strong>請確保 JSON 資料格式正確，並包含以下欄位：
-                            <code>salt</code>、<code>iterations</code>、<code>keySize</code>、
+                            <strong>💡 注意：</strong>請確保資料格式正確 (純 JSON 或 Base64 編碼 JSON)，且 JSON
+                            內容包含以下欄位： <code>salt</code>、<code>iterations</code>、<code>keySize</code>、
                             <code>iv</code>、<code>ciphertext</code>、<code>tag</code>
                         </div>
                     </div>
@@ -396,7 +396,7 @@
             const themeToggleBtn = document.getElementById("themeToggleBtn");
 
             decryptBtn.addEventListener("click", async () => {
-                const jsonText = jsonInput.value;
+                const rawInputText = jsonInput.value.trim();
                 const passphrase = passphraseInput.value;
 
                 output.textContent = "";
@@ -405,8 +405,8 @@
                 copyBtn.textContent = "複製內容";
                 copyBtn.disabled = false;
 
-                if (!jsonText.trim()) {
-                    output.textContent = "錯誤：JSON 資料不能為空。";
+                if (!rawInputText) {
+                    output.textContent = "錯誤：輸入資料不能為空。";
                     output.className = "error";
                     return;
                 }
@@ -417,15 +417,41 @@
                 }
 
                 setDecryptButtonState(true);
+                let jsonData;
 
                 try {
-                    let jsonData;
+                    // Attempt 1: Try to parse directly as JSON
                     try {
-                        jsonData = JSON.parse(jsonText);
+                        jsonData = JSON.parse(rawInputText);
                     } catch (e) {
-                        throw new Error("JSON 解析錯誤：" + e.message + "。請檢查格式。");
+                        // Attempt 2: If direct JSON parsing fails, try to decode from Base64 and then parse
+                        let decodedJsonText;
+                        try {
+                            // Check if the string could potentially be Base64 (basic check)
+                            // A more robust check could be added, but atob will throw for many non-base64 strings
+                            if (/^[A-Za-z0-9+/]*={0,2}$/.test(rawInputText) && rawInputText.length % 4 === 0) {
+                                decodedJsonText = atob(rawInputText); // Throws if not valid Base64
+                            } else {
+                                throw new Error("輸入內容非 Base64 編碼格式。"); // Not Base64, so fail this path
+                            }
+                        } catch (base64Error) {
+                            // Not valid Base64, and also not valid direct JSON
+                            throw new Error(
+                                "輸入的資料格式無效。請提供純 JSON 或有效的 Base64 編碼 JSON。 (" +
+                                    base64Error.message +
+                                    ")"
+                            );
+                        }
+                        // If Base64 decoding succeeded, try to parse the result as JSON
+                        try {
+                            jsonData = JSON.parse(decodedJsonText);
+                            console.log("輸入內容已成功從 Base64 解碼並解析為 JSON。");
+                        } catch (jsonErrorAfterDecode) {
+                            // Decoded from Base64, but the result is not valid JSON
+                            throw new Error("輸入內容雖可從 Base64 解碼，但解碼後的內容不是有效的 JSON 格式。");
+                        }
                     }
-
+                    // If jsonData is now populated, proceed with decryption
                     const result = await decryptData(jsonData, passphrase);
                     output.textContent = result;
                     output.className = "success";
@@ -435,7 +461,7 @@
                         copyBtn.style.display = "none";
                     }
                 } catch (e) {
-                    output.textContent = "解密失敗：" + e.message;
+                    output.textContent = "處理失敗：" + e.message;
                     output.className = "error";
                     copyBtn.style.display = "none";
                 } finally {
@@ -480,7 +506,7 @@
             }
 
             function toggleTheme() {
-                const currentTheme = document.documentElement.getAttribute("data-theme") || "dark"; // Default to dark if somehow not set
+                const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
                 const newTheme = currentTheme === "dark" ? "light" : "dark";
                 applyTheme(newTheme);
             }
@@ -490,10 +516,9 @@
             // Load preferred theme on page load
             let initialTheme = localStorage.getItem("theme");
             if (!initialTheme) {
-                // If no theme in localStorage, default to dark.
                 initialTheme = "dark";
             }
-            applyTheme(initialTheme); // Apply the determined theme
+            applyTheme(initialTheme);
         </script>
     </body>
 </html>
