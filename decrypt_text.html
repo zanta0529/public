@@ -6,17 +6,41 @@
         <title>客製化 AES-GCM 文字解密工具</title>
         <style>
             :root {
+                --header-color: #007bff;
                 --primary-color: #007bff;
                 --secondary-color: #6c757d;
                 --bg-color: #f8f9fa;
+                --container-bg: #fff;
                 --text-color: #212529;
                 --note-color: #04500e;
                 --note-bgcolor: #d6f5a3;
                 --border-color: #ced4da;
                 --error-color: #dc3545;
+                --error-bg: #fbebeb;
                 --success-color: #28a745;
+                --success-bg: #e6ffed;
                 --input-bg: #fff;
+                --input-focus-shadow: rgba(0, 123, 255, 0.25);
             }
+
+            :root[data-theme="dark"] {
+                --header-color: #fff;
+                --primary-color: #1e90ff; /* Slightly adjusted bright blue for new dark bg */
+                --secondary-color: #778899; /* Lighter slate gray for new dark bg */
+                --bg-color: #1e1e2f; /* New user-defined dark base - Dark desaturated blue/purple */
+                --container-bg: #2f2f4f; /* Slightly lighter than bg-color */
+                --text-color: #e8e8f0; /* Off-white/very light lavender for text */
+                --note-color: #c0c0e0; /* Light grayish lavender for note text */
+                --note-bgcolor: #273f2a; /* Muted dark blue/purple for note bg */
+                --border-color: #4a4a5f; /* Visible border */
+                --error-color: #ff7f7f; /* Slightly brighter red for contrast */
+                --error-bg: #4f2e2e; /* Darker, more desaturated red bg */
+                --success-color: #60d978; /* Brighter green for contrast */
+                --success-bg: #2a4a30; /* Darker, more desaturated green bg */
+                --input-bg: #444; /* Darker than container, for inputs, matching blue/purple tone */
+                --input-focus-shadow: rgba(30, 144, 255, 0.4); /* Adjusted shadow color */
+            }
+
             body {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                 line-height: 1.6;
@@ -28,17 +52,19 @@
                 flex-direction: column;
                 align-items: center;
                 min-height: 100vh;
+                transition: background-color 0.3s, color 0.3s;
             }
             .container {
                 width: 100%;
                 max-width: 80%;
-                background-color: #fff;
+                background-color: var(--container-bg);
                 padding: 25px;
                 border-radius: 8px;
                 box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+                transition: background-color 0.3s;
             }
             header h1 {
-                color: var(--primary-color);
+                color: var(--header-color);
                 text-align: center;
                 margin-bottom: 25px;
                 font-size: 1.8em;
@@ -50,7 +76,7 @@
                 display: block;
                 margin-bottom: 8px;
                 font-weight: 600;
-                color: #333;
+                color: var(--text-color);
             }
             textarea,
             input[type="password"] {
@@ -62,12 +88,13 @@
                 font-size: 1em;
                 background-color: var(--input-bg);
                 color: var(--text-color);
+                transition: background-color 0.3s, color 0.3s, border-color 0.3s;
             }
             textarea:focus,
             input[type="password"]:focus {
                 outline: none;
                 border-color: var(--primary-color);
-                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
             }
             .field-note {
                 font-size: 1em;
@@ -76,10 +103,11 @@
                 margin-top: 5px;
                 padding: 5px;
                 border-radius: 3px;
+                transition: background-color 0.3s, color 0.3s;
             }
             button#decryptBtn {
                 background-color: var(--primary-color);
-                color: white;
+                color: #ffffff;
                 padding: 12px 20px;
                 border: none;
                 border-radius: 5px;
@@ -92,11 +120,12 @@
                 justify-content: center;
             }
             button#decryptBtn:hover {
-                background-color: #0056b3;
+                filter: brightness(90%);
             }
             button#decryptBtn:disabled {
                 background-color: var(--secondary-color);
                 cursor: not-allowed;
+                opacity: 0.7;
             }
             .spinner {
                 width: 18px;
@@ -123,7 +152,7 @@
                 margin-bottom: 15px;
             }
             pre#output {
-                background-color: var(--bg-color);
+                background-color: var(--input-bg);
                 padding: 15px;
                 border: 1px solid var(--border-color);
                 border-radius: 5px;
@@ -132,20 +161,22 @@
                 min-height: 50px;
                 font-size: 1.2em;
                 line-height: 1.5;
+                color: var(--text-color);
+                transition: background-color 0.3s, color 0.3s, border-color 0.3s;
             }
             pre#output.error {
                 color: var(--error-color);
                 border-left: 5px solid var(--error-color);
-                background-color: #fbebeb;
+                background-color: var(--error-bg);
             }
             pre#output.success {
                 color: var(--success-color);
                 border-left: 5px solid var(--success-color);
-                background-color: #e6ffed;
+                background-color: var(--success-bg);
             }
             button#copyBtn {
                 background-color: var(--success-color);
-                color: white;
+                color: #ffffff;
                 padding: 8px 15px;
                 border: none;
                 border-radius: 5px;
@@ -155,7 +186,7 @@
                 transition: background-color 0.2s ease, opacity 0.2s ease;
             }
             button#copyBtn:hover {
-                background-color: #218838;
+                filter: brightness(90%);
             }
             button#copyBtn:disabled {
                 background-color: var(--secondary-color);
@@ -168,6 +199,21 @@
                 font-size: 0.9em;
                 color: var(--secondary-color);
             }
+            #themeToggleBtn {
+                background: none;
+                border: 1px solid var(--border-color);
+                color: var(--text-color);
+                padding: 5px 8px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1.2em;
+                margin-left: 10px;
+                vertical-align: middle;
+            }
+            #themeToggleBtn:hover {
+                background-color: var(--border-color);
+            }
+
             @media (max-width: 600px) {
                 body {
                     padding: 10px;
@@ -177,6 +223,7 @@
                     max-width: 95%;
                 }
                 header h1 {
+                    color: var(--header-color);
                     font-size: 1.5em;
                     margin-bottom: 20px;
                 }
@@ -232,7 +279,10 @@
             </main>
         </div>
         <footer>
-            <p>&copy; <span id="currentYear"></span> Zanta's Tools Enhanced</p>
+            <p>
+                &copy; <span id="currentYear"></span> Zanta's Tools Enhanced
+                <button id="themeToggleBtn" title="切換主題">🌙</button>
+            </p>
         </footer>
 
         <script>
@@ -343,6 +393,7 @@
             const jsonInput = document.getElementById("jsonInput");
             const passphraseInput = document.getElementById("passphrase");
             const copyBtn = document.getElementById("copyBtn");
+            const themeToggleBtn = document.getElementById("themeToggleBtn");
 
             decryptBtn.addEventListener("click", async () => {
                 const jsonText = jsonInput.value;
@@ -394,7 +445,7 @@
 
             function setDecryptButtonState(isDecrypting) {
                 decryptBtn.disabled = isDecrypting;
-                btnText.textContent = isDecrypting ? "解密中..." : "🔓 解密"; // Match HTML
+                btnText.textContent = isDecrypting ? "解密中..." : "🔓 解密";
                 spinner.style.display = isDecrypting ? "inline-block" : "none";
             }
 
@@ -420,6 +471,29 @@
                     }, 2000);
                 }
             });
+
+            // Theme toggle logic
+            function applyTheme(theme) {
+                document.documentElement.setAttribute("data-theme", theme);
+                themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+                localStorage.setItem("theme", theme);
+            }
+
+            function toggleTheme() {
+                const currentTheme = document.documentElement.getAttribute("data-theme") || "dark"; // Default to dark if somehow not set
+                const newTheme = currentTheme === "dark" ? "light" : "dark";
+                applyTheme(newTheme);
+            }
+
+            themeToggleBtn.addEventListener("click", toggleTheme);
+
+            // Load preferred theme on page load
+            let initialTheme = localStorage.getItem("theme");
+            if (!initialTheme) {
+                // If no theme in localStorage, default to dark.
+                initialTheme = "dark";
+            }
+            applyTheme(initialTheme); // Apply the determined theme
         </script>
     </body>
 </html>
