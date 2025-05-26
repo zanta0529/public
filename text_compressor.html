@@ -395,7 +395,7 @@
                     statsDiv.style.display = "none";
                 } catch (error) {
                     console.error("解壓縮錯誤:", error);
-                    outputText.value = `解壓縮錯誤: ${error.message}. 請確認輸入的是有效的Base64編碼Gzip壓縮字串。`;
+                    outputText.value = `解壓縮錯誤: ${error.message}. 請確認輸入的是有效的 Base64 編碼 Gzip 壓縮字串。`;
                     statsDiv.style.display = "none";
                     copyButton.disabled = true;
                 } finally {
@@ -415,10 +415,10 @@
                 if (currentMode === "compress") {
                     actionButton.textContent = "壓縮";
                     inputText.placeholder = "在此輸入要壓縮的文字...";
-                    outputText.placeholder = "壓縮後的Base64結果將顯示在此...";
+                    outputText.placeholder = "壓縮後的 Base64 結果將顯示在此...";
                 } else {
                     actionButton.textContent = "解壓縮";
-                    inputText.placeholder = "在此貼上Base64編碼的壓縮文字...";
+                    inputText.placeholder = "在此貼上 Base64 編碼的壓縮文字...";
                     outputText.placeholder = "解壓縮後的原始文字將顯示在此...";
                 }
             }
