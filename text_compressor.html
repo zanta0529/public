@@ -1,34 +1,57 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-theme="dark">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>文字壓縮/解壓縮工具</title>
-        <link
-            href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap"
-            rel="stylesheet"
-        />
         <style>
-            /* CSS 變數 */
+            /* --- CSS 變數定義 (淺色 & 深色主題) --- */
             :root {
+                /* 淺色主題 (Light Theme) */
                 --primary-color: #007bff;
-                --primary-dark-color: #0056b3;
-                --background-color: #f8f9fa;
-                --surface-color: #ffffff;
+                --primary-hover-color: #0056b3;
+                --secondary-color: #6c757d;
+                --bg-color: #f8f9fa;
+                --container-bg: #ffffff;
                 --text-color: #212529;
                 --border-color: #ced4da;
-                --light-bg-color: #e9ecef;
-                --spacing-unit: 1rem;
-                --border-radius: 0.5rem;
-                --box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
-                --max-width: 1024px;
+                --input-bg: #c3ddbf;
+                --input-focus-shadow: rgba(0, 123, 255, 0.25);
+                --stats-bg: #e9ecef;
+                --stats-text: #495057;
+                --stats-strong-text: var(--primary-hover-color);
+                --button-copy-bg: #28a745;
+                --button-copy-hover-bg: #218838;
+                --button-disabled-bg: #ccc;
+                --box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.07);
             }
 
+            :root[data-theme="dark"] {
+                /* 深色主題 (Dark Theme) - 參考 decrypt_text.html */
+                --primary-color: #1e90ff;
+                --primary-hover-color: #4ca8ff;
+                --secondary-color: #778899;
+                --bg-color: #1e1e2f;
+                --container-bg: #2f2f4f;
+                --text-color: #e8e8f0;
+                --border-color: #4a4a5f;
+                --input-bg: #444;
+                --input-focus-shadow: rgba(30, 144, 255, 0.4);
+                --stats-bg: #252540;
+                --stats-text: #c0c0e0;
+                --stats-strong-text: var(--primary-color);
+                --button-copy-bg: #2a9d8f;
+                --button-copy-hover-bg: #268c7f;
+                --button-disabled-bg: #5a5a70;
+                --box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            }
+
+            /* --- 基礎 & 佈局樣式 --- */
             body {
-                font-family: "Noto Sans TC", sans-serif;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                 margin: 0;
-                padding: var(--spacing-unit) * 2;
-                background-color: var(--background-color);
+                padding: 2rem;
+                background-color: var(--bg-color);
                 color: var(--text-color);
                 line-height: 1.6;
                 display: flex;
@@ -36,90 +59,70 @@
                 align-items: center;
                 min-height: 100vh;
                 box-sizing: border-box;
+                transition: background-color 0.3s, color 0.3s;
             }
 
             .container {
-                background-color: var(--surface-color);
-                padding: var(--spacing-unit) * 2;
-                border-radius: var(--border-radius);
+                background-color: var(--container-bg);
+                padding: 2rem;
+                border-radius: 0.5rem;
                 box-shadow: var(--box-shadow);
                 width: 100%;
-                max-width: var(--max-width);
-                margin-bottom: var(--spacing-unit) * 2;
+                max-width: 80%;
+                margin-bottom: 2rem;
                 box-sizing: border-box;
-                padding-left: 20px;
-                padding-right: 20px;
+                border: 1px solid var(--border-color);
+                transition: background-color 0.3s, border-color 0.3s;
             }
 
             h1 {
                 text-align: center;
                 color: var(--text-color);
-                margin-bottom: var(--spacing-unit) * 2;
+                margin-bottom: 2rem;
                 font-weight: 700;
             }
 
+            /* --- 模式選擇器 --- */
             .mode-selector {
                 display: flex;
                 justify-content: center;
-                gap: var(--spacing-unit);
-                margin-bottom: var(--spacing-unit) * 1.5;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
             }
 
             .mode-selector label {
-                background-color: var(--light-bg-color);
+                background-color: var(--input-bg);
                 padding: 0.75rem 1.25rem;
-                border-radius: var(--border-radius);
+                border-radius: 0.5rem;
+                border: 1px solid var(--border-color);
                 cursor: pointer;
-                transition: background-color 0.2s ease, transform 0.1s ease;
+                transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s;
                 display: flex;
                 align-items: center;
                 gap: 0.5rem;
                 font-weight: 500;
             }
 
-            .mode-selector label:hover {
-                background-color: #e2e6ea;
+            .mode-selector input[type="radio"]:checked + label {
+                background-color: var(--primary-color);
+                color: white;
+                border-color: var(--primary-color);
                 transform: translateY(-2px);
             }
 
             .mode-selector input[type="radio"] {
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                width: 1.25rem;
-                height: 1.25rem;
-                border: 2px solid var(--primary-color);
-                border-radius: 50%;
-                outline: none;
-                cursor: pointer;
-                position: relative;
-                display: grid;
-                place-content: center;
+                display: none; /* Hide the actual radio button */
             }
 
-            .mode-selector input[type="radio"]::before {
-                content: "";
-                width: 0.75rem;
-                height: 0.75rem;
-                border-radius: 50%;
-                transform: scale(0);
-                transition: transform 0.2s ease-in-out;
-                box-shadow: inset 1em 1em var(--primary-color);
-            }
-
-            .mode-selector input[type="radio"]:checked::before {
-                transform: scale(1);
-            }
-
+            /* --- 表單 & 輸入框 --- */
             .form-group {
-                margin-bottom: var(--spacing-unit);
+                margin-bottom: 1rem;
             }
 
             label {
                 display: block;
                 margin-bottom: 0.5rem;
                 font-weight: 600;
-                color: var(--text-color);
             }
 
             textarea {
@@ -127,156 +130,144 @@
                 min-height: 200px;
                 padding: 0.75rem;
                 border: 1px solid var(--border-color);
-                border-radius: var(--border-radius);
-                margin-bottom: var(--spacing-unit);
+                border-radius: 0.5rem;
                 font-size: 1em;
                 resize: vertical;
                 box-sizing: border-box;
-                transition: border-color 0.2s ease, box-shadow 0.2s ease;
+                background-color: var(--input-bg);
+                color: var(--text-color);
+                transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s;
             }
 
             textarea:focus {
                 border-color: var(--primary-color);
-                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
                 outline: none;
             }
 
+            /* --- 按鈕群組 --- */
             .button-group {
                 display: flex;
-                gap: var(--spacing-unit);
-                margin-top: var(--spacing-unit);
-                margin-bottom: var(--spacing-unit);
+                gap: 1rem;
+                margin-top: 1rem;
+                margin-bottom: 1rem;
             }
 
             .button-group button {
-                flex: 1; /* Make buttons take equal width */
+                flex: 1;
                 padding: 0.75rem 1.5rem;
                 background-color: var(--primary-color);
                 color: white;
                 border: none;
-                border-radius: var(--border-radius);
+                border-radius: 0.5rem;
                 cursor: pointer;
                 font-size: 1.1em;
                 font-weight: 600;
                 transition: background-color 0.3s ease, transform 0.1s ease;
-                box-sizing: border-box; /* Include padding in width */
+                box-sizing: border-box;
             }
 
             .button-group button:hover:not(:disabled) {
-                background-color: var(--primary-dark-color);
+                background-color: var(--primary-hover-color);
                 transform: translateY(-2px);
             }
-
-            .button-group button:active:not(:disabled) {
-                transform: translateY(0);
-            }
-
             .button-group button:disabled {
-                background-color: #ccc;
+                background-color: var(--button-disabled-bg);
                 cursor: not-allowed;
                 opacity: 0.7;
             }
 
-            /* Adjustments for the copy button specifically */
             #copyButton {
-                background-color: #28a745; /* Green for copy */
+                background-color: var(--button-copy-bg);
             }
 
             #copyButton:hover:not(:disabled) {
-                background-color: #218838;
+                background-color: var(--button-copy-hover-bg);
             }
 
+            /* --- 統計 & 頁尾 --- */
             .stats {
-                margin-top: var(--spacing-unit) * 1.5;
+                margin-top: 1.5rem;
                 font-size: 0.95em;
-                background-color: var(--light-bg-color);
-                padding: var(--spacing-unit);
-                border-radius: var(--border-radius);
-                border: 1px solid #dee2e6;
+                background-color: var(--stats-bg);
+                padding: 1rem;
+                border-radius: 0.5rem;
+                border: 1px solid var(--border-color);
+                color: var(--stats-text);
+                transition: background-color 0.3s, border-color 0.3s;
             }
 
             .stats p {
                 margin: 0.5rem 0;
             }
-
             .stats span {
                 font-weight: 700;
-                color: var(--primary-dark-color);
+                color: var(--stats-strong-text);
             }
 
             footer {
-                margin-top: var(--spacing-unit) * 3;
-                padding-top: var(--spacing-unit) * 1.5;
+                margin-top: 2rem;
+                padding-top: 1.5rem;
                 border-top: 1px solid var(--border-color);
                 width: 100%;
-                max-width: var(--max-width);
-                text-align: left;
+                max-width: 1024px;
                 box-sizing: border-box;
-            }
-
-            footer h2 {
-                font-size: 1.4em;
-                margin-bottom: var(--spacing-unit);
-                color: var(--text-color);
-                font-weight: 700;
-            }
-
-            footer p,
-            footer ul {
+                text-align: center;
+                color: var(--secondary-color);
                 font-size: 0.9em;
-                line-height: 1.8;
-                margin-bottom: 1rem;
+                transition: border-color 0.3s;
             }
 
-            footer ul {
-                padding-left: 1.5rem;
+            #themeToggleBtn {
+                /* */
+                background: none;
+                border: 1px solid var(--border-color);
+                color: var(--text-color);
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1.2em;
+                margin-left: 10px;
+                vertical-align: middle;
+                transition: background-color 0.3s, border-color 0.3s;
             }
 
-            footer ul li {
-                margin-bottom: 0.5rem;
+            #themeToggleBtn:hover {
+                background-color: var(--border-color);
             }
 
-            strong {
-                font-weight: 700;
-            }
-
-            /* Responsive adjustments */
+            /* --- 響應式設計 --- */
             @media (max-width: 600px) {
                 body {
-                    padding: var(--spacing-unit);
+                    padding: 1rem;
                 }
                 .container {
-                    padding: var(--spacing-unit);
+                    padding: 1rem;
                 }
                 .mode-selector {
                     flex-direction: column;
                     gap: 0.5rem;
                 }
-                .mode-selector label {
-                    width: 100%;
-                    justify-content: center;
-                }
                 .button-group {
-                    flex-direction: column; /* Stack buttons vertically on small screens */
+                    flex-direction: column;
                 }
             }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>文字壓縮/解壓縮工具</h1>
+            <h1>文字壓縮 / 解壓縮工具</h1>
 
             <div class="mode-selector">
-                <label for="compressMode">
-                    <input type="radio" id="compressMode" name="mode" value="compress" checked /> 壓縮模式
-                </label>
-                <label for="decompressMode">
-                    <input type="radio" id="decompressMode" name="mode" value="decompress" /> 解壓縮模式
-                </label>
+                <input type="radio" id="compressMode" name="mode" value="compress" checked />
+                <label for="compressMode">壓縮模式</label>
+
+                <input type="radio" id="decompressMode" name="mode" value="decompress" />
+                <label for="decompressMode">解壓縮模式</label>
             </div>
 
             <div class="form-group">
-                <label for="inputText">輸入文字:</label>
+                <label for="inputText">輸入文字</label>
                 <textarea id="inputText" placeholder="在此輸入文字..."></textarea>
             </div>
 
@@ -285,7 +276,7 @@
             </div>
 
             <div class="form-group">
-                <label for="outputText">結果:</label>
+                <label for="outputText">結果</label>
                 <textarea id="outputText" readonly placeholder="結果將顯示在此..."></textarea>
             </div>
 
@@ -294,187 +285,132 @@
             </div>
 
             <div id="stats" class="stats" role="status" aria-live="polite" style="display: none">
-                <p>原始大小: <span id="originalSize">0</span> bytes</p>
-                <p>結果大小: <span id="resultSize">0</span> characters</p>
-                <p>壓縮比: <span id="compressionRatio">N/A</span></p>
+                <p>結果大小：<span id="resultSize">0</span> characters</p>
+                <p>原始大小：<span id="originalSize">0</span> bytes</p>
+                <p>壓縮比率：<span id="compressionRatio">N/A</span>（結果大小/原始大小）</p>
             </div>
         </div>
 
         <footer>
-            <h2>程式用途與功能</h2>
-            <p>本工具提供純文字內容的壓縮與解壓縮功能，完全在您的瀏覽器端執行，確保資料隱私。</p>
-            <ul>
-                <li>
-                    <strong>壓縮模式:</strong> 將您輸入的長文字內容使用 Gzip
-                    演算法進行壓縮，然後將壓縮後的二進位資料轉換為 Base64
-                    編碼的文字字串。這有助於減少儲存空間或網路傳輸量。程式會顯示原始文字的位元組大小、Base64
-                    編碼後字串的長度，以及壓縮比率。
-                </li>
-                <li>
-                    <strong>解壓縮模式:</strong> 將符合格式的 Base64 編碼字串（先前由本工具或使用 Gzip + Base64
-                    方式壓縮的內容）還原為原始的可讀文字。
-                </li>
-            </ul>
-            <p><strong>注意:</strong> 壓縮比會因輸入文字的重複性和內容而異。高度重複的文字通常能獲得較好的壓縮效果。</p>
+            <p>
+                &copy; <span id="currentYear"></span> Zanta's Tools Enhanced
+                <button id="themeToggleBtn" title="切換主題">🌙</button>
+            </p>
         </footer>
 
         <script>
-            // DOM 元素引用
+            // --- DOM 元素引用 ---
             const inputText = document.getElementById("inputText");
             const outputText = document.getElementById("outputText");
             const actionButton = document.getElementById("actionButton");
-            const copyButton = document.getElementById("copyButton"); // 新增複製按鈕的引用
+            const copyButton = document.getElementById("copyButton");
             const modeRadios = document.querySelectorAll('input[name="mode"]');
             const statsDiv = document.getElementById("stats");
             const originalSizeSpan = document.getElementById("originalSize");
             const resultSizeSpan = document.getElementById("resultSize");
             const compressionRatioSpan = document.getElementById("compressionRatio");
+            const themeToggleBtn = document.getElementById("themeToggleBtn");
+            document.getElementById("currentYear").textContent = new Date().getFullYear();
 
-            // 當前模式，預設為壓縮
             let currentMode = "compress";
 
-            /**
-             * 將 ReadableStream 讀取為 Uint8Array。
-             * @param {ReadableStream} readableStream
-             * @returns {Promise<Uint8Array>}
-             */
+            // --- 核心功能 (壓縮/解壓縮) ---
             async function streamToUint8Array(readableStream) {
                 const reader = readableStream.getReader();
                 const chunks = [];
-                let totalLength = 0;
-
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
                     chunks.push(value);
-                    totalLength += value.length;
                 }
-
-                const result = new Uint8Array(totalLength);
-                let offset = 0;
-                for (const chunk of chunks) {
-                    result.set(chunk, offset);
-                    offset += chunk.length;
-                }
-                return result;
+                const blob = new Blob(chunks);
+                return new Uint8Array(await blob.arrayBuffer());
             }
 
-            /**
-             * 壓縮文字。
-             * @param {string} text - 待壓縮的原始文字。
-             */
             async function compressText(text) {
                 if (!text) {
                     outputText.value = "錯誤：輸入文字不能為空。";
                     statsDiv.style.display = "none";
-                    copyButton.disabled = true; // 無結果時禁用複製按鈕
+                    copyButton.disabled = true;
                     return;
                 }
-
                 actionButton.disabled = true;
                 actionButton.textContent = "壓縮中...";
-                copyButton.disabled = true; // 處理過程中禁用複製按鈕
+                copyButton.disabled = true;
 
                 try {
-                    const encoder = new TextEncoder(); // UTF-8 編碼器
-                    const data = encoder.encode(text);
-
-                    // 壓縮資料流
+                    const data = new TextEncoder().encode(text);
                     const compressionStream = new CompressionStream("gzip");
                     const writer = compressionStream.writable.getWriter();
                     writer.write(data);
                     writer.close();
-
-                    // 讀取壓縮後的資料
                     const compressedData = await streamToUint8Array(compressionStream.readable);
-
-                    // 將 Uint8Array 轉換為 Base64 編碼字串
-                    // 使用 TextDecoder('latin1') 和 btoa 更可靠地處理二進位資料
-                    const base64Encoded = btoa(String.fromCharCode(...compressedData));
+                    const base64Encoded = btoa(String.fromCharCode.apply(null, compressedData));
 
                     outputText.value = base64Encoded;
-                    copyButton.disabled = false; // 有結果時啟用複製按鈕
+                    copyButton.disabled = false;
 
-                    // 更新統計資訊
                     const originalByteLength = data.byteLength;
                     const resultCharLength = base64Encoded.length;
-
                     originalSizeSpan.textContent = originalByteLength;
                     resultSizeSpan.textContent = resultCharLength;
-
-                    if (originalByteLength > 0) {
-                        const ratio = resultCharLength / originalByteLength;
-                        compressionRatioSpan.textContent = `${(ratio * 100).toFixed(2)}% (結果大小 / 原始大小)`;
-                    } else {
-                        compressionRatioSpan.textContent = "N/A";
-                    }
+                    compressionRatioSpan.textContent =
+                        originalByteLength > 0
+                            ? `${((resultCharLength / originalByteLength) * 100).toFixed(2)}%`
+                            : "N/A";
                     statsDiv.style.display = "block";
                 } catch (error) {
                     console.error("壓縮錯誤:", error);
                     outputText.value = `壓縮錯誤: ${error.message}`;
                     statsDiv.style.display = "none";
-                    copyButton.disabled = true; // 錯誤時禁用複製按鈕
+                    copyButton.disabled = true;
                 } finally {
                     actionButton.disabled = false;
                     actionButton.textContent = "壓縮";
                 }
             }
 
-            /**
-             * 解壓縮文字。
-             * @param {string} base64Text - 待解壓縮的 Base64 編碼字串。
-             */
             async function decompressText(base64Text) {
                 if (!base64Text) {
                     outputText.value = "錯誤：輸入文字不能為空。";
-                    copyButton.disabled = true; // 無結果時禁用複製按鈕
+                    copyButton.disabled = true;
                     return;
                 }
-
                 actionButton.disabled = true;
                 actionButton.textContent = "解壓縮中...";
-                copyButton.disabled = true; // 處理過程中禁用複製按鈕
+                copyButton.disabled = true;
 
                 try {
-                    // 將 Base64 字串轉換為二進位字串，然後轉為 Uint8Array
                     const binaryString = atob(base64Text);
                     const compressedData = Uint8Array.from(binaryString, (char) => char.charCodeAt(0));
-
-                    // 解壓縮資料流
                     const decompressionStream = new DecompressionStream("gzip");
                     const writer = decompressionStream.writable.getWriter();
                     writer.write(compressedData);
                     writer.close();
-
-                    // 讀取解壓縮後的資料
                     const decompressedData = await streamToUint8Array(decompressionStream.readable);
-
-                    const decoder = new TextDecoder("utf-8"); // UTF-8 解碼器
-                    const originalText = decoder.decode(decompressedData);
+                    const originalText = new TextDecoder().decode(decompressedData);
 
                     outputText.value = originalText;
-                    copyButton.disabled = false; // 有結果時啟用複製按鈕
-                    statsDiv.style.display = "none"; // 解壓縮通常不顯示統計資訊
+                    copyButton.disabled = false;
+                    statsDiv.style.display = "none";
                 } catch (error) {
                     console.error("解壓縮錯誤:", error);
                     outputText.value = `解壓縮錯誤: ${error.message}. 請確認輸入的是有效的Base64編碼Gzip壓縮字串。`;
                     statsDiv.style.display = "none";
-                    copyButton.disabled = true; // 錯誤時禁用複製按鈕
+                    copyButton.disabled = true;
                 } finally {
                     actionButton.disabled = false;
                     actionButton.textContent = "解壓縮";
                 }
             }
 
-            /**
-             * 處理模式切換。
-             */
+            // --- 事件處理 ---
             function handleModeChange() {
-                currentMode = this.value;
-                inputText.value = ""; // 切換模式時清空輸入輸出區域
+                currentMode = document.querySelector('input[name="mode"]:checked').value;
+                inputText.value = "";
                 outputText.value = "";
                 statsDiv.style.display = "none";
-                copyButton.disabled = true; // 切換模式時禁用複製按鈕
+                copyButton.disabled = true;
 
                 if (currentMode === "compress") {
                     actionButton.textContent = "壓縮";
@@ -487,11 +423,8 @@
                 }
             }
 
-            /**
-             * 處理動作按鈕點擊。
-             */
             function handleActionButtonClick() {
-                const text = inputText.value.trim(); // 移除首尾空白
+                const text = inputText.value.trim();
                 if (currentMode === "compress") {
                     compressText(text);
                 } else {
@@ -499,10 +432,8 @@
                 }
             }
 
-            /**
-             * 複製結果文字到剪貼簿。
-             */
             async function copyOutputText() {
+                if (!outputText.value) return;
                 try {
                     await navigator.clipboard.writeText(outputText.value);
                     alert("結果已複製到剪貼簿！");
@@ -512,19 +443,38 @@
                 }
             }
 
-            // 事件監聽器
+            // --- 主題切換邏輯 (來自 decrypt_text.html) ---
+            function applyTheme(theme) {
+                document.documentElement.setAttribute("data-theme", theme);
+                themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+                localStorage.setItem("theme", theme);
+            }
+
+            function toggleTheme() {
+                const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+                const newTheme = currentTheme === "dark" ? "light" : "dark";
+                applyTheme(newTheme);
+            }
+
+            // --- 事件監聽器 ---
             actionButton.addEventListener("click", handleActionButtonClick);
-            copyButton.addEventListener("click", copyOutputText); // 新增複製按鈕的事件監聽
+            copyButton.addEventListener("click", copyOutputText);
             modeRadios.forEach((radio) => {
                 radio.addEventListener("change", handleModeChange);
             });
+            themeToggleBtn.addEventListener("click", toggleTheme); // 新增
 
-            // 初始設定 (根據預設選中的 radio 設置介面)
+            // --- 初始設定 ---
             document.addEventListener("DOMContentLoaded", () => {
-                const initialModeRadio = document.querySelector('input[name="mode"]:checked');
-                if (initialModeRadio) {
-                    initialModeRadio.dispatchEvent(new Event("change")); // 觸發一次 change 事件來初始化介面
+                // 初始化模式選擇器
+                handleModeChange();
+
+                // 初始化主題
+                let initialTheme = localStorage.getItem("theme");
+                if (!initialTheme) {
+                    initialTheme = "dark"; // 預設為深色模式
                 }
+                applyTheme(initialTheme);
             });
         </script>
     </body>
