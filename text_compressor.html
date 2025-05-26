@@ -15,19 +15,21 @@
                 --container-bg: #ffffff;
                 --text-color: #212529;
                 --border-color: #ced4da;
-                --input-bg: #c3ddbf;
+                --input-bg: #fff;
                 --input-focus-shadow: rgba(0, 123, 255, 0.25);
                 --stats-bg: #e9ecef;
                 --stats-text: #495057;
-                --stats-strong-text: var(--primary-hover-color);
+                --stats-strong-text: var(--primary-hover-color); /* Default color for stat values */
                 --button-copy-bg: #28a745;
                 --button-copy-hover-bg: #218838;
                 --button-disabled-bg: #ccc;
                 --box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.07);
+                --ratio-good-color: #28a745;
+                --ratio-bad-color: #dc3545;
             }
 
             :root[data-theme="dark"] {
-                /* 深色主題 (Dark Theme) - 參考 decrypt_text.html */
+                /* 深色主題 (Dark Theme) */
                 --primary-color: #1e90ff;
                 --primary-hover-color: #4ca8ff;
                 --secondary-color: #778899;
@@ -39,11 +41,13 @@
                 --input-focus-shadow: rgba(30, 144, 255, 0.4);
                 --stats-bg: #252540;
                 --stats-text: #c0c0e0;
-                --stats-strong-text: var(--primary-color);
+                --stats-strong-text: var(--primary-color); /* Default color for stat values */
                 --button-copy-bg: #2a9d8f;
                 --button-copy-hover-bg: #268c7f;
                 --button-disabled-bg: #5a5a70;
                 --box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+                --ratio-good-color: #60d978;
+                --ratio-bad-color: #ff7f7f;
             }
 
             /* --- 基礎 & 佈局樣式 --- */
@@ -111,7 +115,7 @@
             }
 
             .mode-selector input[type="radio"] {
-                display: none; /* Hide the actual radio button */
+                display: none;
             }
 
             /* --- 表單 & 輸入框 --- */
@@ -185,7 +189,7 @@
                 background-color: var(--button-copy-hover-bg);
             }
 
-            /* --- 統計 & 頁尾 --- */
+            /* --- 壓縮比率顯示結果 --- */
             .stats {
                 margin-top: 1.5rem;
                 font-size: 0.95em;
@@ -200,9 +204,25 @@
             .stats p {
                 margin: 0.5rem 0;
             }
-            .stats span {
+
+            .stats .stat-value {
+                /* 包含數字和單位的部分 */
+                font-family: "SF Mono", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;
+                color: var(--stats-strong-text); /* 預設顏色 */
                 font-weight: 700;
-                color: var(--stats-strong-text);
+            }
+            .stats .stat-value .unit {
+                /* 單位文字的樣式 */
+                color: var(--stats-text); /* 保持與周圍文字顏色一致 */
+                font-size: 0.9em;
+                font-weight: normal; /* 單位文字不需要加粗 */
+                margin-left: 0.25rem;
+            }
+            .ratio-good {
+                color: var(--ratio-good-color) !important;
+            }
+            .ratio-bad {
+                color: var(--ratio-bad-color) !important;
             }
 
             footer {
@@ -219,7 +239,6 @@
             }
 
             #themeToggleBtn {
-                /* */
                 background: none;
                 border: 1px solid var(--border-color);
                 color: var(--text-color);
@@ -243,6 +262,7 @@
                 }
                 .container {
                     padding: 1rem;
+                    max-width: 95%;
                 }
                 .mode-selector {
                     flex-direction: column;
@@ -285,15 +305,27 @@
             </div>
 
             <div id="stats" class="stats" role="status" aria-live="polite" style="display: none">
-                <p>結果大小：<span id="resultSize">0</span> characters</p>
-                <p>原始大小：<span id="originalSize">0</span> bytes</p>
-                <p>壓縮比率：<span id="compressionRatio">N/A</span>（結果大小/原始大小）</p>
+                <p>
+                    <span class="stat-label">結果大小：</span>
+                    <span class="stat-value"><span id="resultSize">0</span><span class="unit"> characters</span></span>
+                </p>
+                <p>
+                    <span class="stat-label">原始大小：</span>
+                    <span class="stat-value"><span id="originalSize">0</span><span class="unit"> bytes</span></span>
+                </p>
+                <p>
+                    <span class="stat-label">壓縮比率：</span>
+                    <span class="stat-value">
+                        <span id="compressionRatioValue">N/A</span>
+                        <span class="unit">（結果大小/原始大小）</span>
+                    </span>
+                </p>
             </div>
         </div>
 
         <footer>
             <p>
-                &copy; <span id="currentYear"></span> Zanta's Tools Enhanced
+                &copy; <span id="currentYear"></span> Zanta's Text Compressor
                 <button id="themeToggleBtn" title="切換主題">🌙</button>
             </p>
         </footer>
@@ -308,7 +340,7 @@
             const statsDiv = document.getElementById("stats");
             const originalSizeSpan = document.getElementById("originalSize");
             const resultSizeSpan = document.getElementById("resultSize");
-            const compressionRatioSpan = document.getElementById("compressionRatio");
+            const compressionRatioSpan = document.getElementById("compressionRatioValue");
             const themeToggleBtn = document.getElementById("themeToggleBtn");
             document.getElementById("currentYear").textContent = new Date().getFullYear();
 
@@ -352,12 +384,23 @@
 
                     const originalByteLength = data.byteLength;
                     const resultCharLength = base64Encoded.length;
-                    originalSizeSpan.textContent = originalByteLength;
-                    resultSizeSpan.textContent = resultCharLength;
-                    compressionRatioSpan.textContent =
-                        originalByteLength > 0
-                            ? `${((resultCharLength / originalByteLength) * 100).toFixed(2)}%`
-                            : "N/A";
+
+                    originalSizeSpan.textContent = originalByteLength.toLocaleString("en-US");
+                    resultSizeSpan.textContent = resultCharLength.toLocaleString("en-US");
+
+                    compressionRatioSpan.classList.remove("ratio-good", "ratio-bad");
+
+                    if (originalByteLength > 0) {
+                        const ratio = resultCharLength / originalByteLength;
+                        compressionRatioSpan.textContent = `${(ratio * 100).toFixed(2)}%`;
+                        if (ratio < 1) {
+                            compressionRatioSpan.classList.add("ratio-good");
+                        } else if (ratio >= 1) {
+                            compressionRatioSpan.classList.add("ratio-bad");
+                        }
+                    } else {
+                        compressionRatioSpan.textContent = "N/A";
+                    }
                     statsDiv.style.display = "block";
                 } catch (error) {
                     console.error("壓縮錯誤:", error);
@@ -443,11 +486,11 @@
                 }
             }
 
-            // --- 主題切換邏輯 (來自 decrypt_text.html) ---
+            // --- 主題切換邏輯 ---
             function applyTheme(theme) {
                 document.documentElement.setAttribute("data-theme", theme);
                 themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
-                localStorage.setItem("theme", theme);
+                localStorage.setItem("compressor_theme", theme);
             }
 
             function toggleTheme() {
@@ -462,17 +505,17 @@
             modeRadios.forEach((radio) => {
                 radio.addEventListener("change", handleModeChange);
             });
-            themeToggleBtn.addEventListener("click", toggleTheme); // 新增
+            themeToggleBtn.addEventListener("click", toggleTheme);
 
             // --- 初始設定 ---
             document.addEventListener("DOMContentLoaded", () => {
-                // 初始化模式選擇器
-                handleModeChange();
-
-                // 初始化主題
-                let initialTheme = localStorage.getItem("theme");
+                const initialModeRadio = document.querySelector('input[name="mode"]:checked');
+                if (initialModeRadio) {
+                    handleModeChange.call(initialModeRadio);
+                }
+                let initialTheme = localStorage.getItem("compressor_theme");
                 if (!initialTheme) {
-                    initialTheme = "dark"; // 預設為深色模式
+                    initialTheme = "dark";
                 }
                 applyTheme(initialTheme);
             });
