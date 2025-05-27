@@ -140,7 +140,7 @@
                 border: none;
                 border-radius: 5px;
                 cursor: pointer;
-                font-size: 0.9em;
+                font-size: 1.1em;
                 font-weight: 600;
                 transition: background-color 0.3s, transform 0.1s, color 0.3s, border-color 0.3s;
             }
@@ -199,7 +199,7 @@
             #btnExecute {
                 width: 100%;
                 padding: 0.8rem 1.5rem;
-                font-size: 1.1em;
+                font-size: 1.2em;
                 margin: 1rem 0;
             }
             /* JavaScript 將會動態改變 #btnExecute 的 data-type */
@@ -213,7 +213,7 @@
                 border: 1px solid var(--border-color);
                 border-radius: 5px;
                 box-sizing: border-box;
-                font-size: 1em;
+                font-size: 1.2em;
                 background-color: var(--input-bg);
                 color: var(--text-color);
                 transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s, color 0.3s;
@@ -243,7 +243,7 @@
                 cursor: pointer;
                 user-select: none;
                 transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-                font-size: 0.9em;
+                font-size: 1.1em;
             }
             .option.selected {
                 background-color: var(--primary-color);
@@ -489,7 +489,7 @@
                     <div class="option" data-value="NoPadding">NoPadding</div>
                 </div>
                 <div class="alert alert-note" id="noPaddingNote" style="display: none">
-                    使用 NoPadding 時，CBC / ECB 模式的明文長度（UTF-8 編碼後的位元組）必須是 16 的倍數。
+                    使用 NoPadding 時，CBC/ECB 模式的明文長度（UTF-8 編碼後的位元組）必須是 16 的倍數。
                 </div>
             </div>
 
@@ -515,10 +515,10 @@
                 <label for="iv">初始向量 (IV) (純文字)</label>
                 <div style="display: flex; gap: 10px; align-items: center">
                     <input type="text" id="iv" placeholder="輸入 IV 文字 (通常需 16 位元組)" style="flex-grow: 1" />
-                    <button id="generateIvButton" data-type="secondary">產生隨機IV</button>
+                    <button id="generateIvButton" data-type="secondary">產生隨機 IV</button>
                 </div>
                 <div class="alert alert-note">
-                    GCM、CTR、CBC 模式需要 IV。<strong>重要：</strong>GCM / CTR模式下，同一金鑰每次加密的 IV 必須唯一！
+                    GCM、CTR、CBC 模式需要 IV。<strong>重要：</strong>GCM/CTR模式下，同一金鑰每次加密的 IV 必須唯一！
                 </div>
                 <div id="msgIVError" class="error-message"></div>
             </div>
