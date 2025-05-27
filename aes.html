@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>進階 AES 加密/解密工具 (文字/檔案)</title>
+        <title>AES 加解密工具</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
         <style>
             /* --- CSS 變數定義 (淺色 & 深色主題) --- */
@@ -14,6 +14,12 @@
                 --secondary-hover-color: #5a6268;
                 --danger-color: #dc3545;
                 --danger-hover-color: #c82333;
+                --success-btn-color: #28a745;
+                --success-btn-hover-color: #218838;
+                --warning-btn-bg-color: #ffc107;
+                --warning-btn-text-color: #212529;
+                --warning-btn-hover-bg-color: #e0a800;
+
                 --bg-color: #f8f9fa;
                 --container-bg: #ffffff;
                 --text-color: #212529;
@@ -41,6 +47,12 @@
                 --secondary-hover-color: #90a0b1;
                 --danger-color: #c82333;
                 --danger-hover-color: #a71d2a;
+                --success-btn-color: #20c997;
+                --success-btn-hover-color: #1baa80;
+                --warning-btn-bg-color: #fd7e14;
+                --warning-btn-text-color: #ffffff;
+                --warning-btn-hover-bg-color: #e66b04;
+
                 --bg-color: #1e1e2f;
                 --container-bg: #2f2f4f;
                 --text-color: #e8e8f0;
@@ -93,7 +105,6 @@
             h2,
             h3 {
                 margin-top: 0;
-                color: var(--text-color);
             }
             h1 {
                 text-align: center;
@@ -116,32 +127,25 @@
                 margin: 2rem 0;
             }
 
-            /* --- 組件：按鈕 --- */
+            /* --- 組件：按鈕 (優化) --- */
             .button-group {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 1rem;
             }
             button {
+                /* 基礎按鈕樣式 */
                 padding: 0.6rem 1rem;
-                background-color: var(--primary-color);
-                color: white;
+                color: white; /* 預設文字顏色，特定類型按鈕可覆蓋 */
                 border: none;
                 border-radius: 5px;
                 cursor: pointer;
                 font-size: 0.9em;
                 font-weight: 600;
-                transition: background-color 0.3s, transform 0.1s;
+                transition: background-color 0.3s, transform 0.1s, color 0.3s, border-color 0.3s;
             }
             button:hover:not(:disabled) {
-                background-color: var(--primary-hover-color);
                 transform: translateY(-1px);
-            }
-            button.secondary {
-                background-color: var(--secondary-color);
-            }
-            button.secondary:hover:not(:disabled) {
-                background-color: var(--secondary-hover-color);
             }
             button:disabled {
                 background-color: var(--button-disabled-bg);
@@ -149,31 +153,56 @@
                 opacity: 0.7;
             }
 
+            /* 預設 (Primary) 按鈕 */
+            button:not([data-type]) {
+                /* 如果沒有 data-type，則視為 primary */
+                background-color: var(--primary-color);
+            }
+            button:not([data-type]):hover:not(:disabled) {
+                background-color: var(--primary-hover-color);
+            }
+
+            /* 次要 (Secondary) 按鈕 */
+            button[data-type="secondary"] {
+                background-color: var(--secondary-color);
+            }
+            button[data-type="secondary"]:hover:not(:disabled) {
+                background-color: var(--secondary-hover-color);
+            }
+
+            /* 危險 (Danger) 按鈕 */
+            button[data-type="danger"] {
+                background-color: var(--danger-color);
+            }
+            button[data-type="danger"]:hover:not(:disabled) {
+                background-color: var(--danger-hover-color);
+            }
+
+            /* 成功 (Success) 按鈕 */
+            button[data-type="success"] {
+                background-color: var(--success-btn-color);
+            }
+            button[data-type="success"]:hover:not(:disabled) {
+                background-color: var(--success-btn-hover-color);
+            }
+
+            /* 警告 (Warning) 按鈕 - 用於執行單元測試按鈕 */
+            button[data-type="warning"] {
+                background-color: var(--warning-btn-bg-color);
+                color: var(--warning-btn-text-color);
+            }
+            button[data-type="warning"]:hover:not(:disabled) {
+                background-color: var(--warning-btn-hover-bg-color);
+            }
+
+            /* 主執行按鈕的特定大小和邊距 */
             #btnExecute {
-                /* 主執行按鈕 */
                 width: 100%;
                 padding: 0.8rem 1.5rem;
                 font-size: 1.1em;
                 margin: 1rem 0;
             }
-            #btnExecute.encryptButton {
-                background-color: #28a745;
-            }
-            #btnExecute.encryptButton:hover:not(:disabled) {
-                background-color: #218838;
-            }
-            #btnExecute.decryptButton {
-                background-color: #dc3545;
-            }
-            #btnExecute.decryptButton:hover:not(:disabled) {
-                background-color: #c82333;
-            }
-            #resetFormButton {
-                background-color: var(--danger-color);
-            }
-            #resetFormButton:hover:not(:disabled) {
-                background-color: var(--danger-hover-color);
-            }
+            /* JavaScript 將會動態改變 #btnExecute 的 data-type */
 
             /* --- 組件：表單輸入 --- */
             input[type="text"],
@@ -187,7 +216,7 @@
                 font-size: 1em;
                 background-color: var(--input-bg);
                 color: var(--text-color);
-                transition: 0.3s;
+                transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s, color 0.3s;
             }
             input[type="text"]:focus,
             input[type="file"]:focus,
@@ -205,16 +234,16 @@
             .option-group {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 10px;
-                margin-bottom: 15px;
+                gap: 1rem;
             }
             .option {
-                padding: 10px 15px;
+                padding: 0.6rem 1rem;
                 border: 1px solid var(--border-color);
                 border-radius: 5px;
                 cursor: pointer;
                 user-select: none;
                 transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+                font-size: 0.9em;
             }
             .option.selected {
                 background-color: var(--primary-color);
@@ -231,76 +260,83 @@
                 cursor: not-allowed;
             }
 
-            /* --- 組件：訊息與提示 --- */
+            /* --- 組件：訊息與提示 (優化) --- */
+            /* 基礎訊息框 */
             .status-message {
-                /* margin-top: 1rem; */
                 padding: 1rem;
                 border-radius: 5px;
                 border: 1px solid transparent;
-                display: none;
+                display: none; /* 由 JS 控制 active class */
+                margin-top: 1rem; /* 統一添加 margin-top */
             }
             .status-message.active {
                 display: block;
             }
+            /* 成功訊息 */
             .status-success {
                 background-color: var(--success-bg);
                 color: var(--success-color);
-                border-color: var(--success-color);
+                border-color: var(--success-color); /* 或 var(--success-bg) 讓邊框不明顯 */
             }
+            /* 錯誤訊息 */
             .status-error {
                 background-color: var(--error-bg);
                 color: var(--error-color);
-                border-color: var(--error-color);
+                border-color: var(--error-color); /* 或 var(--error-bg) */
             }
+            /* 表單內嵌的錯誤訊息 */
             .error-message {
                 color: var(--error-color);
                 font-size: 0.9em;
                 min-height: 1.2em;
+                display: block;
+                margin-top: 0.25rem;
             }
 
-            .note,
-            .security-note,
-            .best-practices,
-            #testResults {
+            /* 通用提示框 (alert) */
+            .alert {
                 font-size: 0.9em;
-                padding: 10px;
+                padding: 1rem;
                 border-radius: 5px;
-                margin: 10px 0;
+                margin: 1rem 0;
                 border: 1px solid;
             }
-            .note {
+            .alert-note {
                 background-color: var(--note-bg);
                 color: var(--note-color);
-                border-color: var(--note-color);
+                border-color: var(--note-color); /* 或 var(--note-bg) */
             }
-            .security-note {
+            .alert-danger {
+                /* 用於 .security-note */
                 background-color: var(--error-bg);
                 color: var(--error-color);
-                border-color: var(--error-color);
+                border-color: var(--error-color); /* 或 var(--error-bg) */
             }
-            .best-practices,
-            #testResults {
+            .alert-warning {
+                /* 用於 .best-practices, #testResults */
                 background-color: var(--warning-bg);
                 color: var(--warning-color);
-                border-color: var(--warning-color);
+                border-color: var(--warning-color); /* 或 var(--warning-bg) */
             }
 
             details > summary {
                 cursor: pointer;
                 font-weight: bold;
+                padding: 0.5rem 0;
             }
-            .best-practices ul {
-                margin: 10px 0 5px 20px;
+            /* .best-practices 是 <details> 元素，其內部 ul/li 樣式 */
+            .alert-warning ul {
+                margin: 0.5rem 0 0.25rem 1.25rem;
                 padding: 0;
             }
-            .best-practices li {
-                margin-bottom: 8px;
+            .alert-warning li {
+                margin-bottom: 0.5rem;
             }
 
-            #testResults .pass {
+            .alert-warning .pass {
                 color: var(--success-color);
             }
-            #testResults .fail {
+            .alert-warning .fail {
                 color: var(--error-color);
                 font-weight: bold;
             }
@@ -308,7 +344,7 @@
             /* --- 組件：頁尾 --- */
             footer {
                 text-align: center;
-                margin-top: auto;
+                margin-top: auto; /* 將頁尾推到底部 */
                 padding-top: 1rem;
                 font-size: 0.9em;
                 color: var(--secondary-color);
@@ -317,13 +353,13 @@
                 background: none;
                 border: 1px solid var(--border-color);
                 color: var(--text-color);
-                padding: 5px 10px;
+                padding: 0.25rem;
                 border-radius: 5px;
                 cursor: pointer;
                 font-size: 1.2em;
-                margin-left: 10px;
+                margin-left: 0.5rem;
                 vertical-align: middle;
-                transition: 0.3s;
+                transition: background-color 0.3s, color 0.3s, border-color 0.3s;
             }
             #themeToggleBtn:hover {
                 background-color: var(--border-color);
@@ -338,14 +374,21 @@
                     padding: 1.5rem;
                     max-width: 95%;
                 }
+                /* 可以在此處為小螢幕調整按鈕、輸入框等的大小或排列 */
+                .button-group {
+                    /* gap: 0.5rem; /* 小螢幕時縮小間距 */
+                }
+                button {
+                    /* font-size: 0.85em; /* 小螢幕時略微縮小字體 */
+                }
             }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>進階 AES 加密/解密工具</h1>
+            <h1>Zanta 的進階 AES 加解密工具</h1>
 
-            <details class="best-practices">
+            <details class="alert alert-warning">
                 <summary>🔐 <strong>安全性與最佳實踐（點擊展開）</strong></summary>
                 <ul>
                     <li>
@@ -409,16 +452,20 @@
                 <label for="text">原始文字 / 密文</label>
                 <textarea id="text" rows="5" placeholder="在此輸入要加密的明文或要解密的密文（Base64/Hex）"></textarea>
                 <div class="button-group" style="margin-top: 10px">
-                    <button id="copyTextButton" class="secondary">複製</button>
-                    <button id="pasteTextButton" class="secondary">貼上</button>
-                    <button id="clearTextButton" class="secondary">清除</button>
+                    <button id="copyTextButton" data-type="secondary">複製</button>
+                    <button id="pasteTextButton" data-type="secondary">貼上</button>
+                    <button id="clearTextButton" data-type="secondary">清除</button>
                 </div>
             </div>
 
             <div id="fileInputGroup" class="input-group" style="display: none">
                 <label for="fileInput">選擇檔案</label>
                 <input type="file" id="fileInput" />
-                <div id="fileNameDisplay" class="note" style="margin-top: 10px; display: none"></div>
+                <div
+                    id="fileNameDisplay"
+                    class="alert alert-note"
+                    style="margin-top: 10px; display: none; padding: 0.5rem 1rem"
+                ></div>
             </div>
 
             <div class="input-group">
@@ -429,7 +476,7 @@
                     <div class="option" data-value="CBC">CBC</div>
                     <div class="option" data-value="ECB">ECB</div>
                 </div>
-                <div class="security-note" id="ecbWarning" style="display: none">
+                <div class="alert alert-danger" id="ecbWarning" style="display: none">
                     <strong>注意：</strong>ECB
                     模式通常不安全，因為相同的明文塊會加密成相同的密文塊。建議僅在特殊情況下使用。
                 </div>
@@ -441,7 +488,7 @@
                     <div class="option selected" data-value="Pkcs7">PKCS7</div>
                     <div class="option" data-value="NoPadding">NoPadding</div>
                 </div>
-                <div class="note" id="noPaddingNote" style="display: none">
+                <div class="alert alert-note" id="noPaddingNote" style="display: none">
                     使用 NoPadding 時，CBC / ECB 模式的明文長度（UTF-8 編碼後的位元組）必須是 16 的倍數。
                 </div>
             </div>
@@ -458,7 +505,7 @@
             <div class="input-group">
                 <label for="secretKey">金鑰 (純文字)</label>
                 <input type="text" id="secretKey" placeholder="輸入金鑰文字" />
-                <div class="note">
+                <div class="alert alert-note">
                     金鑰文字將以 UTF-8 編碼。編碼後的 <strong>位元組長度</strong> 需符合所選金鑰長度。
                 </div>
                 <div id="msgKeyError" class="error-message"></div>
@@ -468,9 +515,9 @@
                 <label for="iv">初始向量 (IV) (純文字)</label>
                 <div style="display: flex; gap: 10px; align-items: center">
                     <input type="text" id="iv" placeholder="輸入 IV 文字 (通常需 16 位元組)" style="flex-grow: 1" />
-                    <button id="generateIvButton" class="secondary">產生隨機IV</button>
+                    <button id="generateIvButton" data-type="secondary">產生隨機IV</button>
                 </div>
-                <div class="note">
+                <div class="alert alert-note">
                     GCM、CTR、CBC 模式需要 IV。<strong>重要：</strong>GCM / CTR模式下，同一金鑰每次加密的 IV 必須唯一！
                 </div>
                 <div id="msgIVError" class="error-message"></div>
@@ -479,7 +526,7 @@
             <div id="aadGroup" class="input-group" style="display: none">
                 <label for="aad">附加驗證資料 (AAD) (純文字)</label>
                 <textarea id="aad" rows="2" placeholder="輸入 AAD 文字（可選）"></textarea>
-                <div class="note">此資料不會被加密，但會影響 GCM 模式的認證標籤。</div>
+                <div class="alert alert-note">此資料不會被加密，但會影響 GCM 模式的認證標籤。</div>
                 <div id="msgAadError" class="error-message"></div>
             </div>
 
@@ -514,33 +561,30 @@
                 </div>
             </div>
 
-            <button id="btnExecute" class="encryptButton">加密 (Encrypt)</button>
+            <button id="btnExecute" data-type="success">加密 (Encrypt)</button>
             <div id="status" class="status-message"></div>
-
             <div class="input-group">
                 <label for="result">結果</label>
                 <textarea id="result" rows="5" readonly placeholder="加解密結果將顯示於此"></textarea>
                 <div class="button-group" style="margin-top: 10px">
-                    <button id="copyResultButton" class="secondary">複製結果</button>
-                    <button id="swapTextResultButton" class="secondary">交換輸入/輸出</button>
-                    <button id="clearResultButton" class="secondary">清除結果</button>
+                    <button id="copyResultButton" data-type="secondary">複製結果</button>
+                    <button id="swapTextResultButton" data-type="secondary">交換輸入/輸出</button>
+                    <button id="clearResultButton" data-type="secondary">清除結果</button>
                 </div>
             </div>
 
             <hr />
 
             <div class="button-group" style="justify-content: center">
-                <button id="resetFormButton">🔁 重置所有設定</button>
-                <button id="runTestsButton" style="background-color: var(--warning-bg); color: var(--warning-color)">
-                    執行單元測試
-                </button>
+                <button id="resetFormButton" data-type="danger">🔁 重置所有設定</button>
+                <button id="runTestsButton" data-type="warning">執行單元測試</button>
             </div>
-            <div id="testResults" style="display: none"><h4>測試結果：</h4></div>
+            <div id="testResults" class="alert alert-warning" style="display: none"><h4>測試結果：</h4></div>
         </div>
 
         <footer>
             <p>
-                &copy; <span id="currentYear"></span> Zanta's AES Tool
+                &copy; <span id="currentYear"></span> Zanta's Advanced AES Tool
                 <button id="themeToggleBtn" title="切換主題">🌙</button>
             </p>
         </footer>
@@ -573,7 +617,7 @@
                 loadSettings();
                 TestModule.init();
                 bindEventListeners();
-                UIModule.toggleUI();
+                UIModule.toggleUI(); // Initial UI setup based on loaded settings
                 StatusModule.update("工具已就緒。", false);
 
                 const initialTheme = localStorage.getItem("my-app-theme") || "dark";
@@ -661,12 +705,13 @@
                     }
                 } catch (e) {
                     console.warn("無法載入設定:", e);
-                    AppState.currentSettings = { ...defaultSettings };
+                    AppState.currentSettings = { ...defaultSettings }; // Fallback to defaults
                 }
-                applySettingsToUI();
+                applySettingsToUI(); // Apply loaded or default settings to UI elements
             }
 
             function applySettingsToUI() {
+                // Apply settings to all option groups
                 selectOptionByValue(DOMElements.functionMode, AppState.currentSettings.functionMode);
                 selectOptionByValue(DOMElements.inputSource, AppState.currentSettings.inputSource);
                 selectOptionByValue(DOMElements.encryptionMode, AppState.currentSettings.encryptionMode);
@@ -674,25 +719,14 @@
                 selectOptionByValue(DOMElements.keySize, AppState.currentSettings.keySize);
                 selectOptionByValue(DOMElements.tagLength, AppState.currentSettings.tagLength);
                 selectOptionByValue(DOMElements.inputCiphertextFormat, AppState.currentSettings.inputCiphertextFormat);
-                // UIModule.toggleUI() will handle outputFormat selection after this.
+                // Output format selection is handled by UIModule.toggleUI after this,
+                // as its available options depend on other settings.
             }
 
             function updateCurrentSetting(groupId, value) {
-                const map = {
-                    functionMode: "functionMode",
-                    inputSource: "inputSource",
-                    encryptionMode: "encryptionMode",
-                    padding: "padding",
-                    keySize: "keySize",
-                    tagLength: "tagLength",
-                    inputCiphertextFormat: "inputCiphertextFormat",
-                    outputFormat: "outputFormat",
-                };
-                if (map[groupId] && AppState.currentSettings[map[groupId]] !== value) {
-                    AppState.currentSettings[map[groupId]] = value;
-                    saveSettings();
-                } else if (map[groupId]) {
-                    AppState.currentSettings[map[groupId]] = value;
+                const settingKey = groupId; // Assuming groupId directly maps to AppState.currentSettings keys
+                if (AppState.currentSettings.hasOwnProperty(settingKey)) {
+                    AppState.currentSettings[settingKey] = value;
                     saveSettings();
                 }
             }
@@ -721,66 +755,45 @@
                     DOMElements.noPaddingNote.style.display =
                         config.padding && padding === "NoPadding" ? "block" : "none";
 
-                    DOMElements.btnExecute.textContent =
-                        functionMode === "encrypt" ? "加密 (Encrypt)" : "解密 (Decrypt)";
-                    DOMElements.btnExecute.className = functionMode === "encrypt" ? "encryptButton" : "decryptButton";
-                    DOMElements.inputCiphertextFormatGroup.style.display =
-                        functionMode === "decrypt" ? "block" : "none";
-
+                    // Update main execute button text and type (for styling)
                     const isEncrypt = functionMode === "encrypt";
+                    DOMElements.btnExecute.textContent = isEncrypt ? "加密 (Encrypt)" : "解密 (Decrypt)";
+                    DOMElements.btnExecute.dataset.type = isEncrypt ? "success" : "danger"; // Use data-type for styling
 
-                    // (修正) 根據最新需求，嚴格控制輸出格式選項的顯示/隱藏
+                    DOMElements.inputCiphertextFormatGroup.style.display = isEncrypt ? "none" : "block";
+
+                    // Control visibility of output format options
                     if (inputSource === "text") {
-                        if (isEncrypt) {
-                            // 加密模式 + 文字輸入
-                            DOMElements.optTextFormat.style.display = "none";
-                            DOMElements.optBase64Format.style.display = "block";
-                            DOMElements.optHexFormat.style.display = "block";
-                            DOMElements.optBinaryFileFormat.style.display = "none";
-                        } else {
-                            // 解密模式 + 文字輸入
-                            DOMElements.optTextFormat.style.display = "block";
-                            DOMElements.optBase64Format.style.display = "none";
-                            DOMElements.optHexFormat.style.display = "none";
-                            DOMElements.optBinaryFileFormat.style.display = "none";
-                        }
+                        DOMElements.optTextFormat.style.display = isEncrypt ? "none" : "block";
+                        DOMElements.optBase64Format.style.display = "block"; // Always visible for text input
+                        DOMElements.optHexFormat.style.display = "block"; // Always visible for text input
+                        DOMElements.optBinaryFileFormat.style.display = "none";
                     } else {
                         // inputSource === "file"
-                        if (isEncrypt) {
-                            // 加密模式 + 檔案輸入
-                            DOMElements.optTextFormat.style.display = "none"; // 檔案加密不應輸出明文
-                            DOMElements.optBase64Format.style.display = "block";
-                            DOMElements.optHexFormat.style.display = "block";
-                            DOMElements.optBinaryFileFormat.style.display = "block";
-                        } else {
-                            // 解密模式 + 檔案輸入
-                            DOMElements.optTextFormat.style.display = "block";
-                            DOMElements.optBase64Format.style.display = "block";
-                            DOMElements.optHexFormat.style.display = "block";
-                            DOMElements.optBinaryFileFormat.style.display = "block";
-                        }
+                        DOMElements.optTextFormat.style.display = "block"; // Can decrypt file to text
+                        DOMElements.optBase64Format.style.display = "block";
+                        DOMElements.optHexFormat.style.display = "block";
+                        DOMElements.optBinaryFileFormat.style.display = "block";
                     }
 
-                    // 檢查當前 AppState.currentSettings.outputFormat 是否對應一個可見的選項
+                    // Ensure a valid output format is selected if the current one becomes hidden
                     const currentOutputOptionEl = DOMElements.outputFormat.querySelector(
                         `.option[data-value='${AppState.currentSettings.outputFormat}']`
                     );
                     if (!currentOutputOptionEl || currentOutputOptionEl.style.display === "none") {
-                        // 如果當前儲存的輸出格式選項變為不可見，則設定為新的理想預設值
-                        let idealDefaultOutputFormat;
+                        let newDefaultOutputFormat;
                         if (isEncrypt) {
-                            idealDefaultOutputFormat = inputSource === "text" ? "base64" : "binaryfile";
+                            newDefaultOutputFormat = inputSource === "text" ? "base64" : "binaryfile";
                         } else {
                             // Decrypt
-                            idealDefaultOutputFormat = inputSource === "text" ? "plaintext" : "binaryfile";
+                            newDefaultOutputFormat = inputSource === "text" ? "plaintext" : "binaryfile";
                         }
-
-                        // 再次檢查理想預設值是否可見，若不可見，則選第一個可見的
-                        const idealDefaultIsVisibleEl = DOMElements.outputFormat.querySelector(
-                            `.option[data-value='${idealDefaultOutputFormat}']`
+                        // Check if this new default is visible, otherwise pick the first visible one
+                        const newDefaultIsVisibleEl = DOMElements.outputFormat.querySelector(
+                            `.option[data-value='${newDefaultOutputFormat}']`
                         );
-                        if (idealDefaultIsVisibleEl && idealDefaultIsVisibleEl.style.display !== "none") {
-                            AppState.currentSettings.outputFormat = idealDefaultOutputFormat;
+                        if (newDefaultIsVisibleEl && newDefaultIsVisibleEl.style.display !== "none") {
+                            AppState.currentSettings.outputFormat = newDefaultOutputFormat;
                         } else {
                             const firstVisibleOutputOption = DOMElements.outputFormat.querySelector(
                                 ".option:not([style*='display: none'])"
@@ -788,20 +801,17 @@
                             if (firstVisibleOutputOption) {
                                 AppState.currentSettings.outputFormat = firstVisibleOutputOption.dataset.value;
                             }
-                            // 若無任何選項可見，AppState.currentSettings.outputFormat 會保持，selectOptionByValue 不會選中任何項目
                         }
-                        saveSettings();
+                        saveSettings(); // Save if changed
                     }
-                    // 如果 currentOutputOptionEl 是可見的, AppState.currentSettings.outputFormat 保持由 handleOptionGroupClick 設定的值
-
                     selectOptionByValue(DOMElements.outputFormat, AppState.currentSettings.outputFormat);
+
                     DOMElements.text.placeholder = isEncrypt
                         ? "在此輸入要加密的明文"
                         : "在此輸入要解密的密文（Base64/Hex）";
                 },
 
                 resetForm: function () {
-                    /* ... 保持不變 ... */
                     const fieldsToClear = [
                         DOMElements.text,
                         DOMElements.secretKey,
@@ -810,7 +820,7 @@
                         DOMElements.result,
                     ];
                     fieldsToClear.forEach((el) => (el.value = ""));
-                    DOMElements.fileInput.value = "";
+                    DOMElements.fileInput.value = ""; // Clear file input
                     AppState.loadedFileName = null;
                     AppState.loadedFileBuffer = null;
                     DOMElements.fileNameDisplay.textContent = "";
@@ -819,11 +829,11 @@
                         (el) => (el.textContent = "")
                     );
                     StatusModule.clear();
-                    loadSettings();
+                    loadSettings(); // Reload default/saved settings
+                    UIModule.toggleUI(); // Re-apply UI based on reset settings
                 },
 
                 handleFileUpload: function (event) {
-                    /* ... 保持不變 ... */
                     const file = event.target.files[0];
                     if (!file) {
                         AppState.loadedFileName = null;
@@ -840,8 +850,10 @@
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         AppState.loadedFileBuffer = e.target.result;
+                        // If input source is file, ensure UI reflects this (e.g. output options)
                         if (AppState.currentSettings.inputSource === "file") {
-                            UIModule.toggleUI();
+                            // UIModule.toggleUI(); // Potentially re-toggle if output options depend on file load state.
+                            // Usually, changing inputSource itself triggers toggleUI.
                         }
                     };
                     reader.onerror = () => {
@@ -851,10 +863,10 @@
                 },
             };
 
-            // ---- Encoding, Crypto, Validation, Status, Helpers Modules (Full logic) ----
-            // (此處的 EncodingUtils, CryptoModule, ValidationModule, StatusModule, HelperUtils, TestModule 的完整實作保持不變)
+            // ---- EncodingUtils, CryptoModule, ValidationModule, StatusModule, HelperUtils, TestModule ----
+            // (保持原有邏輯，此處為簡化省略，實際應包含完整實作)
+
             const EncodingUtils = {
-                /* ...保持不變... */
                 arrayBufferToBase64: (buf) => btoa(String.fromCharCode.apply(null, new Uint8Array(buf))),
                 base64ToArrayBuffer: (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer,
                 arrayBufferToHex: (buf) =>
@@ -872,24 +884,28 @@
                 generateRandomIVText: () => {
                     const randomBytes = new Uint8Array(REQUIRED_IV_BYTE_LENGTH);
                     window.crypto.getRandomValues(randomBytes);
+                    // Generate a string that is likely to be valid UTF-8 and of the correct byte length
+                    // Using a restricted character set for simplicity, actual byte length depends on chars
                     const PURE_ASCII = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
                     return Array.from(randomBytes)
                         .map((byte) => PURE_ASCII[byte % PURE_ASCII.length])
                         .join("");
                 },
             };
+
             const CryptoModule = {
-                /* ...保持不變... */
                 processData: async function () {
                     if (AppState.isProcessing) return;
                     AppState.isProcessing = true;
                     DOMElements.btnExecute.disabled = true;
                     StatusModule.clear();
+
                     if (!ValidationModule.validateAllInputs()) {
                         AppState.isProcessing = false;
                         DOMElements.btnExecute.disabled = false;
                         return;
                     }
+
                     const {
                         functionMode,
                         encryptionMode,
@@ -901,17 +917,20 @@
                     } = AppState.currentSettings;
                     const { secretKey, iv, aad, text } = DOMElements;
                     let dataToProcess = inputSource === "text" ? text.value : AppState.loadedFileBuffer;
+
                     if (
                         (inputSource === "text" && !dataToProcess && functionMode === "encrypt") ||
                         (inputSource === "file" && !dataToProcess)
                     ) {
                         if (functionMode === "encrypt" || (functionMode === "decrypt" && inputSource === "file")) {
+                            // Check if input is actually required
                             StatusModule.update("錯誤：沒有輸入內容。", true);
                             AppState.isProcessing = false;
                             DOMElements.btnExecute.disabled = false;
                             return;
                         }
                     }
+
                     try {
                         let resultData =
                             functionMode === "encrypt"
@@ -934,6 +953,7 @@
                                       padding,
                                       inputCiphertextFormat
                                   );
+
                         if (outputFormat === "binaryfile") {
                             const fname = HelperUtils.generateOutputFileName(AppState.loadedFileName, functionMode);
                             HelperUtils.downloadArrayBuffer(resultData, fname);
@@ -953,10 +973,11 @@
                         StatusModule.update(`錯誤: ${error.message || error}`, true);
                         if (
                             error.message?.toLowerCase().includes("decryption failed") ||
-                            error.name === "OperationError"
+                            error.name === "OperationError" ||
+                            error.message?.toLowerCase().includes("bad decrypt")
                         ) {
                             StatusModule.update(
-                                " (GCM/CTR 模式下，這通常表示金鑰、IV、密文或 AAD 不匹配，或密文已被篡改)",
+                                " (GCM/CTR 模式下，這通常表示金鑰、IV、密文或 AAD 不匹配，或密文已被篡改。CBC/ECB模式下，可能是金鑰/IV錯誤或填充問題)",
                                 true,
                                 "append"
                             );
@@ -970,32 +991,43 @@
                     const apiMode = `AES-${mode}`;
                     const plainBuf =
                         typeof plainData === "string" ? EncodingUtils.stringToUtf8ArrayBuffer(plainData) : plainData;
+
                     if (mode === "GCM" || mode === "CTR") {
+                        // Web Crypto API
                         const cryptoKey = await crypto.subtle.importKey(
                             "raw",
-                            new TextEncoder().encode(key),
+                            EncodingUtils.stringToUtf8ArrayBuffer(key),
                             { name: apiMode },
                             false,
                             ["encrypt"]
                         );
-                        const alg = { name: apiMode, iv: new TextEncoder().encode(iv) };
+                        const ivBytes = EncodingUtils.stringToUtf8ArrayBuffer(iv);
+                        const alg = { name: apiMode, iv: ivBytes };
                         if (mode === "GCM") {
                             alg.tagLength = parseInt(tag);
-                            if (aad) alg.additionalData = new TextEncoder().encode(aad);
+                            if (aad) alg.additionalData = EncodingUtils.stringToUtf8ArrayBuffer(aad);
                         }
                         if (mode === "CTR") {
-                            alg.counter = new TextEncoder().encode(iv);
-                            alg.length = 64;
+                            // CTR uses 'counter' which is the IV, and 'length' for counter block size (usually 64 or 128)
+                            alg.counter = ivBytes; // The IV is the counter block
+                            alg.length = 64; // Common counter length, can be 128. Ensure this matches expectations.
                         }
                         return await crypto.subtle.encrypt(alg, cryptoKey, plainBuf);
                     } else {
+                        // CryptoJS for CBC, ECB
                         const keyC = CryptoJS.enc.Utf8.parse(key);
-                        const ivC = iv ? CryptoJS.enc.Utf8.parse(iv) : undefined;
+                        const ivC = mode === "CBC" && iv ? CryptoJS.enc.Utf8.parse(iv) : undefined; // IV only for CBC
                         const dataC =
-                            typeof plainData === "string" ? plainData : CryptoJS.lib.WordArray.create(plainData);
+                            typeof plainData === "string"
+                                ? CryptoJS.enc.Utf8.parse(plainData)
+                                : CryptoJS.lib.WordArray.create(plainData); // Handle ArrayBuffer
+
+                        const cryptoJSMode = mode === "CBC" ? CryptoJS.mode.CBC : CryptoJS.mode.ECB;
+                        const cryptoJSPadding = pad === "Pkcs7" ? CryptoJS.pad.Pkcs7 : CryptoJS.pad.NoPadding;
+
                         const encrypted = CryptoJS.AES.encrypt(dataC, keyC, {
-                            mode: CryptoJS.mode[mode],
-                            padding: CryptoJS.pad[pad],
+                            mode: cryptoJSMode,
+                            padding: cryptoJSPadding,
                             iv: ivC,
                         });
                         return EncodingUtils.hexToArrayBuffer(encrypted.ciphertext.toString(CryptoJS.enc.Hex));
@@ -1009,142 +1041,185 @@
                                 ? EncodingUtils.base64ToArrayBuffer(cipherData)
                                 : EncodingUtils.hexToArrayBuffer(cipherData)
                             : cipherData;
+
                     if (mode === "GCM" || mode === "CTR") {
+                        // Web Crypto API
                         const cryptoKey = await crypto.subtle.importKey(
                             "raw",
-                            new TextEncoder().encode(key),
+                            EncodingUtils.stringToUtf8ArrayBuffer(key),
                             { name: apiMode },
                             false,
                             ["decrypt"]
                         );
-                        const alg = { name: apiMode, iv: new TextEncoder().encode(iv) };
+                        const ivBytes = EncodingUtils.stringToUtf8ArrayBuffer(iv);
+                        const alg = { name: apiMode, iv: ivBytes };
                         if (mode === "GCM") {
                             alg.tagLength = parseInt(tag);
-                            if (aad) alg.additionalData = new TextEncoder().encode(aad);
+                            if (aad) alg.additionalData = EncodingUtils.stringToUtf8ArrayBuffer(aad);
                         }
                         if (mode === "CTR") {
-                            alg.counter = new TextEncoder().encode(iv);
+                            alg.counter = ivBytes;
                             alg.length = 64;
                         }
                         return await crypto.subtle.decrypt(alg, cryptoKey, cipherBuf);
                     } else {
+                        // CryptoJS for CBC, ECB
                         const keyC = CryptoJS.enc.Utf8.parse(key);
-                        const ivC = iv ? CryptoJS.enc.Utf8.parse(iv) : undefined;
-                        const dataC = CryptoJS.enc.Base64.parse(EncodingUtils.arrayBufferToBase64(cipherBuf));
-                        const decrypted = CryptoJS.AES.decrypt({ ciphertext: dataC }, keyC, {
-                            mode: CryptoJS.mode[mode],
-                            padding: CryptoJS.pad[pad],
+                        const ivC = mode === "CBC" && iv ? CryptoJS.enc.Utf8.parse(iv) : undefined;
+                        // CryptoJS expects ciphertext as a WordArray or Base64 string for its specific format object.
+                        // We have ArrayBuffer, so convert to Base64 string for CryptoJS.AES.decrypt's {ciphertext: ...} object.
+                        const cipherTextForCryptoJS = CryptoJS.enc.Base64.parse(
+                            EncodingUtils.arrayBufferToBase64(cipherBuf)
+                        );
+
+                        const cryptoJSMode = mode === "CBC" ? CryptoJS.mode.CBC : CryptoJS.mode.ECB;
+                        const cryptoJSPadding = pad === "Pkcs7" ? CryptoJS.pad.Pkcs7 : CryptoJS.pad.NoPadding;
+
+                        const decrypted = CryptoJS.AES.decrypt({ ciphertext: cipherTextForCryptoJS }, keyC, {
+                            mode: cryptoJSMode,
+                            padding: cryptoJSPadding,
                             iv: ivC,
                         });
+                        // Check if decryption produced any output (CryptoJS returns empty WordArray on failure)
+                        if (decrypted.sigBytes <= 0 && cipherBuf.byteLength > 0) {
+                            // sigBytes is number of significant bytes
+                            throw new Error("解密失敗。請檢查金鑰、IV、密文格式或填充模式。");
+                        }
                         return EncodingUtils.hexToArrayBuffer(decrypted.toString(CryptoJS.enc.Hex));
                     }
                 },
             };
+
             const ValidationModule = {
-                /* ...保持不變... */
                 validateAllInputs: function () {
                     DOMElements.msgKeyError.textContent = "";
                     DOMElements.msgIVError.textContent = "";
-                    DOMElements.msgAadError.textContent = "";
+                    DOMElements.msgAadError.textContent = ""; // Assuming you might add AAD validation
+                    let isValid = true;
+
                     const keyErr = this.validateSecretKey(
                         DOMElements.secretKey.value,
                         AppState.currentSettings.keySize
                     );
                     if (keyErr) {
                         StatusModule.displayError(keyErr, DOMElements.msgKeyError);
-                        return false;
+                        isValid = false;
                     }
-                    const ivErr = this.validateInitialVector(DOMElements.iv.value);
-                    if (ivErr) {
-                        StatusModule.displayError(ivErr, DOMElements.msgIVError);
-                        return false;
+
+                    const config = UI_CONFIG.find((c) => c.mode === AppState.currentSettings.encryptionMode);
+                    if (config && config.iv) {
+                        // Only validate IV if current mode requires it
+                        const ivErr = this.validateInitialVector(DOMElements.iv.value);
+                        if (ivErr) {
+                            StatusModule.displayError(ivErr, DOMElements.msgIVError);
+                            isValid = false;
+                        }
                     }
-                    return true;
+                    // Add more validations if needed (e.g., AAD, input text format for decrypt)
+                    return isValid;
                 },
                 validateSecretKey: (key, size) => {
                     if (!key) return "* 金鑰為必填。";
-                    const len = new TextEncoder().encode(key).byteLength;
+                    const len = EncodingUtils.stringToUtf8ArrayBuffer(key).byteLength; // Use Utf8ArrayBuffer for byte length
                     const req = parseInt(size) / 8;
-                    return len !== req ? `* 金鑰長度為 ${len} 位元組，應為 ${req} 位元組。` : null;
+                    return len !== req ? `* 金鑰 UTF-8 編碼後為 ${len} 位元組，應為 ${req} 位元組。` : null;
                 },
                 validateInitialVector: (iv) => {
                     const mode = AppState.currentSettings.encryptionMode;
-                    if (mode === "ECB") return null;
-                    if (!iv) return "* IV 為必填。";
-                    const len = new TextEncoder().encode(iv).byteLength;
+                    if (mode === "ECB") return null; // ECB does not use IV
+                    if (!iv) return "* IV 為必填 (GCM/CTR/CBC 模式)。";
+                    const len = EncodingUtils.stringToUtf8ArrayBuffer(iv).byteLength;
+                    // GCM/CTR often recommend 12 bytes (96 bits) for IV, but 16 bytes (128 bits) is also common.
+                    // Web Crypto API for CTR uses the IV as the counter block, which is typically 16 bytes.
+                    // For simplicity and compatibility with CryptoJS's 16-byte block operations, we'll stick to 16 bytes.
                     return len !== REQUIRED_IV_BYTE_LENGTH
-                        ? `* IV 長度為 ${len} 位元組，應為 ${REQUIRED_IV_BYTE_LENGTH} 位元組。`
+                        ? `* IV UTF-8 編碼後為 ${len} 位元組，應為 ${REQUIRED_IV_BYTE_LENGTH} 位元組。`
                         : null;
                 },
             };
+
             const StatusModule = {
-                /* ...保持不變... */
                 update: (msg, isErr, mode = "normal") => {
+                    // mode can be "normal" or "append"
                     const el = DOMElements.status;
-                    if (mode.includes("append")) {
-                        el.innerHTML += (el.innerHTML ? "<br>" : "") + msg;
+                    if (mode === "append" && el.innerHTML) {
+                        // Append only if there's existing content
+                        el.innerHTML += `<br>${msg}`;
                     } else {
                         el.textContent = msg;
                     }
                     if (msg) {
                         el.className = `status-message ${isErr ? "status-error" : "status-success"} active`;
                     } else {
-                        el.className = "status-message";
+                        el.className = "status-message"; // Hide if no message
                     }
                 },
                 clear: () => StatusModule.update("", false),
                 displayError: (msg, el) => {
+                    // For inline error messages
                     if (el) el.textContent = msg;
-                    StatusModule.update("輸入驗證失敗。", true);
+                    // Optionally, also update the main status message if it's a validation summary
+                    StatusModule.update("輸入驗證失敗。請檢查下方提示。", true);
                 },
                 hasWarning: () => DOMElements.status.textContent.includes("警告"),
             };
+
             const HelperUtils = {
-                /* ...保持不變... */
-                copyToClipboard: (id) => {
-                    const el = DOMElements[id];
-                    if (!el || !el.value) return;
+                copyToClipboard: (elementId) => {
+                    const el = DOMElements[elementId];
+                    if (!el || !el.value) {
+                        StatusModule.update("沒有內容可複製。", true);
+                        return;
+                    }
                     navigator.clipboard.writeText(el.value).then(
-                        () => StatusModule.update("已複製。", false),
-                        () => StatusModule.update("複製失敗。", true)
+                        () => StatusModule.update("已複製到剪貼簿。", false),
+                        () => StatusModule.update("複製失敗。請檢查瀏覽器權限或手動複製。", true)
                     );
                 },
-                pasteFromClipboard: async (id) => {
+                pasteFromClipboard: async (elementId) => {
                     try {
-                        DOMElements[id].value = await navigator.clipboard.readText();
-                        StatusModule.update("已貼上。", false);
+                        const textToPaste = await navigator.clipboard.readText();
+                        DOMElements[elementId].value = textToPaste;
+                        StatusModule.update("已貼上內容。", false);
                     } catch (e) {
-                        StatusModule.update("貼上失敗。", true);
+                        StatusModule.update("貼上失敗。請檢查瀏覽器權限或手動貼上。", true);
                     }
                 },
-                clearValue: (id) => {
-                    DOMElements[id].value = "";
+                clearValue: (elementId) => {
+                    DOMElements[elementId].value = "";
                 },
                 swapTextAndResult: () => {
                     [DOMElements.text.value, DOMElements.result.value] = [
                         DOMElements.result.value,
                         DOMElements.text.value,
                     ];
-                    StatusModule.update("已交換。", false);
+                    StatusModule.update("輸入與結果已交換。", false);
                 },
                 downloadArrayBuffer: (buf, fname) => {
                     const a = document.createElement("a");
                     a.href = URL.createObjectURL(new Blob([buf]));
                     a.download = fname || "download.bin";
+                    document.body.appendChild(a); // Required for Firefox
                     a.click();
+                    document.body.removeChild(a); // Clean up
                     URL.revokeObjectURL(a.href);
                 },
-                generateOutputFileName: (name, op) =>
-                    (op === "encrypt" ? "encrypted_" : "decrypted_") +
-                    (name?.replace(/^(encrypted_|decrypted_)/i, "") || "output.bin"),
+                generateOutputFileName: (originalName, operation) => {
+                    const prefix = operation === "encrypt" ? "encrypted_" : "decrypted_";
+                    const baseName = originalName ? originalName.replace(/^(encrypted_|decrypted_)/i, "") : "output";
+                    const ext = originalName ? originalName.substring(originalName.lastIndexOf(".")) : ".bin";
+                    return `${prefix}${baseName.substring(0, baseName.lastIndexOf(ext)) || baseName}${ext}`;
+                },
             };
+
             const TestModule = {
-                /* ... TestModule 完整邏輯保持不變 ... */ testResultsContainer: null,
+                testResultsContainer: null,
                 tests: [],
                 init: function () {
                     this.testResultsContainer = DOMElements.testResults;
-                    this.tests = [];
-                    this.addTest("EncodingUtils Base64", async () => {
+                    this.tests = []; // Clear previous tests if any
+                    // Test 1: EncodingUtils Base64
+                    this.addTest("EncodingUtils Base64 (純ASCII)", async () => {
                         const original = "Hello World!";
                         const base64 = EncodingUtils.arrayBufferToBase64(
                             EncodingUtils.stringToUtf8ArrayBuffer(original)
@@ -1152,58 +1227,114 @@
                         const decoded = EncodingUtils.utf8ArrayBufferToString(
                             EncodingUtils.base64ToArrayBuffer(base64)
                         );
-                        this.assertEqual(decoded, original, "Base64 encode/decode mismatch");
+                        this.assertEqual(decoded, original, "Base64 純ASCII 編解碼不匹配");
                     });
-                    this.addTest("EncodingUtils Hex", async () => {
+                    this.addTest("EncodingUtils Base64 (中文)", async () => {
+                        const original = "你好，世界！";
+                        const base64 = EncodingUtils.arrayBufferToBase64(
+                            EncodingUtils.stringToUtf8ArrayBuffer(original)
+                        );
+                        const decoded = EncodingUtils.utf8ArrayBufferToString(
+                            EncodingUtils.base64ToArrayBuffer(base64)
+                        );
+                        this.assertEqual(decoded, original, "Base64 中文編解碼不匹配");
+                    });
+
+                    // Test 2: EncodingUtils Hex
+                    this.addTest("EncodingUtils Hex (純ASCII)", async () => {
                         const original = "Hello Mars!";
                         const hex = EncodingUtils.arrayBufferToHex(EncodingUtils.stringToUtf8ArrayBuffer(original));
                         const decoded = EncodingUtils.utf8ArrayBufferToString(EncodingUtils.hexToArrayBuffer(hex));
-                        this.assertEqual(decoded, original, "Hex encode/decode mismatch");
+                        this.assertEqual(decoded, original, "Hex 純ASCII 編解碼不匹配");
                     });
-                    this.addTest("CryptoModule GCM Encrypt/Decrypt", async () => {
-                        const p = "GCM test!",
+                    this.addTest("EncodingUtils Hex (中文)", async () => {
+                        const original = "你好火星！";
+                        const hex = EncodingUtils.arrayBufferToHex(EncodingUtils.stringToUtf8ArrayBuffer(original));
+                        const decoded = EncodingUtils.utf8ArrayBufferToString(EncodingUtils.hexToArrayBuffer(hex));
+                        this.assertEqual(decoded, original, "Hex 中文編解碼不匹配");
+                    });
+
+                    // Test 3: CryptoModule GCM Encrypt/Decrypt
+                    this.addTest("CryptoModule GCM (WebCrypto)", async () => {
+                        const p = "GCM test message!",
                             k = "mygcmtestkey1234",
                             i = "mygcmivtext12345",
-                            a = "mygcmAADdata";
-                        const enc = await CryptoModule.performEncryption("GCM", p, k, i, a, "128", "NoPadding");
-                        this.assert(enc?.byteLength > 0, "GCM Encryption failed to produce output");
+                            a = "mygcmAADdata123"; // 16, 16, 16 bytes for key, iv, aad if UTF8
+                        const enc = await CryptoModule.performEncryption("GCM", p, k, i, a, "128", "NoPadding"); // NoPadding is implicit for GCM
+                        this.assert(enc && enc.byteLength > 0, "GCM 加密未產生輸出");
                         const dec = await CryptoModule.performDecryption("GCM", enc, k, i, a, "128", "NoPadding", null);
-                        this.assertEqual(EncodingUtils.utf8ArrayBufferToString(dec), p, "GCM Decryption mismatch");
+                        this.assertEqual(EncodingUtils.utf8ArrayBufferToString(dec), p, "GCM 解密不匹配");
                     });
-                    this.addTest("CryptoModule CBC-PKCS7 Encrypt/Decrypt", async () => {
-                        const p = "CBC test with PKCS7.",
+
+                    // Test 4: CryptoModule CBC-PKCS7 Encrypt/Decrypt (CryptoJS)
+                    this.addTest("CryptoModule CBC-PKCS7 (CryptoJS)", async () => {
+                        const p = "CBC test with PKCS7 padding.",
                             k = "mycbckeyis16byte",
-                            i = "mycbcivtextis16b";
+                            i = "mycbcivtextis16b"; // 16, 16 bytes
                         const enc = await CryptoModule.performEncryption("CBC", p, k, i, "", "0", "Pkcs7");
-                        this.assert(enc?.byteLength > 0, "CBC Encryption failed");
+                        this.assert(enc && enc.byteLength > 0, "CBC-PKCS7 加密失敗");
                         const dec = await CryptoModule.performDecryption("CBC", enc, k, i, "", "0", "Pkcs7", null);
-                        this.assertEqual(EncodingUtils.utf8ArrayBufferToString(dec), p, "CBC Decryption mismatch");
+                        this.assertEqual(EncodingUtils.utf8ArrayBufferToString(dec), p, "CBC-PKCS7 解密不匹配");
                     });
-                    this.addTest("CryptoModule ECB-NoPadding Encrypt/Decrypt", async () => {
-                        const p = "ECBNoPadding1234",
-                            k = "anotherkey16byte";
+
+                    // Test 5: CryptoModule ECB-NoPadding Encrypt/Decrypt (CryptoJS) - plaintext must be multiple of 16 bytes
+                    this.addTest("CryptoModule ECB-NoPadding (CryptoJS)", async () => {
+                        const p = "ECBNoPadding1234"; // 16 bytes
+                        const k = "anotherkey16byte"; // 16 bytes
                         const enc = await CryptoModule.performEncryption("ECB", p, k, "", "", "0", "NoPadding");
-                        this.assert(enc?.byteLength > 0, "ECB Encryption failed");
+                        this.assert(enc && enc.byteLength > 0, "ECB-NoPadding 加密失敗");
                         const dec = await CryptoModule.performDecryption("ECB", enc, k, "", "", "0", "NoPadding", null);
-                        this.assertEqual(EncodingUtils.utf8ArrayBufferToString(dec), p, "ECB Decryption mismatch");
+                        this.assertEqual(EncodingUtils.utf8ArrayBufferToString(dec), p, "ECB-NoPadding 解密不匹配");
+                    });
+                    // Test 6: CTR Mode (WebCrypto)
+                    this.addTest("CryptoModule CTR (WebCrypto)", async () => {
+                        const p = "CTR test message here!",
+                            k = "myctrtestkey1234",
+                            i = "myctrivtext12345"; // Key & IV 16 bytes
+                        const enc = await CryptoModule.performEncryption("CTR", p, k, i, null, "0", "NoPadding"); // AAD, tag, padding not used by CTR
+                        this.assert(enc && enc.byteLength > 0, "CTR 加密未產生輸出");
+                        const dec = await CryptoModule.performDecryption(
+                            "CTR",
+                            enc,
+                            k,
+                            i,
+                            null,
+                            "0",
+                            "NoPadding",
+                            null
+                        );
+                        this.assertEqual(EncodingUtils.utf8ArrayBufferToString(dec), p, "CTR 解密不匹配");
                     });
                 },
                 addTest: function (name, testFn) {
                     this.tests.push({ name, testFn });
                 },
                 runAllTests: async function () {
+                    if (!this.testResultsContainer) {
+                        // Ensure init has run
+                        console.error("TestModule not initialized. Call TestModule.init() first.");
+                        DOMElements.testResults.innerHTML = "<h4>測試結果:</h4><p class='fail'>測試模組未初始化。</p>";
+                        DOMElements.testResults.style.display = "block";
+                        return;
+                    }
                     if (!TestModule.tests || TestModule.tests.length === 0) {
+                        // Re-init if tests array is empty
                         TestModule.init();
                         if (!TestModule.tests || TestModule.tests.length === 0) {
                             StatusModule.update("錯誤：沒有可執行的測試。", true);
+                            this.testResultsContainer.innerHTML = "<h4>測試結果:</h4><p>沒有可執行的測試。</p>";
+                            this.testResultsContainer.style.display = "block";
                             return;
                         }
                     }
-                    TestModule.testResultsContainer.innerHTML = "<h4>測試結果:</h4>";
-                    TestModule.testResultsContainer.style.display = "block";
+
+                    this.testResultsContainer.innerHTML = "<h4>測試結果:</h4>";
+                    this.testResultsContainer.style.display = "block";
+                    StatusModule.update("正在執行測試...", false);
                     let passes = 0,
                         failures = 0;
-                    for (const test of TestModule.tests) {
+
+                    for (const test of this.tests) {
                         const resultP = document.createElement("p");
                         try {
                             await test.testFn();
@@ -1211,21 +1342,27 @@
                             resultP.className = "pass";
                             passes++;
                         } catch (e) {
-                            resultP.innerHTML = `FAIL: ${test.name} <br/>&nbsp;&nbsp;Error: ${e.message || e}`;
+                            resultP.innerHTML = `FAIL: ${
+                                test.name
+                            } <br/>&nbsp;&nbsp;<span style="font-size:0.9em; color: var(--error-color);">訊息: ${
+                                e.message || e
+                            }</span>`;
                             resultP.className = "fail";
                             failures++;
+                            console.error(`Test failed: ${test.name}`, e);
                         }
-                        TestModule.testResultsContainer.appendChild(resultP);
+                        this.testResultsContainer.appendChild(resultP);
                     }
                     const summaryP = document.createElement("p");
                     summaryP.innerHTML = `<strong>總結: ${passes} 通過, ${failures} 失敗.</strong>`;
-                    TestModule.testResultsContainer.appendChild(summaryP);
+                    this.testResultsContainer.appendChild(summaryP);
+                    StatusModule.update(failures > 0 ? "部分測試失敗。" : "所有測試通過。", failures > 0);
                 },
                 assert: function (condition, message) {
                     if (!condition) throw new Error(message || "Assertion failed");
                 },
                 assertEqual: function (actual, expected, message) {
-                    if (actual !== expected) throw new Error(message || `Expected "${expected}" but got "${actual}"`);
+                    if (actual !== expected) throw new Error(message || `預期 "${expected}" 但得到 "${actual}"`);
                 },
             };
 
@@ -1236,7 +1373,8 @@
                     const newTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
                     applyTheme(newTheme);
                 });
-                const groups = [
+
+                const optionGroupIds = [
                     "functionMode",
                     "inputSource",
                     "encryptionMode",
@@ -1246,7 +1384,7 @@
                     "inputCiphertextFormat",
                     "outputFormat",
                 ];
-                groups.forEach((id) => DOMElements[id]?.addEventListener("click", handleOptionGroupClick));
+                optionGroupIds.forEach((id) => DOMElements[id]?.addEventListener("click", handleOptionGroupClick));
 
                 DOMElements.btnExecute.addEventListener("click", CryptoModule.processData.bind(CryptoModule));
                 DOMElements.resetFormButton.addEventListener("click", UIModule.resetForm);
@@ -1258,32 +1396,75 @@
                 DOMElements.swapTextResultButton.addEventListener("click", HelperUtils.swapTextAndResult);
                 DOMElements.generateIvButton.addEventListener("click", () => {
                     DOMElements.iv.value = EncodingUtils.generateRandomIVText();
+                    ValidationModule.validateInitialVector(DOMElements.iv.value); // Optionally re-validate
                 });
                 DOMElements.fileInput.addEventListener("change", UIModule.handleFileUpload);
                 DOMElements.runTestsButton.addEventListener("click", TestModule.runAllTests.bind(TestModule));
+
+                // Live validation for key and IV
+                DOMElements.secretKey.addEventListener("input", () => {
+                    const err = ValidationModule.validateSecretKey(
+                        DOMElements.secretKey.value,
+                        AppState.currentSettings.keySize
+                    );
+                    DOMElements.msgKeyError.textContent = err || "";
+                });
+                DOMElements.iv.addEventListener("input", () => {
+                    const config = UI_CONFIG.find((c) => c.mode === AppState.currentSettings.encryptionMode);
+                    if (config && config.iv) {
+                        const err = ValidationModule.validateInitialVector(DOMElements.iv.value);
+                        DOMElements.msgIVError.textContent = err || "";
+                    } else {
+                        DOMElements.msgIVError.textContent = ""; // Clear if IV not needed
+                    }
+                });
             }
 
             function handleOptionGroupClick(event) {
-                const selected = event.target.closest(".option");
-                if (selected && !selected.classList.contains("disabled")) {
-                    const group = this;
-                    // (恢復) 立即更新被點擊選項組的UI
-                    group.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
-                    selected.classList.add("selected");
+                const selectedOption = event.target.closest(".option");
+                if (selectedOption && !selectedOption.classList.contains("disabled")) {
+                    const groupElement = this; // The group div itself
+                    // Deselect other options in the same group
+                    groupElement.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
+                    selectedOption.classList.add("selected"); // Select the clicked one
 
-                    updateCurrentSetting(group.id, selected.dataset.value);
-                    UIModule.toggleUI();
+                    updateCurrentSetting(groupElement.id, selectedOption.dataset.value);
+                    UIModule.toggleUI(); // Update UI based on new selection
+                    // Clear relevant error messages when options change
+                    if (groupElement.id === "encryptionMode" || groupElement.id === "keySize") {
+                        DOMElements.msgKeyError.textContent = "";
+                    }
+                    if (groupElement.id === "encryptionMode") {
+                        DOMElements.msgIVError.textContent = "";
+                    }
                 }
             }
 
             // ---- Generic Helpers ----
             function selectOptionByValue(groupElement, valueToSelect) {
                 if (!groupElement) return;
+                let optionFoundAndVisible = false;
                 groupElement.querySelectorAll(".option").forEach((opt) => {
-                    // 只有當選項的值匹配且該選項是可見的，才將其標記為選中
-                    const isActuallySelected = opt.dataset.value === valueToSelect && opt.style.display !== "none";
-                    opt.classList.toggle("selected", isActuallySelected);
+                    const isMatch = opt.dataset.value === valueToSelect;
+                    const isVisible = opt.style.display !== "none";
+                    if (isMatch && isVisible) {
+                        opt.classList.add("selected");
+                        optionFoundAndVisible = true;
+                    } else {
+                        opt.classList.remove("selected");
+                    }
                 });
+                // If the target option was not found or not visible, select the first visible option as a fallback
+                if (!optionFoundAndVisible) {
+                    const firstVisibleOption = groupElement.querySelector(".option:not([style*='display: none'])");
+                    if (firstVisibleOption) {
+                        firstVisibleOption.classList.add("selected");
+                        // Also update currentSettings if the original value was for a hidden option
+                        if (AppState.currentSettings[groupElement.id] === valueToSelect) {
+                            updateCurrentSetting(groupElement.id, firstVisibleOption.dataset.value);
+                        }
+                    }
+                }
             }
         </script>
     </body>
