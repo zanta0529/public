@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Zanta 的通用網頁設計風格樣本</title>
+        <style>
+            /* --- CSS 變數定義 (淺色 & 深色主題) --- */
+            :root {
+                --primary-color: #007bff;
+                --primary-hover-color: #0056b3;
+                --secondary-color: #6c757d;
+                --secondary-hover-color: #5a6268;
+                --bg-color: #f8f9fa;
+                --container-bg: #ffffff;
+                --text-color: #212529;
+                --border-color: #dee2e6;
+                --input-bg: #e9f5ff;
+                --input-focus-shadow: rgba(0, 123, 255, 0.25);
+                --button-disabled-bg: #ccc;
+                --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --error-color: #dc3545;
+                --error-bg: #fbebeb;
+                --success-color: #198754;
+                --success-bg: #d1e7dd;
+                --toast-bg: #323232;
+                --toast-color: #fff;
+            }
+
+            :root[data-theme="dark"] {
+                --primary-color: #1e90ff;
+                --primary-hover-color: #4ca8ff;
+                --secondary-color: #778899;
+                --secondary-hover-color: #90a0b1;
+                --bg-color: #1e1e2f;
+                --container-bg: #2f2f4f;
+                --text-color: #e8e8f0;
+                --border-color: #4a4a5f;
+                --input-bg: #444;
+                --input-focus-shadow: rgba(30, 144, 255, 0.4);
+                --button-disabled-bg: #5a5a70;
+                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+                --error-color: #ff7f7f;
+                --error-bg: #4f2e2e;
+                --success-color: #60d978;
+                --success-bg: #2a4a30;
+                --toast-bg: #eaec6e;
+                --toast-color: #1e1e2f;
+            }
+
+            /* --- 基礎 & 佈局樣式 --- */
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                margin: 0;
+                padding: 2rem;
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                line-height: 1.6;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-height: 100vh;
+                box-sizing: border-box;
+                transition: background-color 0.3s, color 0.3s;
+            }
+
+            .container {
+                background-color: var(--container-bg);
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: var(--box-shadow);
+                width: 100%;
+                max-width: 800px; /* 適合內容的通用寬度 */
+                margin-bottom: 2rem;
+                border: 1px solid var(--border-color);
+                transition: background-color 0.3s, border-color 0.3s;
+            }
+
+            h1,
+            h2,
+            h3 {
+                margin-top: 0;
+                color: var(--text-color);
+            }
+            h1 {
+                text-align: center;
+                margin-bottom: 1.5rem;
+            }
+            h2 {
+                border-bottom: 2px solid var(--border-color);
+                padding-bottom: 0.5rem;
+                margin-bottom: 1.5rem;
+                color: var(--primary-color);
+            }
+            section {
+                margin-bottom: 2rem;
+            }
+            label {
+                font-weight: 600;
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+
+            /* --- 組件：按鈕 --- */
+            .button-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+            button {
+                padding: 0.75rem 1.5rem;
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1em;
+                font-weight: 600;
+                transition: background-color 0.3s, transform 0.1s;
+            }
+            button:hover:not(:disabled) {
+                background-color: var(--primary-hover-color);
+                transform: translateY(-1px);
+            }
+            button.secondary {
+                background-color: var(--secondary-color);
+            }
+            button.secondary:hover:not(:disabled) {
+                background-color: var(--secondary-hover-color);
+            }
+            button:disabled {
+                background-color: var(--button-disabled-bg);
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+
+            /* --- 組件：表單輸入 --- */
+            input[type="text"],
+            textarea {
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                box-sizing: border-box;
+                font-size: 1em;
+                background-color: var(--input-bg);
+                color: var(--text-color);
+                transition: 0.3s;
+            }
+            input[type="text"]:focus,
+            textarea:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
+            }
+            textarea {
+                min-height: 120px;
+                resize: vertical;
+            }
+
+            /* --- 組件：選項/頁籤組 --- */
+            .option-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            .option {
+                padding: 10px 15px;
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s, border-color 0.3s;
+            }
+            .option.selected {
+                background-color: var(--primary-color);
+                color: white;
+                border-color: var(--primary-color);
+            }
+
+            /* --- 組件：訊息提示框 --- */
+            .output-box {
+                padding: 1rem;
+                border-radius: 5px;
+                white-space: pre-wrap;
+                word-break: break-all;
+                border-left: 5px solid;
+                margin-top: 1rem;
+            }
+            .output-box.error {
+                color: var(--error-color);
+                border-color: var(--error-color);
+                background-color: var(--error-bg);
+            }
+            .output-box.success {
+                color: var(--success-color);
+                border-color: var(--success-color);
+                background-color: var(--success-bg);
+            }
+
+            /* --- 組件：頁尾 --- */
+            footer {
+                text-align: center;
+                margin-top: auto;
+                padding-top: 1rem;
+                font-size: 0.9em;
+                color: var(--secondary-color);
+            }
+            #themeToggleBtn {
+                background: none;
+                border: 1px solid var(--border-color);
+                color: var(--text-color);
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1.2em;
+                margin-left: 10px;
+                vertical-align: middle;
+                transition: 0.3s;
+            }
+            #themeToggleBtn:hover {
+                background-color: var(--border-color);
+            }
+
+            /* --- 組件：Toast 浮動提示 --- */
+            #toast {
+                visibility: hidden;
+                min-width: 250px;
+                background-color: var(--toast-bg);
+                color: var(--toast-color);
+                text-align: center;
+                border-radius: 5px;
+                padding: 16px;
+                position: fixed;
+                z-index: 1001;
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 30px;
+                font-size: 17px;
+                opacity: 0;
+                transition: opacity 0.5s, visibility 0.5s;
+            }
+            #toast.show {
+                visibility: visible;
+                opacity: 1;
+            }
+
+            /* --- 響應式設計 --- */
+            @media (max-width: 768px) {
+                body {
+                    padding: 1rem;
+                }
+                .container {
+                    padding: 1.5rem;
+                    max-width: 95%;
+                }
+                .button-group {
+                    flex-direction: column;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Zanta 的通用網頁設計風格樣本</h1>
+            </header>
+
+            <main>
+                <section>
+                    <h2>按鈕組件</h2>
+                    <div class="button-group">
+                        <button id="toastBtn">主要按鈕 (顯示 Toast)</button>
+                        <button class="secondary">次要按鈕</button>
+                        <button disabled>禁用按鈕</button>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>選項/頁籤組件</h2>
+                    <div id="demoOptionGroup" class="option-group">
+                        <div class="option selected" data-value="opt1">選項一</div>
+                        <div class="option" data-value="opt2">選項二</div>
+                        <div class="option" data-value="opt3">選項三</div>
+                    </div>
+                    <p>當前選擇: <span id="optionStatus">選項一 (opt1)</span></p>
+                </section>
+
+                <section>
+                    <h2>表單元素</h2>
+                    <label for="sampleInput">文字輸入框</label>
+                    <input type="text" id="sampleInput" placeholder="請在此輸入文字..." />
+
+                    <label for="sampleTextarea" style="margin-top: 1rem">文字方塊</label>
+                    <textarea id="sampleTextarea" placeholder="支援多行輸入..."></textarea>
+                </section>
+
+                <section>
+                    <h2>訊息回饋提示</h2>
+                    <div class="output-box success">這是一條成功的訊息。適用於操作成功後的提示。</div>
+                    <div class="output-box error">這是一條錯誤的訊息。適用於操作失敗或出現問題時。</div>
+                </section>
+            </main>
+        </div>
+
+        <footer>
+            <p>
+                &copy; <span id="currentYear"></span> 你的名字或專案名稱
+                <button id="themeToggleBtn" title="切換主題">🌙</button>
+            </p>
+        </footer>
+
+        <div id="toast"></div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                // --- DOM 元素 ---
+                const themeToggleBtn = document.getElementById("themeToggleBtn");
+                const currentYear = document.getElementById("currentYear");
+                const toast = document.getElementById("toast");
+                const toastBtn = document.getElementById("toastBtn"); // (新增)
+                const demoOptionGroup = document.getElementById("demoOptionGroup");
+                const optionStatus = document.getElementById("optionStatus");
+
+                let toastTimer = null;
+
+                // --- 核心功能 (UI互動) ---
+
+                // 應用主題
+                function applyTheme(theme) {
+                    document.documentElement.setAttribute("data-theme", theme);
+                    themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+                    localStorage.setItem("my-app-theme", theme);
+                }
+
+                // 顯示 Toast
+                function showToast(message) {
+                    if (toastTimer) clearTimeout(toastTimer);
+                    toast.textContent = message;
+                    toast.className = "show";
+                    toastTimer = setTimeout(() => {
+                        toast.className = toast.className.replace("show", "");
+                        toastTimer = null;
+                    }, 3000);
+                }
+
+                // 更新選項狀態顯示
+                function updateOptionStatus() {
+                    const selected = demoOptionGroup.querySelector(".option.selected");
+                    if (selected) {
+                        const text = selected.textContent.trim();
+                        const value = selected.dataset.value;
+                        optionStatus.textContent = `${text} (${value})`;
+                    }
+                }
+
+                // --- 事件監聽器 ---
+
+                // 主題切換按鈕
+                themeToggleBtn.addEventListener("click", () => {
+                    const newTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+                    applyTheme(newTheme);
+                });
+
+                // (新增) 顯示 Toast 範例按鈕
+                toastBtn.addEventListener("click", () => {
+                    showToast("這是一個 Toast 提示訊息！");
+                });
+
+                // 選項組點擊事件 (事件委派)
+                demoOptionGroup.addEventListener("click", (e) => {
+                    const selectedOption = e.target.closest(".option");
+                    if (selectedOption) {
+                        // 移除所有選項的選中狀態
+                        demoOptionGroup.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
+                        // 為當前選中的選項添加選中狀態
+                        selectedOption.classList.add("selected");
+                        // 更新狀態顯示
+                        updateOptionStatus();
+                    }
+                });
+
+                // --- 初始化 ---
+                currentYear.textContent = new Date().getFullYear();
+                applyTheme(localStorage.getItem("my-app-theme") || "dark"); // 載入時應用已儲存或預設的主題
+            });
+        </script>
+    </body>
+</html>
