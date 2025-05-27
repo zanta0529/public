@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ChaCha20-Poly1305 加解密工具</title>
+        <style>
+            /* --- CSS 樣式與原檔案相同，此處為求簡潔省略 --- */
+            :root {
+                --primary-color: #007bff;
+                --primary-hover-color: #0056b3;
+                --secondary-color: #6c757d;
+                --secondary-hover-color: #5a6268;
+                --danger-color: #dc3545;
+                --danger-hover-color: #c82333;
+                --success-btn-color: #28a745;
+                --success-btn-hover-color: #218838;
+                --warning-btn-bg-color: #ffc107;
+                --warning-btn-text-color: #212529;
+                --warning-btn-hover-bg-color: #e0a800;
+
+                --bg-color: #f8f9fa;
+                --container-bg: #ffffff;
+                --text-color: #212529;
+                --border-color: #dee2e6;
+                --input-bg: #e9f5ff;
+                --input-focus-shadow: rgba(0, 123, 255, 0.25);
+                --button-disabled-bg: #ccc;
+                --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --error-color: #721c24;
+                --error-bg: #f8d7da;
+                --success-color: #155724;
+                --success-bg: #d4edda;
+                --warning-color: #856404;
+                --warning-bg: #fff3cd;
+                --note-color: #083b06;
+                --note-bg: #baf1ac;
+                --toast-bg: #323232;
+                --toast-color: #fff;
+            }
+
+            :root[data-theme="dark"] {
+                --primary-color: #1e90ff;
+                --primary-hover-color: #4ca8ff;
+                --secondary-color: #778899;
+                --secondary-hover-color: #90a0b1;
+                --danger-color: #c82333;
+                --danger-hover-color: #a71d2a;
+                --success-btn-color: #20c997;
+                --success-btn-hover-color: #1baa80;
+                --warning-btn-bg-color: #fd7e14;
+                --warning-btn-text-color: #ffffff;
+                --warning-btn-hover-bg-color: #e66b04;
+
+                --bg-color: #1e1e2f;
+                --container-bg: #2f2f4f;
+                --text-color: #e8e8f0;
+                --border-color: #4a4a5f;
+                --input-bg: #444;
+                --input-focus-shadow: rgba(30, 144, 255, 0.4);
+                --button-disabled-bg: #5a5a70;
+                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+                --error-color: #f5c6cb;
+                --error-bg: #58282d;
+                --success-color: #c3e6cb;
+                --success-bg: #224029;
+                --warning-color: #ffeeba;
+                --warning-bg: #66512c;
+                --note-color: #a2f58d;
+                --note-bg: #2a5028;
+                --toast-bg: #eaec6e;
+                --toast-color: #1e1e2f;
+            }
+
+            body {
+                font-family: Arial, sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue";
+                margin: 0;
+                padding: 2rem;
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                line-height: 1.6;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-height: 100vh;
+                box-sizing: border-box;
+                transition: background-color 0.3s, color 0.3s;
+            }
+
+            .container {
+                background-color: var(--container-bg);
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: var(--box-shadow);
+                width: 100%;
+                max-width: 80%;
+                margin-bottom: 2rem;
+                border: 1px solid var(--border-color);
+                transition: background-color 0.3s, border-color 0.3s;
+            }
+            h1 {
+                text-align: center;
+                margin-bottom: 1.5rem;
+            }
+            .input-group {
+                margin-top: 1.0rem;
+                /* margin-bottom: 1.5rem; */
+            }
+            label,
+            .label-text {
+                font-weight: 600;
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+            hr {
+                border: none;
+                border-top: 1px solid var(--border-color);
+                margin: 2rem 0;
+            }
+            .button-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+            button {
+                padding: 0.6rem 1rem;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1.1em;
+                font-weight: 600;
+                transition: background-color 0.3s, transform 0.1s, color 0.3s;
+            }
+            button:hover:not(:disabled) {
+                transform: translateY(-1px);
+            }
+            button:disabled {
+                background-color: var(--button-disabled-bg);
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+            button:not([data-type]) {
+                background-color: var(--primary-color);
+            }
+            button:not([data-type]):hover:not(:disabled) {
+                background-color: var(--primary-hover-color);
+            }
+            button[data-type="secondary"] {
+                background-color: var(--secondary-color);
+            }
+            button[data-type="secondary"]:hover:not(:disabled) {
+                background-color: var(--secondary-hover-color);
+            }
+            button[data-type="danger"] {
+                background-color: var(--danger-color);
+            }
+            button[data-type="danger"]:hover:not(:disabled) {
+                background-color: var(--danger-hover-color);
+            }
+            button[data-type="success"] {
+                background-color: var(--success-btn-color);
+            }
+            button[data-type="success"]:hover:not(:disabled) {
+                background-color: var(--success-btn-hover-color);
+            }
+            button[data-type="warning"] {
+                background-color: var(--warning-btn-bg-color);
+                color: var(--warning-btn-text-color);
+            }
+            button[data-type="warning"]:hover:not(:disabled) {
+                background-color: var(--warning-btn-hover-bg-color);
+            }
+            #btnExecute {
+                width: 100%;
+                padding: 0.8rem 1.5rem;
+                font-size: 1.2em;
+                margin: 1rem 0;
+            }
+            input[type="text"],
+            input[type="file"],
+            textarea {
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                box-sizing: border-box;
+                font-size: 1.2em;
+                background-color: var(--input-bg);
+                color: var(--text-color);
+                transition: border-color 0.3s, box-shadow 0.3s;
+            }
+            input[type="text"]:focus,
+            input[type="file"]:focus,
+            textarea:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
+            }
+            textarea {
+                min-height: 120px;
+                resize: vertical;
+            }
+            .option-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+            .option {
+                padding: 0.6rem 1rem;
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                cursor: pointer;
+                user-select: none;
+                transition: background-color 0.3s, border-color 0.3s;
+                font-size: 1.1em;
+            }
+            .option.selected {
+                background-color: var(--primary-color);
+                color: white;
+                border-color: var(--primary-color);
+            }
+            .option:not(.selected):hover {
+                background-color: var(--input-bg);
+                border-color: var(--primary-color);
+            }
+            .status-message {
+                padding: 1rem;
+                border-radius: 5px;
+                border: 1px solid transparent;
+                display: none;
+                margin-top: 1rem;
+            }
+            .status-message.active {
+                display: block;
+            }
+            .status-success {
+                background-color: var(--success-bg);
+                color: var(--success-color);
+                border-color: var(--success-color);
+            }
+            .status-error {
+                background-color: var(--error-bg);
+                color: var(--error-color);
+                border-color: var(--error-color);
+            }
+            .error-message {
+                color: var(--error-color);
+                font-size: 0.9em;
+                min-height: 1.2em;
+                display: block;
+                margin-top: 0.25rem;
+            }
+            .alert {
+                font-size: 0.9em;
+                padding: 1rem;
+                border-radius: 5px;
+                margin: 1rem 0;
+                border: 1px solid;
+            }
+            .alert-note {
+                background-color: var(--note-bg);
+                color: var(--note-color);
+                border-color: var(--note-color);
+            }
+            .alert-warning {
+                background-color: var(--warning-bg);
+                color: var(--warning-color);
+                border-color: var(--warning-color);
+            }
+            details > summary {
+                cursor: pointer;
+                font-weight: bold;
+                padding: 0.5rem 0;
+            }
+            .alert-warning ul {
+                margin: 0.5rem 0 0.25rem 1.25rem;
+                padding: 0;
+            }
+            .alert-warning li {
+                margin-bottom: 0.5rem;
+            }
+            .alert-warning .pass {
+                color: var(--success-color);
+            }
+            .alert-warning .fail {
+                color: var(--error-color);
+                font-weight: bold;
+            }
+            footer {
+                text-align: center;
+                margin-top: auto;
+                padding-top: 1rem;
+                font-size: 0.9em;
+                color: var(--secondary-color);
+            }
+            #themeToggleBtn {
+                background: none;
+                border: 1px solid var(--border-color);
+                color: var(--text-color);
+                padding: 0.25rem;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1.2em;
+                margin-left: 0.5rem;
+                vertical-align: middle;
+            }
+            #themeToggleBtn:hover {
+                background-color: var(--border-color);
+            }
+            @media (max-width: 768px) {
+                body {
+                    padding: 1rem;
+                }
+                .container {
+                    padding: 1.5rem;
+                    max-width: 95%;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>ChaCha20-Poly1305 加解密工具</h1>
+
+            <details class="alert alert-warning">
+                <summary>🔐 <strong>安全性與最佳實踐（點擊展開）</strong></summary>
+                <ul>
+                    <li>
+                        <strong>金鑰 (Key)：</strong>
+                        <ul>
+                            <li>
+                                <strong>長度固定</strong>：ChaCha20-Poly1305 的金鑰長度**必須**是
+                                <strong>32 位元組 (256 位元)</strong>。
+                            </li>
+                            <li>請使用由密碼學安全隨機數產生器 (CSPRNG) 產生的金鑰。避免使用容易猜測的字串。</li>
+                            <li>此工具中的金鑰是純文字，其 UTF-8 編碼後的位元組長度必須剛好是 32。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Nonce (一次性數字)：</strong>
+                        <ul>
+                            <li>
+                                <strong>長度固定</strong>：ChaCha20-Poly1305 的 Nonce 長度**必須**是
+                                <strong>12 位元組 (96 位元)</strong>。
+                            </li>
+                            <li>
+                                <strong>絕對禁止重複</strong>：在同一個金鑰下，絕不能重複使用相同的 Nonce
+                                進行加密。重複使用 Nonce 會導致災難性的安全後果，攻擊者可輕易破解密文。
+                            </li>
+                            <li>建議每次加密都產生一個全新的隨機 Nonce。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>附加驗證資料 (AAD)：</strong>
+                        <ul>
+                            <li>AAD 是不被加密但會被 Poly1305 認證的資料。例如，訊息標頭或元數據。</li>
+                            <li>解密時，若 AAD 與加密時不符，解密會失敗，這能確保資料的完整性與真實性。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>前端加密：</strong
+                        >所有操作均在您的瀏覽器中進行。雖然方便，但請確保您的瀏覽器和電腦環境安全。
+                    </li>
+                </ul>
+            </details>
+
+            <div id="functionMode" class="option-group">
+                <div id="FunctionEncrypt" class="option selected" data-value="encrypt">加密模式</div>
+                <div id="FunctionDecrypt" class="option" data-value="decrypt">解密模式</div>
+            </div>
+
+            <div class="input-group">
+                <label class="label-text">輸入來源</label>
+                <div id="inputSource" class="option-group">
+                    <div class="option selected" data-value="text">文字輸入</div>
+                    <div class="option" data-value="file">檔案輸入</div>
+                </div>
+            </div>
+
+            <div id="textInputGroup" class="input-group">
+                <label for="text">原始文字 / 密文</label>
+                <textarea id="text" rows="5" placeholder="在此輸入要加密的明文或要解密的密文（Base64/Hex）"></textarea>
+                <div class="button-group" style="margin-top: 10px">
+                    <button id="copyTextButton" data-type="secondary">複製</button>
+                    <button id="pasteTextButton" data-type="secondary">貼上</button>
+                    <button id="clearTextButton" data-type="secondary">清除</button>
+                </div>
+            </div>
+
+            <div id="fileInputGroup" class="input-group" style="display: none">
+                <label for="fileInput">選擇檔案</label>
+                <input type="file" id="fileInput" />
+                <div
+                    id="fileNameDisplay"
+                    class="alert alert-note"
+                    style="margin-top: 10px; display: none; padding: 0.5rem 1rem"
+                ></div>
+            </div>
+
+            <div class="input-group">
+                <label class="label-text">加密演算法模式</label>
+                <div id="encryptionMode" class="option-group">
+                    <div class="option selected" data-value="ChaCha20-Poly1305">ChaCha20-Poly1305</div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="secretKey">金鑰 (純文字)</label>
+                <input type="text" id="secretKey" placeholder="輸入金鑰文字" />
+                <div class="alert alert-note">
+                    金鑰文字將以 UTF-8 編碼。編碼後的「<strong>位元組長度</strong>」必須剛好是
+                    <strong>32 位元組</strong>。
+                </div>
+                <div id="msgKeyError" class="error-message"></div>
+            </div>
+
+            <div id="ivGroup" class="input-group">
+                <label for="iv">Nonce (一次性數字)，本工具僅支援純文字</label>
+                <div style="display: flex; gap: 10px; align-items: center">
+                    <input type="text" id="iv" placeholder="輸入 Nonce 文字" style="flex-grow: 1" />
+                    <button id="generateIvButton" data-type="secondary">產生隨機 Nonce</button>
+                </div>
+                <div class="alert alert-note">
+                    Nonce 為必填，UTF-8 編碼後必須為 <strong>12 位元組</strong>。<br /><strong>重要：</strong
+                    >同一金鑰每次加密的 Nonce 必須唯一！
+                </div>
+                <div id="msgIVError" class="error-message"></div>
+            </div>
+
+            <div id="aadGroup" class="input-group">
+                <label for="aad">附加驗證資料（AAD），本工具僅支援純文字</label>
+                <textarea id="aad" rows="2" placeholder="輸入 AAD 文字（可選）"></textarea>
+                <div class="alert alert-note">此資料不會被加密，但會影響 Poly1305 的認證標籤。</div>
+            </div>
+
+            <div id="inputCiphertextFormatGroup" class="input-group" style="display: none">
+                <label class="label-text">輸入密文格式</label>
+                <div id="inputCiphertextFormat" class="option-group">
+                    <div class="option selected" data-value="base64">Base64</div>
+                    <div class="option" data-value="hex">Hex</div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="label-text">輸出格式</label>
+                <div id="outputFormat" class="option-group">
+                    <div id="optTextFormat" class="option" data-value="plaintext">明文</div>
+                    <div id="optBase64Format" class="option selected" data-value="base64">Base64</div>
+                    <div id="optHexFormat" class="option" data-value="hex">Hex</div>
+                    <div id="optBinaryFileFormat" class="option" data-value="binaryfile" style="display: none">
+                        二進位檔案
+                    </div>
+                </div>
+            </div>
+
+            <button id="btnExecute" data-type="success">加密（Encrypt）</button>
+            <div id="status" class="status-message"></div>
+            <div class="input-group">
+                <label for="result">結果</label>
+                <textarea id="result" rows="5" readonly placeholder="加解密結果將顯示於此"></textarea>
+                <div class="button-group" style="margin-top: 10px">
+                    <button id="copyResultButton" data-type="secondary">複製結果</button>
+                    <button id="swapTextResultButton" data-type="secondary">交換輸入/輸出</button>
+                    <button id="clearResultButton" data-type="secondary">清除結果</button>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="button-group" style="justify-content: center">
+                <button id="resetFormButton" data-type="danger">🔁 重置所有設定</button>
+                <button id="runTestsButton" data-type="warning">執行單元測試</button>
+            </div>
+            <div id="testResults" class="alert alert-warning" style="display: none"><h4>測試結果：</h4></div>
+        </div>
+
+        <footer>
+            <p>
+                &copy; <span id="currentYear"></span> Zanta's ChaCha20-Poly1305 Tool
+                <button id="themeToggleBtn" title="切換主題">🌙</button>
+            </p>
+        </footer>
+
+        <script type="module">
+            // 步驟一：匯入正確的函式名稱 `chacha20poly1305`
+            import { chacha20poly1305 } from "https://cdn.jsdelivr.net/npm/@noble/ciphers/esm/chacha.js";
+
+            // ---- Constants & Configuration ----
+            const APP_NAME_SETTINGS = "chachaToolSettings";
+            const REQUIRED_KEY_BYTE_LENGTH = 32;
+            const REQUIRED_NONCE_BYTE_LENGTH = 12;
+
+            // ---- DOM Element Cache ----
+            const DOMElements = {};
+
+            // --- App State Management ---
+            const AppState = {
+                currentSettings: {},
+                isProcessing: false,
+                loadedFileName: null,
+                loadedFileBuffer: null,
+            };
+
+            // ---- Initialization on DOMContentLoaded ----
+            document.addEventListener("DOMContentLoaded", () => {
+                // 檢查正確的函式是否存在
+                if (typeof chacha20poly1305 !== "function") {
+                    alert("錯誤：核心加密函式庫未能成功載入！");
+                    return;
+                }
+                cacheDOMElements();
+                loadSettings();
+                TestModule.init();
+                bindEventListeners();
+                UIModule.toggleUI();
+                StatusModule.update("工具已就緒。", false);
+                const initialTheme = localStorage.getItem("my-app-theme") || "dark";
+                applyTheme(initialTheme);
+            });
+
+            function cacheDOMElements() {
+                const ids = [
+                    "functionMode",
+                    "inputSource",
+                    "textInputGroup",
+                    "fileInputGroup",
+                    "text",
+                    "fileInput",
+                    "fileNameDisplay",
+                    "secretKey",
+                    "msgKeyError",
+                    "ivGroup",
+                    "iv",
+                    "generateIvButton",
+                    "msgIVError",
+                    "aadGroup",
+                    "aad",
+                    "inputCiphertextFormatGroup",
+                    "inputCiphertextFormat",
+                    "outputFormat",
+                    "optTextFormat",
+                    "optBase64Format",
+                    "optHexFormat",
+                    "optBinaryFileFormat",
+                    "btnExecute",
+                    "result",
+                    "status",
+                    "copyTextButton",
+                    "pasteTextButton",
+                    "clearTextButton",
+                    "copyResultButton",
+                    "clearResultButton",
+                    "swapTextResultButton",
+                    "resetFormButton",
+                    "runTestsButton",
+                    "testResults",
+                    "themeToggleBtn",
+                    "currentYear",
+                ];
+                ids.forEach((id) => (DOMElements[id] = document.getElementById(id)));
+            }
+
+            // [ Settings, Theme, UI, EncodingUtils, Status, HelperUtils, ValidationModule 等模組維持不變 ]
+            function saveSettings() {
+                try {
+                    localStorage.setItem(APP_NAME_SETTINGS, JSON.stringify(AppState.currentSettings));
+                } catch (e) {
+                    console.warn("無法儲存設定:", e);
+                }
+            }
+            function loadSettings() {
+                const defaults = {
+                    functionMode: "encrypt",
+                    inputSource: "text",
+                    inputCiphertextFormat: "base64",
+                    outputFormat: "base64",
+                };
+                AppState.currentSettings = { ...defaults };
+                try {
+                    const saved = localStorage.getItem(APP_NAME_SETTINGS);
+                    if (saved) Object.assign(AppState.currentSettings, JSON.parse(saved));
+                } catch (e) {
+                    console.warn("無法載入設定:", e);
+                    AppState.currentSettings = { ...defaults };
+                }
+                applySettingsToUI();
+            }
+            function applySettingsToUI() {
+                selectOptionByValue(DOMElements.functionMode, AppState.currentSettings.functionMode);
+                selectOptionByValue(DOMElements.inputSource, AppState.currentSettings.inputSource);
+                selectOptionByValue(DOMElements.inputCiphertextFormat, AppState.currentSettings.inputCiphertextFormat);
+            }
+            function updateCurrentSetting(id, val) {
+                if (AppState.currentSettings.hasOwnProperty(id)) {
+                    AppState.currentSettings[id] = val;
+                    saveSettings();
+                }
+            }
+            function applyTheme(theme) {
+                document.documentElement.setAttribute("data-theme", theme);
+                DOMElements.themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+                localStorage.setItem("my-app-theme", theme);
+            }
+            const UIModule = {
+                toggleUI: function () {
+                    const { functionMode, inputSource } = AppState.currentSettings;
+                    DOMElements.textInputGroup.style.display = inputSource === "text" ? "block" : "none";
+                    DOMElements.fileInputGroup.style.display = inputSource === "file" ? "block" : "none";
+                    const isEncrypt = functionMode === "encrypt";
+                    DOMElements.btnExecute.textContent = isEncrypt ? "加密（Encrypt）" : "解密（Decrypt）";
+                    DOMElements.btnExecute.dataset.type = isEncrypt ? "success" : "danger";
+                    DOMElements.inputCiphertextFormatGroup.style.display = isEncrypt ? "none" : "block";
+                    if (inputSource === "text") {
+                        DOMElements.optTextFormat.style.display = isEncrypt ? "none" : "block";
+                        DOMElements.optBase64Format.style.display = "block";
+                        DOMElements.optHexFormat.style.display = "block";
+                        DOMElements.optBinaryFileFormat.style.display = "none";
+                    } else {
+                        DOMElements.optTextFormat.style.display = "block";
+                        DOMElements.optBase64Format.style.display = "block";
+                        DOMElements.optHexFormat.style.display = "block";
+                        DOMElements.optBinaryFileFormat.style.display = "block";
+                    }
+                    const currentOutputOptionEl = DOMElements.outputFormat.querySelector(
+                        `.option[data-value='${AppState.currentSettings.outputFormat}']`
+                    );
+                    if (!currentOutputOptionEl || currentOutputOptionEl.style.display === "none") {
+                        let newDefault = isEncrypt
+                            ? inputSource === "text"
+                                ? "base64"
+                                : "binaryfile"
+                            : inputSource === "text"
+                            ? "plaintext"
+                            : "binaryfile";
+                        AppState.currentSettings.outputFormat = newDefault;
+                        saveSettings();
+                    }
+                    selectOptionByValue(DOMElements.outputFormat, AppState.currentSettings.outputFormat);
+                    DOMElements.text.placeholder = isEncrypt
+                        ? "在此輸入要加密的明文"
+                        : "在此輸入要解密的密文（Base64/Hex）";
+                },
+                resetForm: function () {
+                    [
+                        DOMElements.text,
+                        DOMElements.secretKey,
+                        DOMElements.iv,
+                        DOMElements.aad,
+                        DOMElements.result,
+                    ].forEach((el) => (el.value = ""));
+                    DOMElements.fileInput.value = "";
+                    AppState.loadedFileName = null;
+                    AppState.loadedFileBuffer = null;
+                    DOMElements.fileNameDisplay.textContent = "";
+                    DOMElements.fileNameDisplay.style.display = "none";
+                    [DOMElements.msgKeyError, DOMElements.msgIVError].forEach((el) => (el.textContent = ""));
+                    StatusModule.clear();
+                    loadSettings();
+                    UIModule.toggleUI();
+                },
+                handleFileUpload: function (event) {
+                    const file = event.target.files[0];
+                    if (!file) {
+                        AppState.loadedFileName = null;
+                        AppState.loadedFileBuffer = null;
+                        DOMElements.fileNameDisplay.style.display = "none";
+                        return;
+                    }
+                    AppState.loadedFileName = file.name;
+                    DOMElements.fileNameDisplay.textContent = `已選擇檔案: ${file.name} (${(file.size / 1024).toFixed(
+                        2
+                    )} KB)`;
+                    DOMElements.fileNameDisplay.style.display = "block";
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        AppState.loadedFileBuffer = e.target.result;
+                    };
+                    reader.onerror = () => {
+                        StatusModule.update("讀取檔案失敗。", true);
+                    };
+                    reader.readAsArrayBuffer(file);
+                },
+            };
+            const EncodingUtils = {
+                arrayBufferToBase64: (buf) => btoa(String.fromCharCode.apply(null, new Uint8Array(buf))),
+                base64ToArrayBuffer: (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
+                arrayBufferToHex: (buf) =>
+                    Array.from(new Uint8Array(buf))
+                        .map((b) => b.toString(16).padStart(2, "0"))
+                        .join(""),
+                hexToArrayBuffer: (hex) => {
+                    if (!/^[0-9a-fA-F]+$/.test(hex) || hex.length % 2 !== 0) throw new Error("無效的 Hex 字串格式。");
+                    return Uint8Array.from(hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+                },
+                stringToUtf8: (str) => new TextEncoder().encode(str),
+                utf8ToString: (buf) => new TextDecoder().decode(buf),
+                generateRandomNonceText: () => {
+                    const randomBytes = new Uint8Array(REQUIRED_NONCE_BYTE_LENGTH);
+                    window.crypto.getRandomValues(randomBytes);
+                    const PURE_ASCII = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                    return Array.from(randomBytes)
+                        .map((byte) => PURE_ASCII[byte % PURE_ASCII.length])
+                        .join("");
+                },
+                concatBytes: (...arrays) => {
+                    const totalLength = arrays.reduce((acc, arr) => acc + arr.length, 0);
+                    const result = new Uint8Array(totalLength);
+                    let offset = 0;
+                    for (const arr of arrays) {
+                        result.set(arr, offset);
+                        offset += arr.length;
+                    }
+                    return result;
+                },
+            };
+            const StatusModule = {
+                update: (msg, isErr, mode = "normal") => {
+                    const el = DOMElements.status;
+                    if (mode === "append" && el.innerHTML) {
+                        el.innerHTML += `<br>${msg}`;
+                    } else {
+                        el.textContent = msg;
+                    }
+                    el.className = `status-message ${isErr ? "status-error" : "status-success"} active`;
+                },
+                clear: () => StatusModule.update("", false),
+                displayError: (msg, el) => {
+                    if (el) el.textContent = msg;
+                    StatusModule.update("輸入驗證失敗。請檢查下方提示。", true);
+                },
+            };
+            const HelperUtils = {
+                copyToClipboard: (id) => {
+                    const el = DOMElements[id];
+                    if (!el || !el.value) {
+                        StatusModule.update("沒有內容可複製。", true);
+                        return;
+                    }
+                    navigator.clipboard.writeText(el.value).then(
+                        () => StatusModule.update("已複製到剪貼簿。", false),
+                        () => StatusModule.update("複製失敗。", true)
+                    );
+                },
+                pasteFromClipboard: async (id) => {
+                    try {
+                        DOMElements[id].value = await navigator.clipboard.readText();
+                        StatusModule.update("已貼上內容。", false);
+                    } catch (e) {
+                        StatusModule.update("貼上失敗。", true);
+                    }
+                },
+                clearValue: (id) => {
+                    DOMElements[id].value = "";
+                },
+                swapTextAndResult: () => {
+                    [DOMElements.text.value, DOMElements.result.value] = [
+                        DOMElements.result.value,
+                        DOMElements.text.value,
+                    ];
+                    StatusModule.update("輸入與結果已交換。", false);
+                },
+                downloadArrayBuffer: (buf, fname) => {
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(new Blob([buf]));
+                    a.download = fname || "download.bin";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(a.href);
+                },
+                generateOutputFileName: (originalName, op) => {
+                    const prefix = op === "encrypt" ? "encrypted_" : "decrypted_";
+                    const baseName = originalName
+                        ? originalName.replace(/^(encrypted_|decrypted_)/i, "")
+                        : "output.bin";
+                    return `${prefix}${baseName}`;
+                },
+            };
+            const ValidationModule = {
+                validateAllInputs: function () {
+                    DOMElements.msgKeyError.textContent = "";
+                    DOMElements.msgIVError.textContent = "";
+                    let isValid = true;
+                    const keyErr = this.validateSecretKey(DOMElements.secretKey.value);
+                    if (keyErr) {
+                        StatusModule.displayError(keyErr, DOMElements.msgKeyError);
+                        isValid = false;
+                    }
+                    const ivErr = this.validateNonce(DOMElements.iv.value);
+                    if (ivErr) {
+                        StatusModule.displayError(ivErr, DOMElements.msgIVError);
+                        isValid = false;
+                    }
+                    return isValid;
+                },
+                validateSecretKey: (key) => {
+                    if (!key) return "* 金鑰為必填。";
+                    const len = EncodingUtils.stringToUtf8(key).byteLength;
+                    return len !== REQUIRED_KEY_BYTE_LENGTH
+                        ? `* 金鑰 UTF-8 編碼後為 ${len} 位元組，應為 ${REQUIRED_KEY_BYTE_LENGTH} 位元組。`
+                        : null;
+                },
+                validateNonce: (iv) => {
+                    if (!iv) return "* Nonce 為必填。";
+                    const len = EncodingUtils.stringToUtf8(iv).byteLength;
+                    return len !== REQUIRED_NONCE_BYTE_LENGTH
+                        ? `* Nonce UTF-8 編碼後為 ${len} 位元組，應為 ${REQUIRED_NONCE_BYTE_LENGTH} 位元組。`
+                        : null;
+                },
+            };
+
+            // 步驟二：修改 CryptoModule 和 TestModule，使用正確的函式與呼叫方式
+            const CryptoModule = {
+                processData: async function () {
+                    if (AppState.isProcessing) return;
+                    AppState.isProcessing = true;
+                    DOMElements.btnExecute.disabled = true;
+                    StatusModule.clear();
+                    if (!ValidationModule.validateAllInputs()) {
+                        AppState.isProcessing = false;
+                        DOMElements.btnExecute.disabled = false;
+                        return;
+                    }
+                    const { functionMode, outputFormat, inputSource, inputCiphertextFormat } = AppState.currentSettings;
+                    const { secretKey, iv, aad, text } = DOMElements;
+                    let dataToProcess = inputSource === "text" ? text.value : AppState.loadedFileBuffer;
+                    if (!dataToProcess) {
+                        StatusModule.update("錯誤：沒有輸入內容。", true);
+                        AppState.isProcessing = false;
+                        DOMElements.btnExecute.disabled = false;
+                        return;
+                    }
+
+                    try {
+                        const keyBytes = EncodingUtils.stringToUtf8(secretKey.value);
+                        const nonceBytes = EncodingUtils.stringToUtf8(iv.value);
+                        const aadBytes = EncodingUtils.stringToUtf8(aad.value);
+
+                        // 使用正確的函式 chacha20poly1305(key, nonce, ad)
+                        const aead = chacha20poly1305(keyBytes, nonceBytes, aadBytes);
+                        let resultData;
+
+                        if (functionMode === "encrypt") {
+                            const plainBuf =
+                                typeof dataToProcess === "string"
+                                    ? EncodingUtils.stringToUtf8(dataToProcess)
+                                    : new Uint8Afrray(dataToProcess);
+                            resultData = aead.encrypt(plainBuf);
+                        } else {
+                            let dataBuf =
+                                typeof dataToProcess === "string"
+                                    ? inputCiphertextFormat === "base64"
+                                        ? EncodingUtils.base64ToArrayBuffer(dataToProcess)
+                                        : EncodingUtils.hexToArrayBuffer(dataToProcess)
+                                    : new Uint8Array(dataToProcess);
+                            resultData = aead.decrypt(dataBuf);
+                        }
+
+                        if (outputFormat === "binaryfile") {
+                            const fname = HelperUtils.generateOutputFileName(AppState.loadedFileName, functionMode);
+                            HelperUtils.downloadArrayBuffer(resultData, fname);
+                            DOMElements.result.value = `檔案 "${fname}" 已開始下載。`;
+                        } else {
+                            DOMElements.result.value =
+                                outputFormat === "plaintext"
+                                    ? EncodingUtils.utf8ToString(resultData)
+                                    : outputFormat === "base64"
+                                    ? EncodingUtils.arrayBufferToBase64(resultData)
+                                    : EncodingUtils.arrayBufferToHex(resultData);
+                        }
+                        StatusModule.update(`${functionMode === "encrypt" ? "加密" : "解密"}成功`, false);
+                    } catch (error) {
+                        console.error("處理錯誤:", error);
+                        StatusModule.update(`錯誤: ${error.message || error}`, true);
+                        if (error.message?.includes("MAC") || error.message?.includes("tag")) {
+                            StatusModule.update(
+                                " (這通常表示金鑰、Nonce、密文或 AAD 不匹配，或密文已被篡改)",
+                                true,
+                                "append"
+                            );
+                        }
+                    } finally {
+                        AppState.isProcessing = false;
+                        DOMElements.btnExecute.disabled = false;
+                    }
+                },
+            };
+            const TestModule = {
+                testResultsContainer: null,
+                tests: [],
+                init: function () {
+                    this.testResultsContainer = DOMElements.testResults;
+                    this.tests = [];
+
+                    this.addTest("ChaCha20-Poly1305 (ESM Correct API)", async () => {
+                        const pText = "ChaCha20-Poly1305 test message!";
+                        const kText = "12345678901234567890123456789012";
+                        const nText = "123456789012";
+                        const aText = "Some AAD data here";
+                        const key = EncodingUtils.stringToUtf8(kText);
+                        const nonce = EncodingUtils.stringToUtf8(nText);
+                        const aad = EncodingUtils.stringToUtf8(aText);
+                        const plaintext = EncodingUtils.stringToUtf8(pText);
+
+                        const aeadEnc = chacha20poly1305(key, nonce, aad);
+                        const ciphertext = aeadEnc.encrypt(plaintext);
+                        this.assert(ciphertext.length > 0, "加密未產生密文");
+
+                        const aeadDec = chacha20poly1305(key, nonce, aad);
+                        const decrypted = aeadDec.decrypt(ciphertext);
+                        this.assertEqual(EncodingUtils.utf8ToString(decrypted), pText, "解密後的明文不匹配");
+                    });
+
+                    this.addTest("ChaCha20-Poly1305 Decryption Failure (Bad Tag)", async () => {
+                        const kText = "anotherkeythatisexactly32bytes!!";
+                        const nText = "anothernonce";
+                        const key = EncodingUtils.stringToUtf8(kText);
+                        const nonce = EncodingUtils.stringToUtf8(nText);
+                        const plaintext = EncodingUtils.stringToUtf8("Data to be encrypted");
+
+                        const aeadEnc = chacha20poly1305(key, nonce);
+                        const ciphertextWithGoodTag = aeadEnc.encrypt(plaintext);
+
+                        const badCiphertext = new Uint8Array(ciphertextWithGoodTag);
+                        badCiphertext[badCiphertext.length - 1] ^= 0xff; // 竄改最後一個位元組
+
+                        const aeadDec = chacha20poly1305(key, nonce);
+
+                        // 最終修正：將預期的錯誤訊息從 'MAC' 改為 'tag'
+                        await this.assertThrows(
+                            () => {
+                                aeadDec.decrypt(badCiphertext);
+                            },
+                            "tag" // 函式庫實際拋出的錯誤訊息是 "invalid tag"，所以我們檢查 "tag" 即可
+                        );
+                    });
+                },
+
+                assertThrows: async function (func, expectedErrorMsg) {
+                    try {
+                        await func();
+                        throw new Error("預期函式會拋出錯誤，但它沒有。");
+                    } catch (e) {
+                        if (!e.message.includes(expectedErrorMsg)) {
+                            throw new Error(
+                                `函式拋出了錯誤，但訊息不符。預期包含 '${expectedErrorMsg}'，但收到的訊息是 '${e.message}'`
+                            );
+                        }
+                    }
+                },
+
+                addTest: function (name, fn) {
+                    this.tests.push({ name, fn });
+                },
+                runAllTests: async function () {
+                    this.testResultsContainer.innerHTML = "<h4>測試結果:</h4>";
+                    this.testResultsContainer.style.display = "block";
+                    StatusModule.update("正在執行測試...", false);
+                    let passes = 0,
+                        failures = 0;
+                    for (const test of this.tests) {
+                        const resultP = document.createElement("p");
+                        try {
+                            await test.fn();
+                            resultP.innerHTML = `PASS: ${test.name}`;
+                            resultP.className = "pass";
+                            passes++;
+                        } catch (e) {
+                            resultP.innerHTML = `FAIL: ${
+                                test.name
+                            } <br/>&nbsp;&nbsp;<span style="font-size: 0.9em; color: var(--error-color);">訊息: ${
+                                e.message || e
+                            }</span>`;
+                            resultP.className = "fail";
+                            failures++;
+                            console.error(`Test failed: ${test.name}`, e);
+                        }
+                        this.testResultsContainer.appendChild(resultP);
+                    }
+                    const summary = document.createElement("p");
+                    summary.innerHTML = `<strong>總結: ${passes} 通過, ${failures} 失敗.</strong>`;
+                    this.testResultsContainer.appendChild(summary);
+                    StatusModule.update(failures > 0 ? "部分測試失敗。" : "所有測試通過。", failures > 0);
+                },
+                assert: function (cond, msg) {
+                    if (!cond) throw new Error(msg || "Assertion failed");
+                },
+                assertEqual: function (actual, expected, msg) {
+                    if (actual !== expected) throw new Error(msg || `預期 "${expected}" 但得到 "${actual}"`);
+                },
+            };
+
+            // [ Event binding and generic helper functions remain the same ]
+            function bindEventListeners() {
+                DOMElements.currentYear.textContent = new Date().getFullYear();
+                DOMElements.themeToggleBtn.addEventListener("click", () => {
+                    const newTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+                    applyTheme(newTheme);
+                });
+                ["functionMode", "inputSource", "inputCiphertextFormat", "outputFormat"].forEach((id) => {
+                    DOMElements[id]?.addEventListener("click", handleOptionGroupClick);
+                });
+                DOMElements.btnExecute.addEventListener("click", CryptoModule.processData);
+                DOMElements.resetFormButton.addEventListener("click", UIModule.resetForm);
+                DOMElements.copyTextButton.addEventListener("click", () => HelperUtils.copyToClipboard("text"));
+                DOMElements.pasteTextButton.addEventListener("click", () => HelperUtils.pasteFromClipboard("text"));
+                DOMElements.clearTextButton.addEventListener("click", () => HelperUtils.clearValue("text"));
+                DOMElements.copyResultButton.addEventListener("click", () => HelperUtils.copyToClipboard("result"));
+                DOMElements.clearResultButton.addEventListener("click", () => HelperUtils.clearValue("result"));
+                DOMElements.swapTextResultButton.addEventListener("click", () => HelperUtils.swapTextAndResult);
+                DOMElements.generateIvButton.addEventListener("click", () => {
+                    DOMElements.iv.value = EncodingUtils.generateRandomNonceText();
+                    ValidationModule.validateNonce(DOMElements.iv.value);
+                });
+                DOMElements.fileInput.addEventListener("change", UIModule.handleFileUpload);
+                DOMElements.runTestsButton.addEventListener("click", TestModule.runAllTests.bind(TestModule));
+                DOMElements.secretKey.addEventListener("input", () => {
+                    DOMElements.msgKeyError.textContent =
+                        ValidationModule.validateSecretKey(DOMElements.secretKey.value) || "";
+                });
+                DOMElements.iv.addEventListener("input", () => {
+                    DOMElements.msgIVError.textContent = ValidationModule.validateNonce(DOMElements.iv.value) || "";
+                });
+            }
+            function handleOptionGroupClick(event) {
+                const selectedOption = event.target.closest(".option");
+                if (selectedOption && !selectedOption.classList.contains("disabled")) {
+                    const groupElement = this;
+                    groupElement.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
+                    selectedOption.classList.add("selected");
+                    updateCurrentSetting(groupElement.id, selectedOption.dataset.value);
+                    UIModule.toggleUI();
+                }
+            }
+            function selectOptionByValue(groupEl, value) {
+                if (!groupEl) return;
+                let found = false;
+                groupEl.querySelectorAll(".option").forEach((opt) => {
+                    const isMatch = opt.dataset.value === value;
+                    opt.classList.toggle("selected", isMatch);
+                    if (isMatch) found = true;
+                });
+                if (!found) {
+                    const firstVisible = groupEl.querySelector(".option:not([style*='display: none'])");
+                    if (firstVisible) {
+                        firstVisible.classList.add("selected");
+                        if (AppState.currentSettings[groupEl.id] === value) {
+                            updateCurrentSetting(groupEl.id, firstVisible.dataset.value);
+                        }
+                    }
+                }
+            }
+        </script>
+    </body>
+</html>
