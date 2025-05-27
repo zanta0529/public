@@ -898,7 +898,11 @@
                         const item = document.createElement("div");
                         item.className = "queue-item";
                         const shareString = btoa(JSON.stringify(share));
-                        item.innerHTML = `<span>ID: ${share.id} -> ${shareString.substring(0, 30)}...</span>`;
+
+                        const span = document.createElement("span");
+                        span.textContent = `ID: ${share.id} -> ${shareString.substring(0, 50)}...`;
+                        item.appendChild(span);
+
                         const removeBtn = document.createElement("button");
                         removeBtn.textContent = "移除";
                         removeBtn.onclick = () => {
