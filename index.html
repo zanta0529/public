@@ -1,83 +1,152 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant" data-theme="dark">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Zanta's Toolbox</title>
         <style>
-            * {
-                font-family: arial;
+            /* --- CSS 變數定義 (淺色 & 深色主題) --- */
+            :root {
+                --primary-color: #007bff;
+                --primary-hover-color: #0056b3;
+                --secondary-color: #6c757d;
+                --secondary-hover-color: #5a6268;
+                --bg-color: #f8f9fa;
+                --container-bg: #ffffff;
+                --text-color: #212529;
+                --border-color: #dee2e6;
+                --input-bg: #e9f5ff;
+                --input-focus-shadow: rgba(0, 123, 255, 0.25);
+                --button-disabled-bg: #ccc;
+                --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --error-color: #dc3545;
+                --error-bg: #fbebeb;
+                --success-color: #198754;
+                --success-bg: #d1e7dd;
+                --toast-bg: #323232;
+                --toast-color: #fff;
             }
 
-            .option-group {
-                flex-wrap: wrap;
-                /* 當元素過多時，自動換行 */
-                gap: 10px;
-                /* 元素之間的間距為 10px */
-                margin-bottom: 15px;
-                /* 底部外邊距為 15px */
+            :root[data-theme="dark"] {
+                --primary-color: #1e90ff;
+                --primary-hover-color: #4ca8ff;
+                --secondary-color: #778899;
+                --secondary-hover-color: #90a0b1;
+                --bg-color: #1e1e2f;
+                --container-bg: #2f2f4f;
+                --text-color: #e8e8f0;
+                --border-color: #4a4a5f;
+                --input-bg: #444;
+                --input-focus-shadow: rgba(30, 144, 255, 0.4);
+                --button-disabled-bg: #5a5a70;
+                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+                --error-color: #ff7f7f;
+                --error-bg: #4f2e2e;
+                --success-color: #60d978;
+                --success-bg: #2a4a30;
+                --toast-bg: #eaec6e;
+                --toast-color: #1e1e2f;
             }
 
-            .option {
-                padding: 10px 15px;
-                /* 內邊距設定為 10px 上下，15px 左右 */
-                border: 1px solid #ccc;
-                /* 設定邊框為 1px 寬，顏色為灰色 (#ccc) */
-                border-radius: 5px;
-                /* 邊框圓角半徑為 5px，讓角落圓滑 */
-                cursor: pointer;
-                /* 當滑鼠移到元素上時，顯示可點擊的游標 */
+            /* --- 基礎 & 佈局樣式 --- */
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                margin: 0;
+                padding: 2rem;
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                line-height: 1.6;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-height: 100vh;
+                box-sizing: border-box;
                 transition: background-color 0.3s, color 0.3s;
-                /* 當背景顏色或文字顏色變化時，過渡效果持續 0.3 秒 */
-                margin: 10px;
             }
 
-            /* 當滑鼠懸停時變色 */
-            .option:hover {
-                background-color: #007bff;
-                /* 背景顏色變為藍色 */
-                color: white;
-                /* 文字顏色為白色 */
+            .container {
+                background-color: var(--container-bg);
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: var(--box-shadow);
+                width: 100%;
+                max-width: 900px; /* 為了容納較長的標題，稍微加寬 */
+                margin-bottom: 2rem;
+                border: 1px solid var(--border-color);
+                transition: background-color 0.3s, border-color 0.3s;
+            }
+
+            h1,
+            h2 {
+                margin-top: 0;
+                color: var(--text-color);
+            }
+            h1 {
+                text-align: center;
+                margin-bottom: 1.5rem;
+            }
+            section {
+                margin-bottom: 2rem;
+            }
+
+            /* --- 組件：選項/頁籤組 (從樣本繼承) --- */
+            .option-group {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .option {
+                padding: 1rem 1.5rem;
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
                 cursor: pointer;
-                /* 游標變為手形指標 */
+                transition: background-color 0.3s, border-color 0.3s, transform 0.2s;
+                text-align: center;
+                font-size: 1.1em;
+                font-weight: 500;
+            }
+            .option:hover {
+                border-color: var(--primary-color);
+                background-color: var(--primary-color);
+                color: white;
+                transform: scale(1.02);
             }
 
-            .option.disabled {
-                pointer-events: none;
-                /* 停用滑鼠點擊事件，元素無法被點擊 */
-                opacity: 0.5;
-                /* 設定透明度為 0.5，使元素半透明 */
-                cursor: not-allowed;
-                /* 顯示不可用的游標，表示此元素無法互動 */
+            /* --- 組件：頁尾 --- */
+            footer {
+                text-align: center;
+                margin-top: auto;
+                padding-top: 1rem;
+                font-size: 0.9em;
+                color: var(--secondary-color);
+            }
+            #themeToggleBtn {
+                background: none;
+                border: 1px solid var(--border-color);
+                color: var(--text-color);
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1.2em;
+                margin-left: 10px;
+                vertical-align: middle;
+                transition: 0.3s;
+            }
+            #themeToggleBtn:hover {
+                background-color: var(--border-color);
             }
 
+            /* --- 響應式設計 --- */
             @media (max-width: 768px) {
-                .option {
-                    flex: 1 1 48%;
-                    /* 每行顯示兩個選項 */
+                body {
+                    padding: 1rem;
                 }
-
-                .button-group {
-                    flex-direction: column;
-                    /* 小螢幕上直排 */
-                }
-            }
-
-            @media (min-width: 769px) {
-                .button-group {
-                    flex-direction: row;
-                    /* 大螢幕上橫排 */
-                    flex-wrap: wrap;
-                    /* 允許換行 */
-                }
-
-                /* 大螢幕上按鈕均分空間 */
-                button {
-                    flex: 1;
+                .container {
+                    padding: 1.5rem;
+                    max-width: 95%;
                 }
             }
         </style>
-        <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-4KG6DFWZEM"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
@@ -88,15 +157,28 @@
             gtag("config", "G-4KG6DFWZEM");
         </script>
     </head>
-
     <body>
-        <section>
-            <label>Zanta's Toolbox</label>
-            <div id="func" class="option-group" />
-        </section>
+        <div class="container">
+            <header>
+                <h1>Zanta's Toolbox</h1>
+            </header>
+
+            <main>
+                <section>
+                    <div id="func" class="option-group"></div>
+                </section>
+            </main>
+        </div>
+
+        <footer>
+            <p>
+                &copy; <span id="currentYear"></span> Zanta's Toolbox
+                <button id="themeToggleBtn" title="切換主題">🌙</button>
+            </p>
+        </footer>
 
         <script>
-            // JSON 格式的資料
+            // JSON 格式的工具資料
             const optionsData = [
                 { uri: "mnemonic_manager.html", display: "加密貨幣錢包助記詞管理工具 / Mnemonic Manager" },
                 { uri: "decrypt_text.html", display: "加密貨幣錢包助記詞解密器 / Customized Mnemonic Decrypter" },
@@ -108,61 +190,55 @@
             ];
 
             document.addEventListener("DOMContentLoaded", () => {
-                // 生成選項
-                generateOptions(optionsData);
+                // --- DOM 元素 ---
+                const themeToggleBtn = document.getElementById("themeToggleBtn");
+                const currentYear = document.getElementById("currentYear");
+                const funcContainer = document.getElementById("func");
 
-                // 網頁載入時顯示選中的選項
-                updateStatus();
-            });
+                // --- 核心功能 ---
 
-            // 動態生成選項
-            function generateOptions(options) {
-                const container = document.getElementById("func");
-                container.innerHTML = ""; // 清空容器
+                // 應用主題
+                function applyTheme(theme) {
+                    document.documentElement.setAttribute("data-theme", theme);
+                    themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+                    localStorage.setItem("my-toolbox-theme", theme);
+                }
 
-                options.forEach((option) => {
-                    const optionElement = document.createElement("div");
-                    optionElement.classList.add("option");
-                    optionElement.dataset.value = option.id;
-                    optionElement.dataset.link = option.uri;
-                    optionElement.textContent = option.display;
+                // 動態生成工具選項
+                function generateOptions(options) {
+                    funcContainer.innerHTML = ""; // 清空容器
+                    options.forEach((option) => {
+                        const optionElement = document.createElement("div");
+                        optionElement.classList.add("option");
+                        optionElement.dataset.link = option.uri;
+                        optionElement.textContent = option.display;
+                        funcContainer.appendChild(optionElement);
+                    });
+                }
 
-                    // 將選項元素加入到容器中
-                    container.appendChild(optionElement);
+                // --- 事件監聽器 ---
+
+                // 主題切換按鈕
+                themeToggleBtn.addEventListener("click", () => {
+                    const newTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+                    applyTheme(newTheme);
                 });
-            }
 
-            // 顯示選取的選項
-            function updateStatus() {
-                const selectedOption = document.querySelector("#func .option.selected");
-                if (selectedOption) {
-                    // 取得顯示的文字並去除多餘空格
-                    const text = selectedOption.textContent.trim();
-
-                    // 取得 data-value 屬性的值
-                    const value = selectedOption.dataset.value;
-
-                    // FIXME: 讀取 data-link 的值並且開新瀏覽視窗
-                    const link = selectedOption.dataset.link;
-                    if (link) {
-                        window.open(link, "_blank"); // 開啟新視窗
+                // 工具選項點擊事件 (事件委派)
+                funcContainer.addEventListener("click", (e) => {
+                    const selectedOption = e.target.closest(".option");
+                    if (selectedOption) {
+                        const link = selectedOption.dataset.link;
+                        if (link) {
+                            window.open(link, "_blank"); // 在新分頁中開啟連結
+                        }
                     }
-                }
-            }
+                });
 
-            // 當選擇一個選項時
-            document.querySelector("#func").addEventListener("click", (e) => {
-                const selectedOption = e.target.closest(".option");
-                if (selectedOption) {
-                    // 移除所有選項的選中狀態
-                    document.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
-
-                    // 為當前選中的選項添加選中狀態
-                    selectedOption.classList.add("selected");
-
-                    // 更新顯示選取項目
-                    updateStatus();
-                }
+                // --- 初始化 ---
+                currentYear.textContent = new Date().getFullYear();
+                applyTheme(localStorage.getItem("my-toolbox-theme") || "dark");
+                generateOptions(optionsData); // 產生工具列表
             });
         </script>
     </body>
