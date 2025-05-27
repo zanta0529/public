@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Shamir's Secret Sharing Tool</title>
+        <style>
+            /* --- CSS 變數定義 (淺色 & 深色主題) --- */
+            :root {
+                --primary-color: #007bff;
+                --primary-hover-color: #0056b3;
+                --secondary-color: #6c757d;
+                --secondary-hover-color: #5a6268;
+                --bg-color: #f8f9fa;
+                --container-bg: #ffffff;
+                --text-color: #212529;
+                --border-color: #dee2e6;
+                --input-bg: #c3ddbf;
+                --input-focus-shadow: rgba(0, 123, 255, 0.25);
+                --button-disabled-bg: #ccc;
+                --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --table-header-bg: #f8f9fa;
+                --error-color: #dc3545;
+                --error-bg: #fbebeb;
+                --success-color: #198754;
+                --success-bg: #d1e7dd;
+                --queue-item-bg: #e9ecef;
+                --queue-item-border: #ced4da;
+                --mode-btn-active-bg: var(--container-bg);
+                --mode-btn-inactive-bg: var(--bg-color);
+            }
+
+            :root[data-theme="dark"] {
+                --primary-color: #1e90ff;
+                --primary-hover-color: #4ca8ff;
+                --secondary-color: #778899;
+                --secondary-hover-color: #90a0b1;
+                --bg-color: #1e1e2f;
+                --container-bg: #2f2f4f;
+                --text-color: #e8e8f0;
+                --border-color: #4a4a5f;
+                --input-bg: #444;
+                --input-focus-shadow: rgba(30, 144, 255, 0.4);
+                --button-disabled-bg: #5a5a70;
+                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+                --table-header-bg: #252540;
+                --error-color: #ff7f7f;
+                --error-bg: #4f2e2e;
+                --success-color: #60d978;
+                --success-bg: #2a4a30;
+                --queue-item-bg: #3a3a5f;
+                --queue-item-border: #5a5a70;
+                --mode-btn-active-bg: var(--container-bg);
+                --mode-btn-inactive-bg: var(--bg-color);
+            }
+
+            /* --- 基礎 & 佈局樣式 --- */
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                margin: 0;
+                padding: 2rem;
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                line-height: 1.6;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-height: 100vh;
+                box-sizing: border-box;
+                transition: background-color 0.3s, color 0.3s;
+            }
+
+            .container {
+                background-color: var(--container-bg);
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: var(--box-shadow);
+                width: 100%;
+                max-width: 80%;
+                margin-bottom: 2rem;
+                border: 1px solid var(--border-color);
+                transition: background-color 0.3s, border-color 0.3s;
+            }
+
+            h1 {
+                text-align: center;
+                margin-top: 0;
+                margin-bottom: 1.5rem;
+            }
+            h2 {
+                border-bottom: 2px solid var(--border-color);
+                padding-bottom: 0.5rem;
+                margin-bottom: 1.5rem;
+                color: var(--primary-color);
+            }
+
+            /* --- 模式切換 (Tabs) --- */
+            .mode-switcher {
+                display: flex;
+                border-bottom: 1px solid var(--border-color);
+                margin-bottom: 2rem;
+            }
+            .mode-btn {
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-bottom: 3px solid transparent;
+                background-color: transparent;
+                color: var(--secondary-color);
+                font-size: 1.1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: color 0.3s, border-color 0.3s;
+            }
+            .mode-btn:hover {
+                color: var(--primary-color);
+            }
+            .mode-btn.active {
+                color: var(--primary-color);
+                border-bottom-color: var(--primary-color);
+            }
+
+            .content-section {
+                display: none;
+            }
+            .content-section.active {
+                display: block;
+                animation: fadeIn 0.5s ease;
+            }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+
+            /* --- 表單 & 輸入框 --- */
+            .form-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+                padding-top: 20px;
+            }
+            .form-group {
+                display: flex;
+                flex-direction: column;
+            }
+            label {
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+            }
+            textarea,
+            input {
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                box-sizing: border-box;
+                font-size: 1em;
+                background-color: var(--input-bg);
+                color: var(--text-color);
+                transition: 0.3s;
+            }
+            textarea:focus,
+            input:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
+            }
+
+            /* --- 按鈕 --- */
+            .button-group {
+                display: flex;
+                gap: 1rem;
+                margin-top: 1.5rem;
+            }
+            button {
+                padding: 0.75rem 1.5rem;
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1em;
+                font-weight: 600;
+                transition: background-color 0.3s, transform 0.1s;
+            }
+            button.secondary {
+                background-color: var(--secondary-color);
+            }
+            button.secondary:hover:not(:disabled) {
+                background-color: var(--secondary-hover-color);
+            }
+            button:hover:not(:disabled) {
+                filter: brightness(110%);
+                transform: translateY(-1px);
+            }
+            button:disabled {
+                background-color: var(--button-disabled-bg);
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+            .action-btn {
+                font-size: 0.8em;
+                padding: 0.3rem 0.6rem;
+            }
+            .action-button-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            /* --- 結果與表格 --- */
+            #splitResultArea,
+            #reconstructionResult {
+                margin-top: 2rem;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+            th,
+            td {
+                padding: 0.75rem;
+                border: 1px solid var(--border-color);
+                text-align: left;
+                vertical-align: middle;
+                word-break: break-all;
+            }
+            th {
+                background-color: var(--table-header-bg);
+                font-weight: 600;
+            }
+            td:last-child {
+                width: 120px;
+            } /* 給操作欄一個固定寬度 */
+
+            /* --- 重建佇列 --- */
+            #reconstructionQueue {
+                border: 1px dashed var(--border-color);
+                border-radius: 5px;
+                padding: 1rem;
+                min-height: 100px;
+                margin-bottom: 1.5rem;
+            }
+            .queue-progress {
+                text-align: center;
+                color: var(--secondary-color);
+                font-weight: 600;
+                margin-bottom: 1rem;
+            }
+            .queue-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: var(--queue-item-bg);
+                padding: 0.5rem 1rem;
+                border-radius: 5px;
+                margin-bottom: 0.5rem;
+                font-family: monospace;
+                font-size: 0.9em;
+            }
+            .queue-item button {
+                background-color: var(--error-color);
+            }
+
+            /* --- 輸出/錯誤提示 --- */
+            .output-box {
+                padding: 1rem;
+                border-radius: 5px;
+                white-space: pre-wrap;
+                word-break: break-all;
+                min-height: 50px;
+                font-size: 1.1em;
+                line-height: 1.5;
+                border-left: 5px solid;
+                margin-top: 1.5rem;
+            }
+            .output-box.error {
+                color: var(--error-color);
+                border-color: var(--error-color);
+                background-color: var(--error-bg);
+            }
+            .output-box.success {
+                color: var(--success-color);
+                border-color: var(--success-color);
+                background-color: var(--success-bg);
+            }
+
+            /* --- 頁尾 --- */
+            footer {
+                text-align: center;
+                margin-top: 2rem;
+                font-size: 0.9em;
+                color: var(--secondary-color);
+            }
+            #themeToggleBtn {
+                background: none;
+                border: 1px solid var(--border-color);
+                color: var(--text-color);
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1.2em;
+                margin-left: 10px;
+                vertical-align: middle;
+                transition: 0.3s;
+            }
+            #themeToggleBtn:hover {
+                background-color: var(--border-color);
+            }
+
+            /* --- 響應式設計 --- */
+            @media (max-width: 768px) {
+                body {
+                    padding: 1rem;
+                }
+                .container {
+                    padding: 1.5rem;
+                }
+                .form-grid {
+                    grid-template-columns: 1fr;
+                }
+                .mode-btn {
+                    padding: 0.75rem 1rem;
+                    font-size: 1rem;
+                }
+                table,
+                thead,
+                tbody,
+                th,
+                td,
+                tr {
+                    display: block;
+                }
+                thead tr {
+                    position: absolute;
+                    top: -9999px;
+                    left: -9999px;
+                }
+                tr {
+                    border: 1px solid var(--border-color);
+                    margin-bottom: 1rem;
+                }
+                td {
+                    border: none;
+                    border-bottom: 1px solid #eee;
+                    position: relative;
+                    padding-left: 50%;
+                }
+                td:before {
+                    position: absolute;
+                    top: 6px;
+                    left: 6px;
+                    width: 45%;
+                    padding-right: 10px;
+                    white-space: nowrap;
+                    font-weight: bold;
+                }
+                td:nth-of-type(1):before {
+                    content: "ID";
+                }
+                td:nth-of-type(2):before {
+                    content: "Base64 分割值";
+                }
+                td:nth-of-type(3):before {
+                    content: "操作";
+                }
+                td:last-child {
+                    width: auto;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Shamir's Secret Sharing (SSS)</h1>
+
+            <div class="mode-switcher">
+                <button id="modeSplitBtn" class="mode-btn active">分割</button>
+                <button id="modeReconstructBtn" class="mode-btn">重建</button>
+            </div>
+
+            <div id="splitSection" class="content-section active">
+                <h2>分割秘密</h2>
+                <div class="form-group">
+                    <label for="originalString">原始字串</label>
+                    <textarea id="originalString" rows="3" placeholder="請在此輸入任何您想加密保護的文字..."></textarea>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="n">總分割數 (n)</label>
+                        <input type="number" id="n" min="2" placeholder="e.g., 5" />
+                    </div>
+                    <div class="form-group">
+                        <label for="k">重建門檻值 (k)</label>
+                        <input type="number" id="k" min="2" placeholder="e.g., 3" />
+                    </div>
+                </div>
+                <div id="splitError" class="output-box error" style="display: none"></div>
+                <div class="button-group">
+                    <button id="generateBtn">產生分割值</button>
+                    <button id="clearSplitBtn" class="secondary">清除</button>
+                </div>
+                <div id="splitResultArea" style="display: none">
+                    <h2>分割結果</h2>
+                    <table id="splitResultTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px">ID</th>
+                                <th>Base64 分割值</th>
+                                <th style="width: 100px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="reconstructSection" class="content-section">
+                <h2>重建秘密</h2>
+
+                <div id="reconstructionQueue">
+                    <div id="queueProgress" class="queue-progress">請從「分割」頁面加入分割值，或從下方手動貼上</div>
+                    <div id="queueList"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="customShareInput">手動貼上 Base64 分割值</label>
+                    <textarea id="customShareInput" rows="2" placeholder="貼上 Base64 編碼的分割值..."></textarea>
+                    <div class="button-group" style="margin-top: 0.5rem; justify-content: flex-end">
+                        <button id="addCustomShareBtn" class="secondary" style="flex: 0 1 auto">加入佇列</button>
+                    </div>
+                </div>
+
+                <div id="reconstructionResult" class="output-box" style="display: none"></div>
+
+                <div class="button-group">
+                    <button id="reconstructBtn">重建秘密</button>
+                    <button id="clearQueueBtn" class="secondary">清空佇列</button>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <p>
+                &copy; <span id="currentYear"></span> Zanta's SSS Tool
+                <button id="themeToggleBtn" title="切換主題">🌙</button>
+            </p>
+        </footer>
+
+        <script>
+            class ShamirSecretSharing {
+                constructor(secret, n, k) {
+                    if (n < 2 || k < 2 || k > n) {
+                        throw new Error("k 和 n 必須是大於等於 2 的整數，且 k <= n。");
+                    }
+                    this.prime = 65537;
+                    this.secret = Array.from(new TextEncoder().encode(secret));
+                    if (!this.secret.length) {
+                        throw new Error("秘密不能為空。");
+                    }
+                    this.n = n;
+                    this.k = k;
+                }
+                _modPow(base, exp, mod) {
+                    let res = 1n;
+                    base = BigInt(base);
+                    exp = BigInt(exp);
+                    mod = BigInt(mod);
+                    while (exp > 0) {
+                        if (exp % 2n === 1n) res = (res * base) % mod;
+                        base = (base * base) % mod;
+                        exp /= 2n;
+                    }
+                    return Number(res);
+                }
+                static modInverse(a, m) {
+                    a = BigInt(a);
+                    m = BigInt(m);
+                    if (a === 0n) return 0;
+                    let m0 = m,
+                        x0 = 0n,
+                        x1 = 1n;
+                    if (m === 1n) return 0;
+                    while (a > 1n) {
+                        let q = a / m;
+                        [a, m] = [m, a % m];
+                        [x0, x1] = [x1 - q * x0, x0];
+                    }
+                    if (x1 < 0n) x1 += m0;
+                    return Number(x1);
+                }
+                generateShares() {
+                    const coefficients = Array.from({ length: this.k - 1 }, () =>
+                        Math.floor(Math.random() * this.prime)
+                    );
+                    const shares = [];
+                    for (let i = 1; i <= this.n; i++) {
+                        const share = this.secret.map((byte) => {
+                            let y = BigInt(byte);
+                            coefficients.forEach((coeff, j) => {
+                                const powerOfX = this._modPow(i, j + 1, this.prime);
+                                y = (y + BigInt(coeff) * BigInt(powerOfX)) % BigInt(this.prime);
+                            });
+                            return Number(y);
+                        });
+                        shares.push({ id: i, value: share });
+                    }
+                    return shares;
+                }
+                reconstructSecret(shares) {
+                    if (shares.length < this.k) {
+                        throw new Error(`至少需要 ${this.k} 份分割值才能重建。`);
+                    }
+                    const firstShareLength = shares[0].value.length;
+                    if (!shares.every((s) => s.value.length === firstShareLength)) {
+                        throw new Error("所有分割值的長度必須一致。");
+                    }
+                    const reconstructedBytes = [];
+                    for (let i = 0; i < firstShareLength; i++) {
+                        const points = shares.slice(0, this.k).map((share) => ({ x: share.id, y: share.value[i] }));
+                        let secretByte = 0n;
+                        const prime = BigInt(this.prime);
+                        for (let j = 0; j < this.k; j++) {
+                            let L_j = 1n;
+                            const xj = BigInt(points[j].x);
+                            for (let m = 0; m < this.k; m++) {
+                                if (j !== m) {
+                                    const xm = BigInt(points[m].x);
+                                    const numerator = 0n - xm;
+                                    let denominator = xj - xm;
+                                    denominator = ((denominator % prime) + prime) % prime;
+                                    L_j =
+                                        (L_j * numerator * BigInt(ShamirSecretSharing.modInverse(denominator, prime))) %
+                                        prime;
+                                }
+                            }
+                            secretByte = (secretByte + BigInt(points[j].y) * L_j) % prime;
+                        }
+                        if (secretByte < 0) secretByte += prime;
+                        reconstructedBytes.push(Number(secretByte));
+                    }
+                    return new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array(reconstructedBytes));
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                // --- State ---
+                let sssInstance = null;
+                let reconstructionQueue = [];
+
+                // --- DOM Elements ---
+                const modeSplitBtn = document.getElementById("modeSplitBtn");
+                const modeReconstructBtn = document.getElementById("modeReconstructBtn");
+                const splitSection = document.getElementById("splitSection");
+                const reconstructSection = document.getElementById("reconstructSection");
+
+                const originalString = document.getElementById("originalString");
+                const nInput = document.getElementById("n");
+                const kInput = document.getElementById("k");
+                const generateBtn = document.getElementById("generateBtn");
+                const clearSplitBtn = document.getElementById("clearSplitBtn");
+                const splitError = document.getElementById("splitError");
+                const splitResultArea = document.getElementById("splitResultArea");
+                const splitResultTableBody = document.querySelector("#splitResultTable tbody");
+
+                const queueProgress = document.getElementById("queueProgress");
+                const queueList = document.getElementById("queueList");
+                const customShareInput = document.getElementById("customShareInput");
+                const addCustomShareBtn = document.getElementById("addCustomShareBtn");
+                const reconstructBtn = document.getElementById("reconstructBtn");
+                const clearQueueBtn = document.getElementById("clearQueueBtn");
+                const reconstructionResult = document.getElementById("reconstructionResult");
+
+                const themeToggleBtn = document.getElementById("themeToggleBtn");
+                document.getElementById("currentYear").textContent = new Date().getFullYear();
+
+                // --- Functions ---
+                const switchMode = (mode) => {
+                    if (mode === "split") {
+                        modeSplitBtn.classList.add("active");
+                        modeReconstructBtn.classList.remove("active");
+                        splitSection.classList.add("active");
+                        reconstructSection.classList.remove("active");
+                    } else {
+                        modeSplitBtn.classList.remove("active");
+                        modeReconstructBtn.classList.add("active");
+                        splitSection.classList.remove("active");
+                        reconstructSection.classList.add("active");
+                    }
+                };
+
+                const showSplitError = (message) => {
+                    splitError.textContent = message;
+                    splitError.style.display = "block";
+                };
+
+                const hideSplitError = () => {
+                    splitError.style.display = "none";
+                };
+
+                const showReconstructionResult = (message, type) => {
+                    reconstructionResult.textContent = message;
+                    reconstructionResult.className = `output-box ${type}`;
+                    reconstructionResult.style.display = "block";
+                };
+
+                const hideReconstructionResult = () => {
+                    reconstructionResult.style.display = "none";
+                };
+
+                const updateQueueUI = () => {
+                    queueList.innerHTML = "";
+                    if (reconstructionQueue.length === 0) {
+                        queueProgress.textContent = sssInstance
+                            ? `請選擇 0 / ${sssInstance.k} 份分割值`
+                            : "請先產生或手動加入分割值";
+                    } else {
+                        const k = sssInstance ? sssInstance.k : reconstructionQueue.length;
+                        queueProgress.textContent = `已選擇 ${reconstructionQueue.length} / ${k} 份分割值`;
+                    }
+                    reconstructionQueue.forEach((share) => {
+                        const item = document.createElement("div");
+                        item.className = "queue-item";
+                        item.innerHTML = `<span>ID: ${share.id} -> ${btoa(JSON.stringify(share)).substring(
+                            0,
+                            30
+                        )}...</span>`;
+                        const removeBtn = document.createElement("button");
+                        removeBtn.textContent = "移除";
+                        removeBtn.onclick = () => {
+                            reconstructionQueue = reconstructionQueue.filter((s) => s.id !== share.id);
+                            updateQueueUI();
+                        };
+                        item.appendChild(removeBtn);
+                        queueList.appendChild(item);
+                    });
+                    reconstructBtn.disabled = !sssInstance || reconstructionQueue.length < sssInstance.k;
+                };
+
+                const handleAddToQueue = (share) => {
+                    if (reconstructionQueue.some((s) => s.id === share.id)) {
+                        alert(`ID 為 ${share.id} 的分割值已在佇列中。`);
+                        return;
+                    }
+                    reconstructionQueue.push(share);
+                    updateQueueUI();
+                    switchMode("reconstruct");
+                };
+
+                // --- Event Listeners ---
+                modeSplitBtn.addEventListener("click", () => switchMode("split"));
+                modeReconstructBtn.addEventListener("click", () => switchMode("reconstruct"));
+
+                generateBtn.addEventListener("click", () => {
+                    hideSplitError();
+                    splitResultArea.style.display = "none";
+                    splitResultTableBody.innerHTML = "";
+
+                    try {
+                        const secret = originalString.value;
+                        const n = parseInt(nInput.value);
+                        const k = parseInt(kInput.value);
+                        if (!secret) throw new Error("原始字串不能為空。");
+                        sssInstance = new ShamirSecretSharing(secret, n, k);
+                        const shares = sssInstance.generateShares();
+
+                        shares.forEach((share) => {
+                            const row = splitResultTableBody.insertRow();
+                            const base64Share = btoa(JSON.stringify(share));
+                            row.insertCell(0).textContent = share.id;
+                            row.insertCell(1).textContent = base64Share;
+
+                            const actionCell = row.insertCell(2);
+                            const container = document.createElement("div");
+                            container.className = "action-button-container";
+
+                            const addBtn = document.createElement("button");
+                            addBtn.textContent = "加入";
+                            addBtn.title = "加入重建佇列";
+                            addBtn.className = "action-btn";
+                            addBtn.onclick = () => handleAddToQueue(share);
+
+                            const copyBtn = document.createElement("button");
+                            copyBtn.textContent = "複製";
+                            copyBtn.title = "複製 Base64 分割值";
+                            copyBtn.className = "action-btn secondary";
+                            copyBtn.onclick = () => {
+                                navigator.clipboard
+                                    .writeText(base64Share)
+                                    .then(() => alert(`ID ${share.id} 的分割值已複製到剪貼簿！`))
+                                    .catch((err) => alert("複製失敗: " + err));
+                            };
+
+                            container.appendChild(addBtn);
+                            container.appendChild(copyBtn);
+                            actionCell.appendChild(container);
+                        });
+
+                        splitResultArea.style.display = "block";
+                        reconstructionQueue = [];
+                        updateQueueUI();
+                    } catch (e) {
+                        showSplitError(`錯誤: ${e.message}`);
+                    }
+                });
+
+                clearSplitBtn.addEventListener("click", () => {
+                    originalString.value = "";
+                    nInput.value = "";
+                    kInput.value = "";
+                    hideSplitError();
+                    splitResultArea.style.display = "none";
+                    splitResultTableBody.innerHTML = "";
+                    sssInstance = null;
+                });
+
+                addCustomShareBtn.addEventListener("click", () => {
+                    hideReconstructionResult();
+                    try {
+                        const base64Text = customShareInput.value.trim();
+                        if (!base64Text) throw new Error("輸入不能為空。");
+                        const jsonText = atob(base64Text);
+                        const share = JSON.parse(jsonText);
+                        if (typeof share.id !== "number" || !Array.isArray(share.value)) {
+                            throw new Error("Base64 解碼後的格式不正確，缺少 id 或 value 欄位。");
+                        }
+                        if (!sssInstance) {
+                            showReconstructionResult("請先在『分割』頁面定義 n 和 k 值，以設定重建參數。", "error");
+                            return;
+                        }
+                        handleAddToQueue(share);
+                        customShareInput.value = "";
+                    } catch (e) {
+                        showReconstructionResult(`加入失敗: ${e.message}`, "error");
+                    }
+                });
+
+                clearQueueBtn.addEventListener("click", () => {
+                    reconstructionQueue = [];
+                    hideReconstructionResult();
+                    updateQueueUI();
+                });
+
+                reconstructBtn.addEventListener("click", () => {
+                    try {
+                        if (!sssInstance) throw new Error("請先在『分割』頁面產生分割值以設定參數。");
+                        if (reconstructionQueue.length < sssInstance.k)
+                            throw new Error(
+                                `需要 ${sssInstance.k} 份分割值，目前只有 ${reconstructionQueue.length} 份。`
+                            );
+                        const reconstructedSecret = sssInstance.reconstructSecret(reconstructionQueue);
+                        showReconstructionResult(reconstructedSecret, "success");
+                    } catch (e) {
+                        showReconstructionResult(`重建失敗: ${e.message}`, "error");
+                    }
+                });
+
+                // --- Theme Logic ---
+                const applyTheme = (theme) => {
+                    document.documentElement.setAttribute("data-theme", theme);
+                    themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+                    localStorage.setItem("shamir_theme", theme);
+                };
+                themeToggleBtn.addEventListener("click", () => {
+                    const newTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+                    applyTheme(newTheme);
+                });
+                applyTheme(localStorage.getItem("shamir_theme") || "dark");
+                updateQueueUI();
+            });
+        </script>
+    </body>
+</html>
