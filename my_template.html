@@ -25,6 +25,9 @@
                 --success-bg: #d1e7dd;
                 --toast-bg: #323232;
                 --toast-color: #fff;
+                /* --- (新增) 來自 crypto_manager.html 的提示文字顏色變數 --- */
+                --note-color: #083b06;
+                --note-bg: #baf1ac;
             }
 
             :root[data-theme="dark"] {
@@ -46,6 +49,9 @@
                 --success-bg: #2a4a30;
                 --toast-bg: #eaec6e;
                 --toast-color: #1e1e2f;
+                /* --- (新增) 來自 crypto_manager.html 的提示文字顏色變數 --- */
+                --note-color: #a2f58d;
+                --note-bg: #2a5028;
             }
 
             /* --- 基礎 & 佈局樣式 --- */
@@ -178,6 +184,17 @@
                 border-color: var(--primary-color);
             }
 
+            /* --- (新增) 組件：提示文字樣式 (參考 crypto_manager.html) --- */
+            .hint-note {
+                font-size: 0.9em;
+                color: var(--note-color);
+                background-color: var(--note-bg);
+                padding: 0.5rem 0.8rem;
+                border-radius: 5px;
+                margin-top: 0.5rem;
+                transition: all 0.3s ease-in-out;
+            }
+
             /* --- 組件：訊息提示框 --- */
             .output-box {
                 padding: 1rem;
@@ -270,7 +287,7 @@
                 <section>
                     <h2>按鈕組件</h2>
                     <div class="button-group">
-                        <button id="toastBtn">主要按鈕 (顯示 Toast)</button>
+                        <button id="toastBtn">主要按鈕（按下可顯示 Toast 提示訊息）</button>
                         <button class="secondary">次要按鈕</button>
                         <button disabled>禁用按鈕</button>
                     </div>
@@ -283,7 +300,10 @@
                         <div class="option" data-value="opt2">選項二</div>
                         <div class="option" data-value="opt3">選項三</div>
                     </div>
-                    <p>當前選擇: <span id="optionStatus">選項一 (opt1)</span></p>
+                    <p>您選擇了：<span id="optionStatus"></span></p>
+                    <div id="option1Hint" class="hint-note" style="display: none">
+                        這是一個當「選項一」被選擇時才會顯示的特殊提示。
+                    </div>
                 </section>
 
                 <section>
@@ -318,9 +338,10 @@
                 const themeToggleBtn = document.getElementById("themeToggleBtn");
                 const currentYear = document.getElementById("currentYear");
                 const toast = document.getElementById("toast");
-                const toastBtn = document.getElementById("toastBtn"); // (新增)
+                const toastBtn = document.getElementById("toastBtn");
                 const demoOptionGroup = document.getElementById("demoOptionGroup");
                 const optionStatus = document.getElementById("optionStatus");
+                const option1Hint = document.getElementById("option1Hint");
 
                 let toastTimer = null;
 
@@ -344,13 +365,20 @@
                     }, 3000);
                 }
 
-                // 更新選項狀態顯示
+                // 更新選項狀態顯示，並根據選擇顯示/隱藏提示
                 function updateOptionStatus() {
                     const selected = demoOptionGroup.querySelector(".option.selected");
                     if (selected) {
                         const text = selected.textContent.trim();
                         const value = selected.dataset.value;
-                        optionStatus.textContent = `${text} (${value})`;
+                        optionStatus.textContent = `${text}（${value}）`;
+
+                        // 檢查所選選項並控制提示的顯示
+                        if (value === "opt1") {
+                            option1Hint.style.display = "block";
+                        } else {
+                            option1Hint.style.display = "none";
+                        }
                     }
                 }
 
@@ -362,7 +390,7 @@
                     applyTheme(newTheme);
                 });
 
-                // (新增) 顯示 Toast 範例按鈕
+                // 顯示 Toast 範例按鈕
                 toastBtn.addEventListener("click", () => {
                     showToast("這是一個 Toast 提示訊息！");
                 });
@@ -370,19 +398,18 @@
                 // 選項組點擊事件 (事件委派)
                 demoOptionGroup.addEventListener("click", (e) => {
                     const selectedOption = e.target.closest(".option");
-                    if (selectedOption) {
-                        // 移除所有選項的選中狀態
+                    if (selectedOption && !selectedOption.classList.contains("selected")) {
+                        // 防止重複點擊觸發
                         demoOptionGroup.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
-                        // 為當前選中的選項添加選中狀態
                         selectedOption.classList.add("selected");
-                        // 更新狀態顯示
-                        updateOptionStatus();
+                        updateOptionStatus(); // 更新狀態顯示與提示
                     }
                 });
 
                 // --- 初始化 ---
                 currentYear.textContent = new Date().getFullYear();
                 applyTheme(localStorage.getItem("my-app-theme") || "dark"); // 載入時應用已儲存或預設的主題
+                updateOptionStatus(); // 頁面載入時立即執行一次，確保初始狀態正確
             });
         </script>
     </body>
