@@ -317,6 +317,11 @@
                 color: var(--error-color);
                 font-weight: bold;
             }
+            .text-only-note {
+                color: var(--warning-color);
+                font-weight: bold;
+                padding-left: 1rem;
+            }
 
             /* --- 組件：頁尾 --- */
             footer {
@@ -462,7 +467,7 @@
             </div>
 
             <div class="input-group">
-                <label for="secretKey">金鑰 (純文字)</label>
+                <label for="secretKey">金鑰<span class="text-only-note">⚠️【僅支援純文字】</span></label>
                 <input type="text" id="secretKey" placeholder="輸入金鑰文字" />
                 <div id="keyNote" class="alert alert-note">
                     金鑰文字將以 UTF-8 編碼。編碼後的「位元組長度」需符合所選演算法要求。
@@ -471,7 +476,10 @@
             </div>
 
             <div id="ivGroup" class="input-group">
-                <label for="iv" id="ivLabel">初始向量 (IV) / Nonce</label>
+                <label for="iv"
+                    ><span id="ivLabel"></span>
+                    <span class="text-only-note">⚠️【僅支援純文字】</span>
+                </label>
                 <div style="display: flex; gap: 10px; align-items: center">
                     <input type="text" id="iv" placeholder="輸入 IV / Nonce 文字" style="flex-grow: 1" />
                     <button id="generateIvButton" data-type="secondary">產生隨機值</button>
@@ -481,13 +489,13 @@
             </div>
 
             <div id="aadGroup" class="input-group" style="display: none">
-                <label for="aad">附加驗證資料 (AAD)</label>
+                <label for="aad">附加驗證資料（AAD）<span class="text-only-note">⚠️【僅支援純文字】</span></label>
                 <textarea id="aad" rows="2" placeholder="輸入 AAD 文字（可選）"></textarea>
                 <div class="alert alert-note">此資料不會被加密，但會影響 GCM / ChaCha20 模式的認證標籤。</div>
             </div>
 
             <div id="tagLengthGroup" class="input-group" style="display: none">
-                <label class="label-text">認證標籤長度 (Bits)</label>
+                <label class="label-text">認證標籤長度（Bits）</label>
                 <div id="tagLength" class="option-group">
                     <div class="option selected" data-value="128">128</div>
                     <div class="option" data-value="120">120</div>
@@ -749,6 +757,7 @@
 
                     // Update dynamic labels and notes
                     const isChaCha = algorithmFamily === "ChaCha20";
+
                     DOMElements.ivLabel.textContent = isChaCha ? "Nonce" : "初始向量 (IV)";
                     DOMElements.iv.placeholder = isChaCha
                         ? `需 ${CHACHA_NONCE_BYTE_LENGTH} 位元組`
@@ -757,7 +766,6 @@
                         ? `金鑰文字將以 UTF-8 編碼。編碼後的「位元組長度」<strong>必須</strong>是 <strong>${CHACHA_KEY_BYTE_LENGTH}</strong> 位元組。`
                         : `金鑰文字將以 UTF-8 編碼。編碼後的「位元組長度」需符合上方所選金鑰長度。`;
 
-                    // *** REFINED IV/NONCE NOTE LOGIC AS PER USER FEEDBACK ***
                     let baseNote,
                         warningNote = "";
                     if (isChaCha) {
@@ -773,7 +781,6 @@
                         }
                     }
                     DOMElements.ivNote.innerHTML = baseNote + (warningNote ? `<br/>${warningNote}` : "");
-                    // *** END OF REFINEMENT ***
 
                     // Update security notes
                     DOMElements["securityNote-AES"].style.display = !isChaCha ? "list-item" : "none";
