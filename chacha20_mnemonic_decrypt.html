@@ -22,7 +22,6 @@
                 --input-bg: #c3ddbf;
                 --input-focus-shadow: rgba(0, 123, 255, 0.25);
             }
-
             :root[data-theme="dark"] {
                 --header-color: #fff;
                 --primary-color: #1e90ff;
@@ -40,7 +39,6 @@
                 --input-bg: #444;
                 --input-focus-shadow: rgba(30, 144, 255, 0.4);
             }
-
             body {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                 line-height: 1.6;
@@ -79,7 +77,8 @@
                 color: var(--text-color);
             }
             textarea,
-            input[type="password"] {
+            input[type="password"],
+            input[type="text"] {
                 width: 100%;
                 padding: 12px;
                 border: 1px solid var(--border-color);
@@ -91,7 +90,8 @@
                 transition: background-color 0.3s, color 0.3s, border-color 0.3s;
             }
             textarea:focus,
-            input[type="password"]:focus {
+            input[type="password"]:focus,
+            input[type="text"]:focus {
                 outline: none;
                 border-color: var(--primary-color);
                 box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
@@ -213,7 +213,31 @@
             #themeToggleBtn:hover {
                 background-color: var(--border-color);
             }
-
+            .password-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .toggle-password-icon {
+                position: absolute;
+                right: 12px;
+                cursor: pointer;
+                color: var(--secondary-color);
+                transition: color 0.2s;
+            }
+            .toggle-password-icon:hover {
+                color: var(--text-color);
+            }
+            .toggle-password-icon svg {
+                width: 20px;
+                height: 20px;
+                vertical-align: middle;
+                fill: currentColor;
+            }
+            .password-wrapper input[type="password"],
+            .password-wrapper input[type="text"] {
+                padding-right: 40px;
+            }
             @media (max-width: 600px) {
                 body {
                     padding: 10px;
@@ -232,7 +256,8 @@
                     font-size: 1em;
                 }
                 textarea,
-                input[type="password"] {
+                input[type="password"],
+                input[type="text"] {
                     padding: 10px;
                 }
                 button#copyBtn {
@@ -256,14 +281,13 @@
                             rows="8"
                             placeholder="貼上由 ChaCha20 加密工具產生的純 JSON 資料，或經 Base64 編碼的 JSON 資料"
                         ></textarea>
-                        <div class="field-note">
-                            <strong>💡 注意：</strong>請確保資料格式正確，且 JSON 內容包含以下欄位：
-                            <code>salt</code>、<code>iterations</code>、<code>nonce</code>、<code>ciphertext</code>
-                        </div>
                     </div>
                     <div class="form-group">
                         <label for="passphrase">密碼短語</label>
-                        <input type="password" id="passphrase" placeholder="輸入您的密碼短語" />
+                        <div class="password-wrapper">
+                            <input type="password" id="passphrase" placeholder="輸入您的密碼短語" />
+                            <span id="togglePassword" class="toggle-password-icon" title="顯示/隱藏密碼"></span>
+                        </div>
                     </div>
                     <button id="decryptBtn">
                         <span class="btn-text">🔓 解密</span>
@@ -285,26 +309,24 @@
         </footer>
 
         <script type="module">
-            // 匯入 noble-ciphers 函式庫
             import { chacha20poly1305 } from "https://cdn.jsdelivr.net/npm/@noble/ciphers/esm/chacha.js";
 
-            // 定義 ChaCha20-Poly1305 相關常數
             const KEY_LENGTH_BITS = 256;
+            const LEGACY_CHA_ITERATIONS = 300000; // 用於解密此工具舊格式的備用值
+
+            const SVG_EYE_OPEN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`;
+            const SVG_EYE_SLASH = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`;
 
             document.getElementById("currentYear").textContent = new Date().getFullYear();
 
-            // 工具函式：Base64 轉 Uint8Array，包含錯誤處理
             function fromBase64(base64) {
                 try {
                     return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
                 } catch (e) {
-                    throw new Error(
-                        `Base64 解碼失敗：輸入的字串 '${base64.substring(0, 20)}...' 可能不是有效的 Base64。`
-                    );
+                    throw new Error(`Base64 解碼失敗： '${base64.substring(0, 20)}...' 可能不是有效 Base64。`);
                 }
             }
 
-            // 從密碼短語衍生出原始金鑰位元組
             async function deriveKeyBytes(passphrase, salt, iterations) {
                 const encoder = new TextEncoder();
                 const keyMaterial = await window.crypto.subtle.importKey(
@@ -314,53 +336,75 @@
                     false,
                     ["deriveBits"]
                 );
-
                 const keyBytes = await window.crypto.subtle.deriveBits(
-                    {
-                        name: "PBKDF2",
-                        salt,
-                        iterations,
-                        hash: "SHA-256",
-                    },
+                    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
                     keyMaterial,
-                    KEY_LENGTH_BITS // 衍生 256 位元
+                    KEY_LENGTH_BITS
                 );
                 return new Uint8Array(keyBytes);
             }
 
-            // ChaCha20-Poly1305 的核心解密函式
             async function decryptData(jsonData, passphrase) {
-                const { salt, iterations, nonce, ciphertext } = jsonData;
+                let saltB64, iterations, nonceB64, ciphertextWithTagB64;
 
-                // 驗證必要的 JSON 欄位
-                const requiredFields = ["salt", "iterations", "nonce", "ciphertext"];
-                const missingFields = requiredFields.filter((f) => !(f in jsonData));
-                if (missingFields.length > 0) {
-                    throw new Error(`JSON 資料缺少必要欄位：${missingFields.join(", ")}`);
+                if (jsonData.keyDerivation && jsonData.encryption) {
+                    // 處理新版結構化 JSON
+                    console.log("偵測到新版 ChaCha20 結構化格式。");
+                    const kd = jsonData.keyDerivation;
+                    const encData = jsonData.encryption;
+                    if (kd.name !== "PBKDF2" || encData.name !== "ChaCha20-Poly1305")
+                        throw new Error("不支援的演算法組合。");
+                    saltB64 = kd.salt;
+                    iterations = kd.iterations;
+                    nonceB64 = encData.nonce;
+                    ciphertextWithTagB64 = encData.ciphertext;
+                } else if (jsonData.algorithm && jsonData.algorithm.name === "ChaCha20-Poly1305") {
+                    // 處理此工具的舊版扁平化 ChaCha20 格式
+                    console.log("偵測到舊版 ChaCha20 扁平化格式。");
+                    saltB64 = jsonData.salt;
+                    nonceB64 = jsonData.nonce;
+                    ciphertextWithTagB64 = jsonData.ciphertext;
+                    iterations = jsonData.iterations || LEGACY_CHA_ITERATIONS;
+                } else {
+                    throw new Error("無法識別的密文格式或缺少必要的演算法資訊。");
                 }
-                if (jsonData.algorithm?.name !== "ChaCha20-Poly1305") {
-                    throw new Error("演算法不匹配：此工具僅支援由對應的 ChaCha20-Poly1305 加密工具產生的資料。");
+
+                // 統一驗證
+                const params = { saltB64, iterations, nonceB64, ciphertextWithTagB64 };
+                const requiredFields = {
+                    saltB64: "string",
+                    iterations: "number",
+                    nonceB64: "string",
+                    ciphertextWithTagB64: "string",
+                };
+                for (const fieldName in requiredFields) {
+                    if (typeof params[fieldName] === "undefined" || params[fieldName] === null) {
+                        throw new Error(`必要的加密參數 "${fieldName}" 遺失。`);
+                    }
+                    if (typeof params[fieldName] !== requiredFields[fieldName]) {
+                        throw new Error(`加密參數 "${fieldName}" 的格式不正確，應為 ${requiredFields[fieldName]}。`);
+                    }
                 }
+                if (params.iterations <= 0 || !Number.isInteger(params.iterations))
+                    throw new Error("iterations 必須是正整數。");
 
-                // 將 Base64 資料轉回 Uint8Array
-                const saltBuf = fromBase64(salt);
-                const nonceBuf = fromBase64(nonce);
-                const ciphertextWithTagBuf = fromBase64(ciphertext);
-
-                // 從密碼短語衍生金鑰
+                const saltBuf = fromBase64(saltB64);
+                const nonceBuf = fromBase64(nonceB64);
+                const ciphertextWithTagBuf = fromBase64(ciphertextWithTagB64);
                 const key = await deriveKeyBytes(passphrase, saltBuf, iterations);
 
                 try {
-                    // 使用 noble-ciphers 進行解密
                     const aead = chacha20poly1305(key, nonceBuf);
-                    const decrypted = aead.decrypt(ciphertextWithTagBuf); // 自動驗證 Tag
-
+                    const decrypted = aead.decrypt(ciphertextWithTagBuf);
                     const decoder = new TextDecoder();
                     return decoder.decode(decrypted);
                 } catch (e) {
-                    // 捕捉解密過程中的錯誤
                     let specificError = "未知錯誤";
-                    if (e.message?.toLowerCase().includes("tag")) {
+                    if (
+                        e.message?.toLowerCase().includes("tag") ||
+                        e.message?.toLowerCase().includes("mac") ||
+                        e.message?.toLowerCase().includes("authentication")
+                    ) {
                         specificError = "密碼短語錯誤、資料損毀或驗證標籤不符。";
                     } else {
                         specificError = e.message;
@@ -368,8 +412,6 @@
                     throw new Error("解密操作失敗：" + specificError);
                 }
             }
-
-            // --- UI 事件處理邏輯 ---
 
             const decryptBtn = document.getElementById("decryptBtn");
             const btnText = decryptBtn.querySelector(".btn-text");
@@ -379,17 +421,16 @@
             const passphraseInput = document.getElementById("passphrase");
             const copyBtn = document.getElementById("copyBtn");
             const themeToggleBtn = document.getElementById("themeToggleBtn");
+            const togglePasswordIcon = document.getElementById("togglePassword");
 
             decryptBtn.addEventListener("click", async () => {
                 const rawInputText = jsonInput.value.trim();
                 const passphrase = passphraseInput.value;
-
                 output.textContent = "";
                 output.className = "";
                 copyBtn.style.display = "none";
                 copyBtn.textContent = "複製內容";
                 copyBtn.disabled = false;
-
                 if (!rawInputText) {
                     output.textContent = "錯誤：輸入資料不能為空。";
                     output.className = "error";
@@ -400,10 +441,8 @@
                     output.className = "error";
                     return;
                 }
-
                 setDecryptButtonState(true);
                 let jsonData;
-
                 try {
                     try {
                         jsonData = JSON.parse(rawInputText);
@@ -412,19 +451,14 @@
                             const decodedJsonText = atob(rawInputText);
                             jsonData = JSON.parse(decodedJsonText);
                             console.log("輸入內容已成功從 Base64 解碼並解析為 JSON。");
-                        } catch (err) {
+                        } catch (e2) {
                             throw new Error("輸入的資料格式無效。請提供純 JSON 或有效的 Base64 編碼 JSON。");
                         }
                     }
-
                     const result = await decryptData(jsonData, passphrase);
                     output.textContent = result;
                     output.className = "success";
-                    if (result) {
-                        copyBtn.style.display = "inline-block";
-                    } else {
-                        copyBtn.style.display = "none";
-                    }
+                    if (result) copyBtn.style.display = "inline-block";
                 } catch (e) {
                     output.textContent = "處理失敗：" + e.message;
                     output.className = "error";
@@ -433,19 +467,9 @@
                     setDecryptButtonState(false);
                 }
             });
-
-            function setDecryptButtonState(isDecrypting) {
-                decryptBtn.disabled = isDecrypting;
-                btnText.textContent = isDecrypting ? "解密中..." : "🔓 解密";
-                spinner.style.display = isDecrypting ? "inline-block" : "none";
-            }
-
             copyBtn.addEventListener("click", async () => {
                 const textToCopy = output.textContent;
-                if (!textToCopy || output.className !== "success") {
-                    return;
-                }
-
+                if (!textToCopy || output.className !== "success") return;
                 try {
                     await navigator.clipboard.writeText(textToCopy);
                     copyBtn.textContent = "✅ 已複製成功！";
@@ -462,24 +486,105 @@
                     }, 2000);
                 }
             });
-
-            // Theme toggle logic
             function applyTheme(theme) {
                 document.documentElement.setAttribute("data-theme", theme);
                 themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
                 localStorage.setItem("theme", theme);
             }
-
             function toggleTheme() {
                 const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
                 const newTheme = currentTheme === "dark" ? "light" : "dark";
                 applyTheme(newTheme);
             }
 
-            themeToggleBtn.addEventListener("click", toggleTheme);
+            function togglePasswordVisibility() {
+                if (passphraseInput.type === "password") {
+                    passphraseInput.type = "text";
+                    togglePasswordIcon.innerHTML = SVG_EYE_SLASH;
+                } else {
+                    passphraseInput.type = "password";
+                    togglePasswordIcon.innerHTML = SVG_EYE_OPEN;
+                }
+            }
 
+            // Initialization
+            themeToggleBtn.addEventListener("click", toggleTheme);
             let initialTheme = localStorage.getItem("theme") || "dark";
             applyTheme(initialTheme);
+
+            if (togglePasswordIcon) {
+                togglePasswordIcon.innerHTML = SVG_EYE_OPEN;
+                togglePasswordIcon.addEventListener("click", togglePasswordVisibility);
+            }
+
+            decryptBtn.addEventListener("click", async () => {
+                const rawInputText = jsonInput.value.trim();
+                const passphrase = passphraseInput.value;
+                output.textContent = "";
+                output.className = "";
+                copyBtn.style.display = "none";
+                copyBtn.textContent = "複製內容";
+                copyBtn.disabled = false;
+                if (!rawInputText) {
+                    output.textContent = "錯誤：輸入資料不能為空。";
+                    output.className = "error";
+                    return;
+                }
+                if (!passphrase) {
+                    output.textContent = "錯誤：密碼短語不能為空。";
+                    output.className = "error";
+                    return;
+                }
+                setDecryptButtonState(true);
+                let jsonData;
+                try {
+                    try {
+                        jsonData = JSON.parse(rawInputText);
+                    } catch (e) {
+                        try {
+                            const decodedJsonText = atob(rawInputText);
+                            jsonData = JSON.parse(decodedJsonText);
+                            console.log("輸入內容已成功從 Base64 解碼並解析為 JSON。");
+                        } catch (e2) {
+                            throw new Error("輸入的資料格式無效。請提供純 JSON 或有效的 Base64 編碼 JSON。");
+                        }
+                    }
+                    const result = await decryptData(jsonData, passphrase);
+                    output.textContent = result;
+                    output.className = "success";
+                    if (result) copyBtn.style.display = "inline-block";
+                } catch (e) {
+                    output.textContent = "處理失敗：" + e.message;
+                    output.className = "error";
+                    copyBtn.style.display = "none";
+                } finally {
+                    setDecryptButtonState(false);
+                }
+            });
+            function setDecryptButtonState(isDecrypting) {
+                decryptBtn.disabled = isDecrypting;
+                btnText.textContent = isDecrypting ? "解密中..." : "🔓 解密";
+                spinner.style.display = isDecrypting ? "inline-block" : "none";
+            }
+            copyBtn.addEventListener("click", async () => {
+                const textToCopy = output.textContent;
+                if (!textToCopy || output.className !== "success") return;
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                    copyBtn.textContent = "✅ 已複製成功！";
+                    copyBtn.disabled = true;
+                    setTimeout(() => {
+                        copyBtn.textContent = "複製內容";
+                        copyBtn.disabled = false;
+                    }, 2000);
+                } catch (err) {
+                    console.error("複製到剪貼簿失敗: ", err);
+                    copyBtn.textContent = "❌ 複製失敗！";
+                    setTimeout(() => {
+                        copyBtn.textContent = "複製內容";
+                    }, 2000);
+                }
+            });
         </script>
     </body>
 </html>

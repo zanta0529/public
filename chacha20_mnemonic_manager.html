@@ -135,6 +135,30 @@
                 font-size: 0.9em;
                 color: var(--secondary);
             }
+            .password-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .toggle-password-icon {
+                position: absolute;
+                right: 12px;
+                cursor: pointer;
+                color: var(--secondary);
+                transition: color 0.2s;
+            }
+            .toggle-password-icon:hover {
+                color: var(--text-color);
+            }
+            .toggle-password-icon svg {
+                width: 20px;
+                height: 20px;
+                vertical-align: middle;
+                fill: currentColor;
+            }
+            #passphrase {
+                padding-right: 40px;
+            }
         </style>
     </head>
     <body>
@@ -146,7 +170,10 @@
             </div>
             <div class="field">
                 <label for="passphrase">密碼短語 (Passphrase)</label>
-                <input id="passphrase" type="password" placeholder="輸入密碼短語" />
+                <div class="password-wrapper">
+                    <input id="passphrase" type="password" placeholder="輸入密碼短語" />
+                    <span id="togglePassword" class="toggle-password-icon" title="顯示/隱藏密碼"></span>
+                </div>
             </div>
             <div class="field">
                 <button id="encryptBtn">加密並產生 QR Code</button>
@@ -180,59 +207,52 @@
         </footer>
 
         <script type="module">
-            // 匯入 noble-ciphers 函式庫
             import { chacha20poly1305 } from "https://cdn.jsdelivr.net/npm/@noble/ciphers/esm/chacha.js";
 
-            // 定義加密參數
             const SALT_BYTES = 16;
-            const NONCE_BYTES = 12; // ChaCha20-Poly1305 標準使用 12 位元組 (96位元) 的 Nonce
-            const DEFAULT_ITERATIONS = 300000;
-            const KEY_LENGTH_BITS = 256; // ChaCha20 固定使用 256位元 (32位元組) 金鑰
+            const NONCE_BYTES = 12;
+            const NEW_DEFAULT_ITERATIONS = 900000; // 提升迭代次數
+            const LEGACY_CHA_ITERATIONS = 300000; // 用於解密此工具舊格式的備用值
+            const KEY_LENGTH_BITS = 256;
+
+            const SVG_EYE_OPEN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`;
+            const SVG_EYE_SLASH = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`;
 
             document.getElementById("currentYear").textContent = new Date().getFullYear();
-
-            // 工具函式：簡化 DOM 存取
             function getObject(id) {
                 return document.getElementById(id);
             }
-
-            // 工具函式：設定輸出訊息
             function setOutput(type, message) {
                 const outputDiv = getObject("output");
                 outputDiv.textContent = message;
                 outputDiv.className = `output ${type}`;
                 getObject("copyDecryptedBtn").style.display = "none";
             }
-
-            // 工具函式： Uint8Array 轉 Base64
             function toBase64(uint8array) {
                 return btoa(String.fromCharCode.apply(null, uint8array));
             }
-
-            // 工具函式： Base64 轉 Uint8Array
             function fromBase64(base64) {
                 return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
             }
 
-            // 核心函式：加密
             async function encrypt() {
                 const mnemonic = getObject("mnemonic").value.trim();
                 const passphrase = getObject("passphrase").value;
                 const jsonView = getObject("jsonView");
-
                 jsonView.style.display = "none";
-
                 if (!mnemonic || !passphrase) {
                     setOutput("error", "錯誤：助記詞和密碼短語不能為空。");
                     return;
                 }
+                setOutput("info", "⏳ 正在加密，請稍候...");
+                await new Promise((r) => setTimeout(r, 50));
 
                 try {
                     const enc = new TextEncoder();
                     const nonce = crypto.getRandomValues(new Uint8Array(NONCE_BYTES));
                     const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
+                    const iterations = NEW_DEFAULT_ITERATIONS; // 使用新的迭代次數
 
-                    // 1. 使用 PBKDF2 從密碼短語衍生金鑰
                     const keyMaterial = await crypto.subtle.importKey(
                         "raw",
                         enc.encode(passphrase),
@@ -240,39 +260,53 @@
                         false,
                         ["deriveBits"]
                     );
-
-                    // 使用 deriveBits 產生指定長度的原始金鑰位元
                     const keyBytes = new Uint8Array(
                         await crypto.subtle.deriveBits(
-                            { name: "PBKDF2", salt, iterations: DEFAULT_ITERATIONS, hash: "SHA-256" },
+                            { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
                             keyMaterial,
                             KEY_LENGTH_BITS
                         )
                     );
 
-                    // 2. 使用 noble-ciphers 進行加密
                     const plaintextBytes = enc.encode(mnemonic);
-                    const aead = chacha20poly1305(keyBytes, nonce); // 此工具不需AAD，故省略
-                    const ciphertextWithTag = aead.encrypt(plaintextBytes); // 函式庫會自動合併密文與Tag
+                    const aead = chacha20poly1305(keyBytes, nonce);
+                    const ciphertextWithTag = aead.encrypt(plaintextBytes);
 
-                    // 3. 準備輸出的 JSON 物件
+                    // 產生新的結構化 JSON
                     const json = {
-                        salt: toBase64(salt),
-                        iterations: DEFAULT_ITERATIONS,
-                        nonce: toBase64(nonce), // Nonce 取代 IV
-                        ciphertext: toBase64(ciphertextWithTag), // 合併後的密文
-                        algorithm: {
+                        keyDerivation: {
+                            name: "PBKDF2",
+                            salt: toBase64(salt),
+                            iterations: iterations,
+                            hash: "SHA-256",
+                        },
+                        encryption: {
                             name: "ChaCha20-Poly1305",
-                            keyDerivation: { name: "PBKDF2", hash: "SHA-256" },
+                            nonce: toBase64(nonce),
+                            ciphertext: toBase64(ciphertextWithTag),
                         },
                     };
 
                     const outputBase64 = btoa(JSON.stringify(json));
-                    getObject("qrCanvas").style.display = "block";
-                    QRCode.toCanvas(getObject("qrCanvas"), outputBase64, { errorCorrectionLevel: "H", width: 256 });
                     getObject("base64json").value = outputBase64;
                     jsonView.textContent = JSON.stringify(json, null, 2);
                     jsonView.style.display = "block";
+
+                    const qrCanvas = getObject("qrCanvas");
+                    if (typeof QRCode !== "undefined") {
+                        qrCanvas.style.display = "block";
+                        QRCode.toCanvas(
+                            qrCanvas,
+                            outputBase64,
+                            { errorCorrectionLevel: "H", width: 256 },
+                            function (error) {
+                                if (error) console.error("QR Code Error:", error);
+                            }
+                        );
+                    } else {
+                        console.warn("QRCode library not loaded.");
+                        qrCanvas.style.display = "none";
+                    }
                     setOutput("success", "✅ 加密成功！QR Code 與 Base64 密文已產生。");
                 } catch (e) {
                     console.error("加密失敗:", e);
@@ -280,34 +314,47 @@
                 }
             }
 
-            // 核心函式：解密
             async function decrypt() {
                 const passphrase = getObject("passphrase").value;
                 const base64json = getObject("base64json").value.trim();
-
                 if (!passphrase || !base64json) {
                     setOutput("error", "錯誤：密文與密碼短語不能為空。");
                     return;
                 }
+                setOutput("info", "⏳ 正在解密，請稍候...");
+                await new Promise((r) => setTimeout(r, 50));
 
                 try {
                     const jsonString = atob(base64json);
                     const json = JSON.parse(jsonString);
 
-                    // 驗證演算法是否相符
-                    if (json.algorithm?.name !== "ChaCha20-Poly1305") {
-                        throw new Error("密文格式不符，預期演算法為 ChaCha20-Poly1305。");
-                    }
+                    let salt, iterations, nonce, ciphertextWithTag;
 
-                    const salt = fromBase64(json.salt);
-                    const nonce = fromBase64(json.nonce);
-                    const ciphertextWithTag = fromBase64(json.ciphertext);
-                    const iterations = json.iterations;
+                    if (json.keyDerivation && json.encryption) {
+                        // 處理新版結構化 JSON
+                        console.log("偵測到新版 ChaCha20 格式。");
+                        const kd = json.keyDerivation;
+                        const encData = json.encryption;
+                        if (kd.name !== "PBKDF2" || encData.name !== "ChaCha20-Poly1305")
+                            throw new Error("不支援的演算法組合。");
+                        salt = fromBase64(kd.salt);
+                        iterations = kd.iterations;
+                        nonce = fromBase64(encData.nonce);
+                        ciphertextWithTag = fromBase64(encData.ciphertext);
+                    } else if (json.algorithm && json.algorithm.name === "ChaCha20-Poly1305") {
+                        // 處理此工具的舊版扁平化 ChaCha20 格式
+                        console.log("偵測到舊版 ChaCha20 格式。");
+                        salt = fromBase64(json.salt);
+                        nonce = fromBase64(json.nonce);
+                        ciphertextWithTag = fromBase64(json.ciphertext);
+                        iterations = json.iterations || LEGACY_CHA_ITERATIONS; // 若舊格式無 iterations, 給予備用值
+                    } else {
+                        throw new Error("無法識別的密文格式。");
+                    }
 
                     if (typeof iterations !== "number" || iterations <= 0)
                         throw new Error("JSON 中的 iterations 數值無效。");
 
-                    // 1. 再次使用 PBKDF2 從密碼短語衍生出相同的金鑰
                     const keyMaterial = await crypto.subtle.importKey(
                         "raw",
                         new TextEncoder().encode(passphrase),
@@ -323,21 +370,17 @@
                         )
                     );
 
-                    // 2. 使用 noble-ciphers 進行解密
                     const aead = chacha20poly1305(keyBytes, nonce);
-                    const decryptedBytes = aead.decrypt(ciphertextWithTag); // 函式庫會自動驗證 Tag
+                    const decryptedBytes = aead.decrypt(ciphertextWithTag);
                     const decryptedResult = new TextDecoder().decode(decryptedBytes);
 
-                    // 3. 顯示解密結果
                     setOutput("success", `✅ 成功解密！\n\n${decryptedResult}`);
-
                     const copyDecryptedBtn = getObject("copyDecryptedBtn");
                     copyDecryptedBtn.dataset.decryptedText = decryptedResult;
                     copyDecryptedBtn.style.display = "block";
                 } catch (e) {
                     console.error("解密失敗:", e);
-                    // 檢查是否為認證失敗
-                    if (e.message?.includes("MAC") || e.message?.includes("tag")) {
+                    if (e.message?.toLowerCase().includes("tag") || e.message?.includes("MAC")) {
                         setOutput("error", "❌ 解密失敗：密碼短語不正確，或密文已被竄改。");
                     } else {
                         setOutput("error", `❌ 解密失敗：${e.message}`);
@@ -345,7 +388,18 @@
                 }
             }
 
-            // --- 以下為 UI 輔助函式，邏輯不變 ---
+            function togglePasswordVisibility() {
+                const passphraseInput = getObject("passphrase");
+                const toggleIcon = getObject("togglePassword");
+                if (passphraseInput.type === "password") {
+                    passphraseInput.type = "text";
+                    toggleIcon.innerHTML = SVG_EYE_SLASH;
+                } else {
+                    passphraseInput.type = "password";
+                    toggleIcon.innerHTML = SVG_EYE_OPEN;
+                }
+            }
+
             function copyCipher() {
                 const text = getObject("base64json").value;
                 if (!text) {
@@ -355,12 +409,8 @@
                 navigator.clipboard
                     .writeText(text)
                     .then(() => setOutput("success", "✅ 已複製密文至剪貼簿。"))
-                    .catch((err) => {
-                        console.error("複製失敗:", err);
-                        setOutput("error", `❌ 複製失敗: ${err.message}`);
-                    });
+                    .catch((err) => setOutput("error", `❌ 複製失敗: ${err.message}`));
             }
-
             function pasteCipher() {
                 navigator.clipboard
                     .readText()
@@ -368,27 +418,21 @@
                         getObject("base64json").value = text;
                         setOutput("success", "✅ 已貼上剪貼簿內容。");
                     })
-                    .catch((err) => {
-                        console.error("貼上失敗:", err);
-                        setOutput("error", `❌ 貼上失敗: ${err.message}. 瀏覽器可能不支援或未授權。`);
-                    });
+                    .catch((err) => setOutput("error", `❌ 貼上失敗: ${err.message}.`));
             }
-
             function copyDecrypted() {
                 const decryptedText = getObject("copyDecryptedBtn").dataset.decryptedText;
                 navigator.clipboard
                     .writeText(decryptedText)
                     .then(() => setOutput("success", "✅ 已複製解密結果到剪貼簿。"))
-                    .catch((err) => {
-                        console.error("複製解密結果失敗:", err);
-                        setOutput("error", `❌ 複製解密結果失敗: ${err.message}`);
-                    });
+                    .catch((err) => setOutput("error", `❌ 複製解密結果失敗: ${err.message}`));
             }
-
             function resetAll() {
                 ["mnemonic", "passphrase", "base64json"].forEach((id) => (getObject(id).value = ""));
                 const canvas = getObject("qrCanvas");
-                canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+                if (canvas && typeof canvas.getContext === "function") {
+                    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+                }
                 canvas.style.display = "none";
                 getObject("jsonView").style.display = "none";
                 setOutput("", "點擊按鈕開始操作...");
@@ -402,8 +446,11 @@
                 getObject("pasteBtn").addEventListener("click", pasteCipher);
                 getObject("resetBtn").addEventListener("click", resetAll);
                 getObject("copyDecryptedBtn").addEventListener("click", copyDecrypted);
-            }
 
+                const togglePassword = getObject("togglePassword");
+                togglePassword.innerHTML = SVG_EYE_OPEN;
+                togglePassword.addEventListener("click", togglePasswordVisibility);
+            }
             document.addEventListener("DOMContentLoaded", init);
         </script>
     </body>
