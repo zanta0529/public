@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>純文字加解密工具</title>
+        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+        <style>
+            :root {
+                --primary-color: #007bff;
+                --primary-hover-color: #0056b3;
+                --secondary-color: #6c757d;
+                --secondary-hover-color: #5a6268;
+                --bg-color: #f8f9fa;
+                --container-bg: #ffffff;
+                --text-color: #212529;
+                --border-color: #dee2e6;
+                --input-bg: #e9f5ff;
+                --input-focus-shadow: rgba(0, 123, 255, 0.25);
+                --button-disabled-bg: #ccc;
+                --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --note-color: #083b06;
+                --note-bg: #baf1ac;
+                --error-color: #dc3545;
+                --error-bg: #fbebeb;
+                --success-color: #198754;
+                --success-bg: #d1e7dd;
+                --tool-primary: #5865f2; /* Retained for specific buttons if needed */
+                --tool-primary-hover: #4752c4;
+                --button-reset-bg: #da373c;
+                --button-reset-hover-bg: #a1282c;
+            }
+            :root[data-theme="dark"] {
+                --primary-color: #1e90ff;
+                --primary-hover-color: #4ca8ff;
+                --secondary-color: #778899;
+                --secondary-hover-color: #90a0b1;
+                --bg-color: #1e1e2f;
+                --container-bg: #2f2f4f;
+                --text-color: #e8e8f0;
+                --border-color: #4a4a5f;
+                --input-bg: #444;
+                --input-focus-shadow: rgba(30, 144, 255, 0.4);
+                --button-disabled-bg: #5a5a70;
+                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+                --note-color: #a2f58d;
+                --note-bg: #2a5028;
+                --error-color: #ff7f7f;
+                --error-bg: #4f2e2e;
+                --success-color: #60d978;
+                --success-bg: #2a4a30;
+            }
+            body {
+                background: var(--bg-color);
+                color: var(--text-color);
+                font-family: Arial, sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue";
+                padding: 2rem;
+                line-height: 1.6;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-height: 100vh;
+                box-sizing: border-box;
+                transition: background-color 0.3s, color 0.3s;
+            }
+            .card {
+                background: var(--container-bg);
+                padding: 2rem;
+                border-radius: 8px;
+                width: 80%;
+                max-width: 1024px;
+                margin: auto;
+                border: 1px solid var(--border-color);
+                box-shadow: var(--box-shadow);
+            }
+            .card h1 {
+                text-align: center;
+                margin-top: 0;
+                margin-bottom: 1.5rem;
+                color: var(--text-color);
+            }
+            .field {
+                margin-bottom: 1.5rem;
+            }
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+                color: var(--text-color);
+            }
+            input[type="text"],
+            input[type="password"],
+            textarea {
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                box-sizing: border-box;
+                font-size: 1em;
+                background-color: var(--input-bg);
+                color: var(--text-color);
+                transition: 0.3s;
+            }
+            input[type="text"]:focus,
+            input[type="password"]:focus,
+            textarea:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
+            }
+            textarea {
+                min-height: 100px;
+                resize: vertical;
+            }
+            button {
+                padding: 0.75rem 1.5rem;
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1em;
+                font-weight: 600;
+                transition: background-color 0.3s, transform 0.1s;
+                width: 100%;
+            }
+            button:hover:not(:disabled) {
+                background-color: var(--primary-hover-color);
+                transform: translateY(-1px);
+            }
+            button:disabled {
+                background-color: var(--button-disabled-bg);
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+            .output-container {
+                margin-top: 1.5rem;
+            }
+            .output {
+                padding: 1rem;
+                border-radius: 5px;
+                white-space: pre-wrap;
+                word-break: break-all;
+                border-left: 5px solid;
+                margin-top: 1rem;
+                font-size: 1.1em;
+                line-height: 1.5;
+            }
+            .output.success {
+                color: var(--success-color);
+                border-color: var(--success-color);
+                background-color: var(--success-bg);
+            }
+            .output.error {
+                color: var(--error-color);
+                border-color: var(--error-color);
+                background-color: var(--error-bg);
+            }
+            .output.info {
+                color: var(--text-color);
+                border-color: var(--secondary-color);
+                background-color: var(--input-bg);
+            }
+            #jsonView {
+                margin-top: 1rem;
+                padding: 1rem;
+                background: var(--input-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                white-space: pre-wrap;
+                word-break: break-all;
+                display: none;
+            }
+            .action-button-group {
+                display: flex;
+                gap: 1rem;
+            }
+            .action-button-group button {
+                background-color: var(--secondary-color);
+            }
+            .action-button-group button:hover:not(:disabled) {
+                background-color: var(--secondary-hover-color);
+            }
+            #resetBtn {
+                background-color: var(--button-reset-bg);
+            }
+            #resetBtn:hover:not(:disabled) {
+                background-color: var(--button-reset-hover-bg);
+            }
+            .output-copy-button {
+                margin-top: 1rem;
+                background-color: var(--success-color);
+            }
+            .output-copy-button:hover:not(:disabled) {
+                background-color: var(--primary-hover-color);
+            }
+            footer {
+                text-align: center;
+                margin-top: auto;
+                padding-top: 1rem;
+                font-size: 0.9em;
+                color: var(--secondary-color);
+            }
+            .password-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .toggle-password-icon {
+                position: absolute;
+                right: 12px;
+                cursor: pointer;
+                color: var(--secondary-color);
+                transition: color 0.2s;
+            }
+            .toggle-password-icon:hover {
+                color: var(--text-color);
+            }
+            .toggle-password-icon svg {
+                width: 20px;
+                height: 20px;
+                vertical-align: middle;
+                fill: currentColor;
+            }
+            #passphrase {
+                padding-right: 40px;
+            }
+            .algo-option-group {
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 0.5rem;
+            }
+            .algo-option {
+                padding: 10px 15px;
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+                color: var(--text-color);
+                background-color: var(--input-bg);
+            }
+            .algo-option.selected {
+                background-color: var(--primary-color);
+                color: white;
+                border-color: var(--primary-color);
+            }
+            .algo-note {
+                font-size: 0.9em;
+                color: var(--note-color);
+                background-color: var(--note-bg);
+                padding: 0.5rem;
+                border-radius: 3px;
+                margin-top: 0.25rem;
+            }
+            #themeToggleBtn {
+                background: none;
+                border: 1px solid var(--border-color);
+                color: var(--text-color);
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1.2em;
+                margin-left: 10px;
+                vertical-align: middle;
+                transition: 0.3s;
+            }
+            #themeToggleBtn:hover {
+                background-color: var(--border-color);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>純文字加解密工具</h1>
+            <div class="field">
+                <label for="mnemonic">明文（Plain-Text）</label>
+                <textarea id="mnemonic" rows="4" placeholder="輸入未加密文字"></textarea>
+            </div>
+            <div class="field">
+                <label for="passphrase">密碼短語（Passphrase）</label>
+                <div class="password-wrapper">
+                    <input id="passphrase" type="password" placeholder="輸入密碼短語" />
+                    <span id="togglePassword" class="toggle-password-icon" title="顯示/隱藏密碼"></span>
+                </div>
+            </div>
+            <div class="field">
+                <label>加密演算法</label>
+                <div id="algoSelectionGroup" class="algo-option-group">
+                    <div class="algo-option selected" data-value="AES-GCM">AES-GCM</div>
+                    <div class="algo-option" data-value="ChaCha20-Poly1305">ChaCha20-Poly1305</div>
+                </div>
+                <div class="algo-note">
+                    註：此選項提供「加密」時指定演算法使用，「解密」時參數無作用，工具將自動偵測演算法並進行對應處理。
+                </div>
+            </div>
+            <div class="field">
+                <button id="encryptBtn">加密並產生 QR Code</button>
+            </div>
+            <canvas
+                id="qrCanvas"
+                width="256"
+                height="256"
+                style="display: none; margin: auto; border-radius: 8px"
+            ></canvas>
+            <div id="jsonView"></div>
+            <div class="field">
+                <label for="base64json">密文（Base64 JSON）</label>
+                <textarea id="base64json" rows="6" placeholder="加密後之 Base64 JSON 將顯示於此"></textarea>
+            </div>
+            <div class="field">
+                <button id="decryptBtn">解密</button>
+            </div>
+            <div class="field action-button-group">
+                <button id="copyBtn" style="flex: 1">複製密文</button>
+                <button id="pasteBtn" style="flex: 1">貼上密文</button>
+                <button id="resetBtn" style="flex: 1">重設</button>
+            </div>
+            <div class="output-container">
+                <div id="output" class="output">點擊按鈕開始操作...</div>
+                <button id="copyDecryptedBtn" class="output-copy-button" style="display: none">複製解密結果</button>
+            </div>
+        </div>
+        <footer>
+            <p>
+                &copy; <span id="currentYear"></span> Zanta's Customized Crypto Tool
+                <button id="themeToggleBtn" title="切換主題">🌙</button>
+            </p>
+        </footer>
+
+        <script type="module">
+            import { chacha20poly1305 } from "https://cdn.jsdelivr.net/npm/@noble/ciphers/esm/chacha.js";
+
+            const SALT_BYTES = 16;
+            const IV_BYTES = 12;
+            const TAG_LENGTH_BITS = 128;
+            const NONCE_BYTES = 12;
+            const KEY_LENGTH_BITS = 256;
+            const NEW_DEFAULT_ITERATIONS = 900000;
+            const LEGACY_AES_ITERATIONS = 300000;
+            const LEGACY_CHA_ITERATIONS = 300000;
+
+            const SVG_EYE_OPEN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`;
+            const SVG_EYE_SLASH = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`;
+
+            let currentSelectedAlgorithm = "AES-GCM";
+
+            document.getElementById("currentYear").textContent = new Date().getFullYear();
+            const themeToggleBtn = document.getElementById("themeToggleBtn");
+
+            function getObject(id) {
+                return document.getElementById(id);
+            }
+            function setOutput(type, message) {
+                const outputDiv = getObject("output");
+                outputDiv.textContent = message;
+                outputDiv.className = `output ${type}`;
+                const showCopy = type === "success" && message.startsWith("✅"); // Show for any success
+                getObject("copyDecryptedBtn").style.display = showCopy ? "block" : "none";
+            }
+            function toBase64(uint8array) {
+                return btoa(String.fromCharCode.apply(null, uint8array));
+            }
+            function fromBase64(base64) {
+                return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+            }
+
+            async function deriveKeyFromPassphrase(passphrase, salt, iterations) {
+                const enc = new TextEncoder();
+                return await crypto.subtle.importKey("raw", enc.encode(passphrase), { name: "PBKDF2" }, false, [
+                    "deriveKey",
+                    "deriveBits",
+                ]);
+            }
+
+            async function encrypt() {
+                const mnemonic = getObject("mnemonic").value.trim();
+                const passphrase = getObject("passphrase").value;
+                const selectedAlgo = currentSelectedAlgorithm;
+                const jsonView = getObject("jsonView");
+                jsonView.style.display = "none";
+
+                if (!mnemonic || !passphrase) {
+                    setOutput("error", "錯誤：助記詞和密碼短語不能為空。");
+                    return;
+                }
+                setOutput("info", "⏳ 正在加密，請稍候...");
+                await new Promise((r) => setTimeout(r, 50));
+
+                try {
+                    const enc = new TextEncoder();
+                    const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
+                    const iterations = NEW_DEFAULT_ITERATIONS;
+                    const keyMaterial = await deriveKeyFromPassphrase(passphrase, salt, iterations);
+                    let jsonOutput;
+
+                    if (selectedAlgo === "AES-GCM") {
+                        const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
+                        const aesKey = await crypto.subtle.deriveKey(
+                            { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+                            keyMaterial,
+                            { name: "AES-GCM", length: KEY_LENGTH_BITS },
+                            false,
+                            ["encrypt"]
+                        );
+                        const encrypted = await crypto.subtle.encrypt(
+                            { name: "AES-GCM", iv, tagLength: TAG_LENGTH_BITS },
+                            aesKey,
+                            enc.encode(mnemonic)
+                        );
+                        const ciphertext = new Uint8Array(encrypted.slice(0, -TAG_LENGTH_BITS / 8));
+                        const tag = new Uint8Array(encrypted.slice(-TAG_LENGTH_BITS / 8));
+                        jsonOutput = {
+                            keyDerivation: { name: "PBKDF2", salt: toBase64(salt), iterations, hash: "SHA-256" },
+                            encryption: {
+                                name: "AES-GCM",
+                                iv: toBase64(iv),
+                                ciphertext: toBase64(ciphertext),
+                                tag: toBase64(tag),
+                                tagLength: TAG_LENGTH_BITS,
+                            },
+                        };
+                    } else if (selectedAlgo === "ChaCha20-Poly1305") {
+                        const nonce = crypto.getRandomValues(new Uint8Array(NONCE_BYTES));
+                        const chachaKeyBytes = new Uint8Array(
+                            await crypto.subtle.deriveBits(
+                                { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+                                keyMaterial,
+                                KEY_LENGTH_BITS
+                            )
+                        );
+                        const aead = chacha20poly1305(chachaKeyBytes, nonce);
+                        const ciphertextWithTag = aead.encrypt(enc.encode(mnemonic));
+                        jsonOutput = {
+                            keyDerivation: { name: "PBKDF2", salt: toBase64(salt), iterations, hash: "SHA-256" },
+                            encryption: {
+                                name: "ChaCha20-Poly1305",
+                                nonce: toBase64(nonce),
+                                ciphertext: toBase64(ciphertextWithTag),
+                            },
+                        };
+                    } else {
+                        throw new Error("未選擇有效的加密演算法。");
+                    }
+
+                    const outputBase64 = btoa(JSON.stringify(jsonOutput));
+                    getObject("base64json").value = outputBase64;
+                    jsonView.textContent = JSON.stringify(jsonOutput, null, 2);
+                    jsonView.style.display = "block";
+                    const qrCanvas = getObject("qrCanvas");
+                    if (typeof QRCode !== "undefined") {
+                        qrCanvas.style.display = "block";
+                        qrCanvas.innerHTML = "";
+                        QRCode.toCanvas(
+                            qrCanvas,
+                            outputBase64,
+                            { errorCorrectionLevel: "H", width: 256 },
+                            function (error) {
+                                if (error) console.error("QR Code Error:", error);
+                            }
+                        );
+                    } else {
+                        console.warn("QRCode library not loaded.");
+                        qrCanvas.style.display = "none";
+                    }
+                    setOutput("success", `✅ ${selectedAlgo} 加密成功！`);
+                } catch (e) {
+                    console.error("加密失敗:", e);
+                    setOutput("error", `❌ 加密失敗：${e.message}`);
+                }
+            }
+
+            // --- 補齊的函式開始 ---
+            async function decrypt() {
+                const passphrase = getObject("passphrase").value;
+                const base64json = getObject("base64json").value.trim();
+                if (!passphrase || !base64json) {
+                    setOutput("error", "錯誤：密文與密碼短語不能為空。");
+                    return;
+                }
+                setOutput("info", "⏳ 正在解密，請稍候...");
+                await new Promise((r) => setTimeout(r, 50));
+
+                try {
+                    const jsonString = atob(base64json);
+                    const json = JSON.parse(jsonString);
+
+                    let salt, iterations, decryptedResult;
+                    let keyMaterial;
+
+                    let encryptionName;
+                    // 判斷格式與演算法
+                    if (json.encryption && json.encryption.name && json.keyDerivation) {
+                        // 新結構化格式
+                        encryptionName = json.encryption.name;
+                        if (json.keyDerivation.name !== "PBKDF2") throw new Error("不支援的金鑰派生方法。");
+                        salt = fromBase64(json.keyDerivation.salt);
+                        iterations = json.keyDerivation.iterations;
+                    } else if (json.algorithm && json.algorithm.name === "AES-GCM") {
+                        // 舊扁平化 AES 格式
+                        encryptionName = "AES-GCM";
+                        salt = fromBase64(json.salt);
+                        iterations = json.iterations || LEGACY_AES_ITERATIONS;
+                    } else if (json.algorithm && json.algorithm.name === "ChaCha20-Poly1305") {
+                        // 舊 (此工具先前版本) ChaCha20 格式
+                        encryptionName = "ChaCha20-Poly1305";
+                        salt = fromBase64(json.salt);
+                        iterations = json.iterations || LEGACY_CHA_ITERATIONS;
+                    } else {
+                        throw new Error("無法識別的密文格式或缺少必要的演算法資訊。");
+                    }
+
+                    if (typeof iterations !== "number" || iterations <= 0 || !Number.isInteger(iterations))
+                        throw new Error("無效的迭代次數。");
+                    keyMaterial = await deriveKeyFromPassphrase(passphrase, salt, iterations);
+
+                    if (encryptionName === "AES-GCM") {
+                        let ivB64, ciphertextB64, tagB64, tagLengthVal;
+                        if (json.encryption) {
+                            // 新 AES 格式
+                            ivB64 = json.encryption.iv;
+                            ciphertextB64 = json.encryption.ciphertext;
+                            tagB64 = json.encryption.tag;
+                            tagLengthVal = json.encryption.tagLength || TAG_LENGTH_BITS;
+                        } else {
+                            // 舊 AES 格式
+                            ivB64 = json.iv;
+                            ciphertextB64 = json.ciphertext;
+                            tagB64 = json.tag;
+                            tagLengthVal = json.algorithm?.tagLength || TAG_LENGTH_BITS;
+                        }
+                        const iv = fromBase64(ivB64);
+                        const ciphertext = fromBase64(ciphertextB64);
+                        const tag = fromBase64(tagB64);
+
+                        const aesKey = await crypto.subtle.deriveKey(
+                            { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+                            keyMaterial,
+                            { name: "AES-GCM", length: KEY_LENGTH_BITS },
+                            false,
+                            ["decrypt"]
+                        );
+                        const fullCipher = new Uint8Array([...ciphertext, ...tag]);
+                        const decrypted = await crypto.subtle.decrypt(
+                            { name: "AES-GCM", iv, tagLength: tagLengthVal },
+                            aesKey,
+                            fullCipher
+                        );
+                        decryptedResult = new TextDecoder().decode(decrypted);
+                    } else if (encryptionName === "ChaCha20-Poly1305") {
+                        let nonceB64, ciphertextWithTagB64;
+                        if (json.encryption) {
+                            // 新 ChaCha 格式
+                            nonceB64 = json.encryption.nonce;
+                            ciphertextWithTagB64 = json.encryption.ciphertext;
+                        } else {
+                            // 舊 ChaCha 格式 (此工具先前版本)
+                            nonceB64 = json.nonce;
+                            ciphertextWithTagB64 = json.ciphertext;
+                        }
+                        const nonce = fromBase64(nonceB64);
+                        const ciphertextWithTag = fromBase64(ciphertextWithTagB64);
+                        const chachaKeyBytes = new Uint8Array(
+                            await crypto.subtle.deriveBits(
+                                { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+                                keyMaterial,
+                                KEY_LENGTH_BITS
+                            )
+                        );
+                        const aead = chacha20poly1305(chachaKeyBytes, nonce);
+                        const decryptedBytes = aead.decrypt(ciphertextWithTag);
+                        decryptedResult = new TextDecoder().decode(decryptedBytes);
+                    } else {
+                        throw new Error("解密時發生未知的演算法類型。");
+                    }
+
+                    setOutput("success", `✅ ${encryptionName} 成功解密！\n\n${decryptedResult}`);
+                    const copyDecryptedBtn = getObject("copyDecryptedBtn");
+                    copyDecryptedBtn.dataset.decryptedText = decryptedResult;
+                    copyDecryptedBtn.style.display = "block";
+                } catch (e) {
+                    console.error("解密失敗:", e);
+                    if (
+                        e.message?.toLowerCase().includes("tag") ||
+                        e.message?.toLowerCase().includes("mac") ||
+                        e.message?.toLowerCase().includes("authentication") ||
+                        e.name === "OperationError"
+                    ) {
+                        setOutput("error", "❌ 解密失敗：密碼短語不正確，或密文已被竄改/損毀。");
+                    } else {
+                        setOutput("error", `❌ 解密失敗：${e.message}`);
+                    }
+                }
+            }
+
+            function togglePasswordVisibility() {
+                const passphraseInput = getObject("passphrase");
+                const toggleIcon = getObject("togglePassword");
+                if (passphraseInput.type === "password") {
+                    passphraseInput.type = "text";
+                    toggleIcon.innerHTML = SVG_EYE_SLASH;
+                } else {
+                    passphraseInput.type = "password";
+                    toggleIcon.innerHTML = SVG_EYE_OPEN;
+                }
+            }
+
+            function copyCipher() {
+                const text = getObject("base64json").value;
+                if (!text) {
+                    setOutput("error", "錯誤：沒有可複製的密文。");
+                    return;
+                }
+                navigator.clipboard
+                    .writeText(text)
+                    .then(() => setOutput("success", "✅ 已複製密文至剪貼簿。"))
+                    .catch((err) => {
+                        console.error("複製失敗:", err);
+                        setOutput("error", `❌ 複製失敗: ${err.message}`);
+                    });
+            }
+
+            function pasteCipher() {
+                navigator.clipboard
+                    .readText()
+                    .then((text) => {
+                        getObject("base64json").value = text;
+                        setOutput("success", "✅ 已貼上剪貼簿內容。");
+                    })
+                    .catch((err) => {
+                        console.error("貼上失敗:", err);
+                        setOutput("error", `❌ 貼上失敗: ${err.message}.`);
+                    });
+            }
+
+            function copyDecrypted() {
+                const decryptedText = getObject("copyDecryptedBtn").dataset.decryptedText;
+                if (!decryptedText) return;
+                navigator.clipboard
+                    .writeText(decryptedText)
+                    .then(() => setOutput("success", "✅ 已複製解密結果到剪貼簿。"))
+                    .catch((err) => {
+                        console.error("複製解密結果失敗:", err);
+                        setOutput("error", `❌ 複製解密結果失敗: ${err.message}`);
+                    });
+            }
+
+            function resetAll() {
+                ["mnemonic", "passphrase", "base64json"].forEach((id) => (getObject(id).value = ""));
+                const canvas = getObject("qrCanvas");
+                if (canvas && typeof canvas.getContext === "function") {
+                    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+                }
+                canvas.style.display = "none";
+                getObject("jsonView").style.display = "none";
+
+                const algoOptions = getObject("algoSelectionGroup").querySelectorAll(".algo-option");
+                algoOptions.forEach((opt) => opt.classList.remove("selected"));
+                const defaultAlgoOption = getObject("algoSelectionGroup").querySelector('[data-value="AES-GCM"]');
+                if (defaultAlgoOption) defaultAlgoOption.classList.add("selected");
+                currentSelectedAlgorithm = "AES-GCM";
+
+                setOutput("", "點擊按鈕開始操作...");
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    // 防禦性檢查
+                    navigator.clipboard.writeText("").catch((err) => console.error("清除剪貼簿失敗", err));
+                }
+            }
+
+            function applyTheme(theme) {
+                document.documentElement.setAttribute("data-theme", theme);
+                if (themeToggleBtn) themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+                localStorage.setItem("crypto-tool-theme", theme);
+            }
+
+            function init() {
+                getObject("encryptBtn").addEventListener("click", encrypt);
+                getObject("decryptBtn").addEventListener("click", decrypt);
+                getObject("copyBtn").addEventListener("click", copyCipher);
+                getObject("pasteBtn").addEventListener("click", pasteCipher);
+                getObject("resetBtn").addEventListener("click", resetAll);
+                getObject("copyDecryptedBtn").addEventListener("click", copyDecrypted);
+
+                const togglePassword = getObject("togglePassword");
+                if (togglePassword) {
+                    togglePassword.innerHTML = SVG_EYE_OPEN;
+                    togglePassword.addEventListener("click", togglePasswordVisibility);
+                }
+
+                const algoSelectionGroup = getObject("algoSelectionGroup");
+                algoSelectionGroup.addEventListener("click", (e) => {
+                    const selectedOption = e.target.closest(".algo-option");
+                    if (selectedOption && !selectedOption.classList.contains("selected")) {
+                        algoSelectionGroup
+                            .querySelectorAll(".algo-option")
+                            .forEach((opt) => opt.classList.remove("selected"));
+                        selectedOption.classList.add("selected");
+                        currentSelectedAlgorithm = selectedOption.dataset.value;
+                        console.log("選擇的演算法:", currentSelectedAlgorithm);
+                    }
+                });
+
+                if (themeToggleBtn) {
+                    themeToggleBtn.addEventListener("click", () => {
+                        const newTheme =
+                            document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+                        applyTheme(newTheme);
+                    });
+                }
+                applyTheme(localStorage.getItem("crypto-tool-theme") || "dark");
+            }
+            document.addEventListener("DOMContentLoaded", init);
+        </script>
+    </body>
+</html>
