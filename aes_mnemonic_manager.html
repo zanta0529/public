@@ -135,6 +135,31 @@
                 font-size: 0.9em;
                 color: var(--secondary);
             }
+
+            /* --- 新增：密碼欄位樣式 --- */
+            .password-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .toggle-password-icon {
+                position: absolute;
+                right: 12px;
+                cursor: pointer;
+                color: var(--secondary);
+                transition: color 0.2s;
+            }
+            .toggle-password-icon:hover {
+                color: var(--text-color);
+            }
+            .toggle-password-icon svg {
+                width: 20px;
+                height: 20px;
+                vertical-align: middle;
+            }
+            #passphrase {
+                padding-right: 40px; /* 留出空間給圖示 */
+            }
         </style>
     </head>
     <body>
@@ -146,7 +171,10 @@
             </div>
             <div class="field">
                 <label for="passphrase">密碼短語 (Passphrase)</label>
-                <input id="passphrase" type="password" placeholder="輸入密碼短語" />
+                <div class="password-wrapper">
+                    <input id="passphrase" type="password" placeholder="輸入密碼短語" />
+                    <span id="togglePassword" class="toggle-password-icon" title="顯示/隱藏密碼"> </span>
+                </div>
             </div>
             <div class="field">
                 <button id="encryptBtn">加密並產生 QR Code</button>
@@ -186,6 +214,11 @@
             const TAG_LENGTH_BITS = 128;
             const NEW_DEFAULT_ITERATIONS = 900000;
             const LEGACY_DEFAULT_ITERATIONS = 300000;
+
+            // --- 新增：SVG 圖示常數 ---
+            const SVG_EYE_OPEN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`;
+            const SVG_EYE_SLASH = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`;
+
             document.getElementById("currentYear").textContent = new Date().getFullYear();
             function getObject(id) {
                 return document.getElementById(id);
@@ -262,7 +295,6 @@
                     const qrCanvas = getObject("qrCanvas");
                     if (typeof QRCode !== "undefined") {
                         qrCanvas.style.display = "block";
-                        // *** FIX: 使用 toCanvas API ***
                         QRCode.toCanvas(
                             qrCanvas,
                             outputBase64,
@@ -377,6 +409,20 @@
                 setOutput("", "點擊按鈕開始操作...");
                 navigator.clipboard.writeText("").catch((err) => console.error("清除剪貼簿失敗", err));
             }
+
+            // --- 新增：切換密碼可見性的函式 ---
+            function togglePasswordVisibility() {
+                const passphraseInput = getObject("passphrase");
+                const toggleIcon = getObject("togglePassword");
+                if (passphraseInput.type === "password") {
+                    passphraseInput.type = "text";
+                    toggleIcon.innerHTML = SVG_EYE_SLASH;
+                } else {
+                    passphraseInput.type = "password";
+                    toggleIcon.innerHTML = SVG_EYE_OPEN;
+                }
+            }
+
             function init() {
                 getObject("encryptBtn").addEventListener("click", encrypt);
                 getObject("decryptBtn").addEventListener("click", decrypt);
@@ -384,6 +430,11 @@
                 getObject("pasteBtn").addEventListener("click", pasteCipher);
                 getObject("resetBtn").addEventListener("click", resetAll);
                 getObject("copyDecryptedBtn").addEventListener("click", copyDecrypted);
+
+                // --- 新增：為眼睛圖示綁定事件 ---
+                const togglePassword = getObject("togglePassword");
+                togglePassword.innerHTML = SVG_EYE_OPEN; // 初始設定為睜開的眼睛
+                togglePassword.addEventListener("click", togglePasswordVisibility);
             }
             document.addEventListener("DOMContentLoaded", init);
         </script>

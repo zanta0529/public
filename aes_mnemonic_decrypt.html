@@ -19,7 +19,7 @@
                 --error-bg: #fbebeb;
                 --success-color: #28a745;
                 --success-bg: #e6ffed;
-                --input-bg: #c3ddbf;
+                --input-bg: #c3ddbf; /* Light theme input background */
                 --input-focus-shadow: rgba(0, 123, 255, 0.25);
             }
             :root[data-theme="dark"] {
@@ -36,7 +36,7 @@
                 --error-bg: #4f2e2e;
                 --success-color: #60d978;
                 --success-bg: #2a4a30;
-                --input-bg: #444;
+                --input-bg: #444; /* Dark theme input background */
                 --input-focus-shadow: rgba(30, 144, 255, 0.4);
             }
             body {
@@ -77,7 +77,8 @@
                 color: var(--text-color);
             }
             textarea,
-            input[type="password"] {
+            input[type="password"],
+            input[type="text"] {
                 width: 100%;
                 padding: 12px;
                 border: 1px solid var(--border-color);
@@ -89,7 +90,8 @@
                 transition: background-color 0.3s, color 0.3s, border-color 0.3s;
             }
             textarea:focus,
-            input[type="password"]:focus {
+            input[type="password"]:focus,
+            input[type="text"]:focus {
                 outline: none;
                 border-color: var(--primary-color);
                 box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
@@ -211,6 +213,35 @@
             #themeToggleBtn:hover {
                 background-color: var(--border-color);
             }
+
+            /* --- 新增：密碼欄位樣式 (與主工具一致) --- */
+            .password-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .toggle-password-icon {
+                position: absolute;
+                right: 12px; /* 調整位置以適應此工具的 padding */
+                cursor: pointer;
+                color: var(--secondary-color); /* 使用次要顏色 */
+                transition: color 0.2s;
+            }
+            .toggle-password-icon:hover {
+                color: var(--text-color); /* 滑鼠懸停時使用主要文字顏色 */
+            }
+            .toggle-password-icon svg {
+                width: 20px;
+                height: 20px;
+                vertical-align: middle;
+                fill: currentColor; /* 讓 SVG 顏色繼承自父元素 span */
+            }
+            /* 確保 input[type="text"] 時也有足夠右邊距 */
+            .password-wrapper input[type="password"],
+            .password-wrapper input[type="text"] {
+                padding-right: 40px; /* 留出空間給圖示 */
+            }
+
             @media (max-width: 600px) {
                 body {
                     padding: 10px;
@@ -229,7 +260,8 @@
                     font-size: 1em;
                 }
                 textarea,
-                input[type="password"] {
+                input[type="password"],
+                input[type="text"] {
                     padding: 10px;
                 }
                 button#copyBtn {
@@ -257,7 +289,10 @@
                     </div>
                     <div class="form-group">
                         <label for="passphrase">密碼短語</label>
-                        <input type="password" id="passphrase" placeholder="輸入您的密碼短語" />
+                        <div class="password-wrapper">
+                            <input type="password" id="passphrase" placeholder="輸入您的密碼短語" />
+                            <span id="togglePassword" class="toggle-password-icon" title="顯示/隱藏密碼"> </span>
+                        </div>
                     </div>
                     <button id="decryptBtn">
                         <span class="btn-text">🔓 解密</span>
@@ -284,6 +319,10 @@
             const KEY_LENGTH_BITS = 256;
             const TAG_LENGTH_BITS = 128;
             const LEGACY_DEFAULT_ITERATIONS = 300000;
+
+            // --- 新增：SVG 圖示常數 (與主工具一致) ---
+            const SVG_EYE_OPEN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`;
+            const SVG_EYE_SLASH = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`;
 
             async function base64ToArrayBuffer(base64) {
                 try {
@@ -313,7 +352,6 @@
 
             async function decryptData(jsonData, passphrase) {
                 let saltB64, iterations, keySize, ivB64, ciphertextB64, tagB64, tagLength;
-
                 if (jsonData.keyDerivation && jsonData.encryption) {
                     console.log("偵測到新版加密格式。");
                     const kd = jsonData.keyDerivation;
@@ -336,8 +374,6 @@
                     tagB64 = jsonData.tag;
                     tagLength = jsonData.algorithm?.tagLength || TAG_LENGTH_BITS;
                 }
-
-                // *** FIX: 修正後的驗證邏輯 ***
                 const params = { saltB64, iterations, keySize, ivB64, ciphertextB64, tagB64, tagLength };
                 const requiredFields = {
                     saltB64: "string",
@@ -348,7 +384,6 @@
                     tagB64: "string",
                     tagLength: "number",
                 };
-
                 for (const fieldName in requiredFields) {
                     if (typeof params[fieldName] === "undefined" || params[fieldName] === null) {
                         throw new Error(`必要的加密參數 "${fieldName}" 遺失。`);
@@ -358,18 +393,14 @@
                     }
                 }
                 if (params.iterations <= 0) throw new Error("iterations 必須是正整數。");
-
                 const saltBuf = await base64ToArrayBuffer(saltB64);
                 const ivBuf = await base64ToArrayBuffer(ivB64);
                 const tagBuf = await base64ToArrayBuffer(tagB64);
                 const ciphertextBuf = await base64ToArrayBuffer(ciphertextB64);
-
                 const combined = new Uint8Array(ciphertextBuf.length + tagBuf.length);
                 combined.set(ciphertextBuf);
                 combined.set(tagBuf, ciphertextBuf.length);
-
                 const key = await deriveKey(passphrase, saltBuf, iterations, keySize);
-
                 try {
                     const decrypted = await window.crypto.subtle.decrypt(
                         { name: "AES-GCM", iv: ivBuf, tagLength: tagLength },
@@ -397,6 +428,7 @@
             const passphraseInput = document.getElementById("passphrase");
             const copyBtn = document.getElementById("copyBtn");
             const themeToggleBtn = document.getElementById("themeToggleBtn");
+            const togglePasswordIcon = document.getElementById("togglePassword"); // 新增
 
             decryptBtn.addEventListener("click", async () => {
                 const rawInputText = jsonInput.value.trim();
@@ -404,6 +436,8 @@
                 output.textContent = "";
                 output.className = "";
                 copyBtn.style.display = "none";
+                copyBtn.textContent = "複製內容";
+                copyBtn.disabled = false;
                 if (!rawInputText) {
                     output.textContent = "錯誤：輸入資料不能為空。";
                     output.className = "error";
@@ -477,9 +511,31 @@
                 const newTheme = currentTheme === "dark" ? "light" : "dark";
                 applyTheme(newTheme);
             }
+
+            // --- 新增：切換密碼可見性的函式 ---
+            function togglePasswordVisibility() {
+                if (passphraseInput.type === "password") {
+                    passphraseInput.type = "text";
+                    togglePasswordIcon.innerHTML = SVG_EYE_SLASH;
+                } else {
+                    passphraseInput.type = "password";
+                    togglePasswordIcon.innerHTML = SVG_EYE_OPEN;
+                }
+            }
+
+            // 初始化
             themeToggleBtn.addEventListener("click", toggleTheme);
-            let initialTheme = localStorage.getItem("theme") || "dark";
+            let initialTheme = localStorage.getItem("theme") || "dark"; // 預設為深色主題
             applyTheme(initialTheme);
+
+            // --- 新增：為眼睛圖示綁定事件並設定初始圖示 ---
+            if (togglePasswordIcon) {
+                // 確保元素存在
+                togglePasswordIcon.innerHTML = SVG_EYE_OPEN; // 初始設定為睜開的眼睛
+                togglePasswordIcon.addEventListener("click", togglePasswordVisibility);
+            } else {
+                console.error("Toggle password icon not found!");
+            }
         </script>
     </body>
 </html>
