@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <title>簡易 AES-GCM 解密工具</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                padding: 2em;
+                max-width: 600px;
+                margin: auto;
+            }
+            textarea {
+                width: 100%;
+                height: 80px;
+            }
+            input,
+            button {
+                width: 100%;
+                margin-top: 1em;
+                padding: 0.5em;
+            }
+            pre {
+                background: #f4f4f4;
+                padding: 1em;
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>🔐 AES-GCM 解密工具</h2>
+
+        <label>密碼短語（Passphrase）</label>
+        <input type="password" id="passphrase" />
+
+        <label>Base64 編碼 JSON</label>
+        <textarea id="encodedJson"></textarea>
+
+        <button onclick="handleDecrypt()">開始解密</button>
+
+        <h3>📄 解密結果</h3>
+        <pre id="output">尚未解密</pre>
+
+        <script>
+            async function handleDecrypt() {
+                const passphrase = document.getElementById("passphrase").value;
+                const encodedJson = document.getElementById("encodedJson").value;
+                const output = document.getElementById("output");
+
+                try {
+                    // 1. Base64 解碼 JSON
+                    const rawJson = atob(encodedJson);
+                    const payload = JSON.parse(rawJson);
+
+                    // 2. 解析參數
+                    const { salt, iterations } = payload.keyDerivation;
+                    const { iv, ciphertext, tag, tagLength } = payload.encryption;
+
+                    const saltBytes = Uint8Array.from(atob(salt), (c) => c.charCodeAt(0));
+                    const ivBytes = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0));
+                    const tagBytes = Uint8Array.from(atob(tag), (c) => c.charCodeAt(0));
+                    const cipherBytes = Uint8Array.from(atob(ciphertext), (c) => c.charCodeAt(0));
+
+                    // 3. 合併 ciphertext + tag（WebCrypto 需接在一起）
+                    const encrypted = new Uint8Array(cipherBytes.length + tagBytes.length);
+                    encrypted.set(cipherBytes);
+                    encrypted.set(tagBytes, cipherBytes.length);
+
+                    // 4. 將 passphrase 導入金鑰 (PBKDF2 → AES-GCM)
+                    const enc = new TextEncoder();
+                    const keyMaterial = await window.crypto.subtle.importKey(
+                        "raw",
+                        enc.encode(passphrase),
+                        { name: "PBKDF2" },
+                        false,
+                        ["deriveKey"]
+                    );
+
+                    const key = await window.crypto.subtle.deriveKey(
+                        {
+                            name: "PBKDF2",
+                            salt: saltBytes,
+                            iterations,
+                            hash: "SHA-256",
+                        },
+                        keyMaterial,
+                        { name: "AES-GCM", length: 256 },
+                        false,
+                        ["decrypt"]
+                    );
+
+                    // 5. 解密
+                    const plainBuffer = await window.crypto.subtle.decrypt(
+                        {
+                            name: "AES-GCM",
+                            iv: ivBytes,
+                            tagLength: tagLength,
+                        },
+                        key,
+                        encrypted
+                    );
+
+                    const decoded = new TextDecoder().decode(plainBuffer);
+                    output.textContent = decoded;
+                } catch (e) {
+                    output.textContent = "❌ 解密失敗：" + e.message;
+                }
+            }
+        </script>
+    </body>
+</html>

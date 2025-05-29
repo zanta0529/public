@@ -101,7 +101,7 @@
                 border-radius: 5px;
                 cursor: pointer;
                 transition: background-color 0.3s, border-color 0.3s, transform 0.2s;
-                text-align: center;
+                text-align: left;
                 font-size: 1.1em;
                 font-weight: 500;
             }
@@ -180,13 +180,15 @@
         <script>
             // JSON 格式的工具資料
             const optionsData = [
-                { uri: "crypto_manager.html", display: "客製版-純文字加解密管理工具" },
-                { uri: "aes_decrypt.html", display: "客製版-純文字解密器（AES）" },
-                { uri: "chacha20_decrypt.html", display: "客製版-純文字解密器（ChaCha20）" },
-                { uri: "crypto.html", display: "通用版-文字與檔案加解密工具（AES/ChaCha20）" },
+                { uri: "crypto_manager.html", display: "【客製化】純文字加密、解密管理工具" },
+                { uri: "aes_decrypt.html", display: "【客製化】AES 純文字解密器" },
+                { uri: "chacha20_decrypt.html", display: "【客製化】ChaCha20 純文字解密器" },
+                { uri: "crypto.html", display: "通用版純文字與檔案加密、解密工具" },
                 { uri: "text_compressor.html", display: "長文字壓縮、解壓縮" },
                 { uri: "shamir.html", display: "Shamir 密鑰分割還原" },
                 { uri: "bip39.html", display: "BIP39 助記詞產生器" },
+                { uri: "aes_decrypt_alt1.html", display: "簡易 AES 純文字解密器 1" },
+                { uri: "aes_decrypt_alt2.html", display: "簡易 AES 純文字解密器 2" },
                 { uri: "my_template.html", display: "Zanta 的通用網頁設計風格樣本" },
             ];
 

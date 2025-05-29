@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>AES-GCM 解密工具</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: Arial, sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue";
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+
+            .container {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                padding: 40px;
+                width: 100%;
+                max-width: 700px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            h1 {
+                text-align: center;
+                color: #333;
+                margin-bottom: 30px;
+                font-size: 28px;
+                font-weight: 600;
+            }
+
+            .form-group {
+                margin-bottom: 25px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                color: #555;
+                font-weight: 500;
+                font-size: 14px;
+            }
+
+            input,
+            textarea {
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid #e1e5e9;
+                border-radius: 10px;
+                font-size: 14px;
+                font-family: inherit;
+                transition: all 0.3s ease;
+                background: rgba(255, 255, 255, 0.9);
+            }
+
+            input:focus,
+            textarea:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                transform: translateY(-1px);
+            }
+
+            textarea {
+                resize: vertical;
+                min-height: 120px;
+                font-family: "Courier New", monospace;
+                font-size: 14px;
+            }
+
+            #base64Input {
+                min-height: 100px;
+            }
+
+            button {
+                width: 100%;
+                padding: 14px 24px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-bottom: 15px;
+            }
+
+            button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            }
+
+            button:active {
+                transform: translateY(0);
+            }
+
+            button:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .secondary-btn {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            }
+
+            .result-section {
+                margin-top: 30px;
+                padding: 20px;
+                background: rgba(240, 248, 255, 0.8);
+                border-radius: 12px;
+                border-left: 4px solid #667eea;
+            }
+
+            .result-title {
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 12px;
+                font-size: 16px;
+            }
+
+            .result-content {
+                background: white;
+                padding: 15px;
+                border-radius: 8px;
+                border: 1px solid #e1e5e9;
+                font-family: "Courier New", monospace;
+                font-size: 14px;
+                line-height: 1.6;
+                word-break: break-all;
+                max-height: 300px;
+                overflow-y: auto;
+            }
+
+            .error {
+                color: #dc3545;
+                background: rgba(220, 53, 69, 0.1);
+                border-left-color: #dc3545;
+            }
+
+            .success {
+                color: #28a745;
+            }
+
+            .info {
+                color: #17a2b8;
+                background: rgba(23, 162, 184, 0.1);
+                border-left-color: #17a2b8;
+            }
+
+            .info-box {
+                background: rgba(255, 243, 205, 0.8);
+                border: 1px solid #ffeaa7;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 25px;
+                font-size: 14px;
+                color: #856404;
+            }
+
+            .loading {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border: 2px solid #ffffff;
+                border-radius: 50%;
+                border-top-color: transparent;
+                animation: spin 1s ease-in-out infinite;
+                margin-right: 8px;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .param-display {
+                background: rgba(248, 249, 250, 0.8);
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                font-size: 14px;
+                font-family: "Courier New", monospace;
+                display: none;
+            }
+
+            .param-item {
+                margin-bottom: 8px;
+                color: #666;
+            }
+
+            .param-label {
+                font-weight: 600;
+                color: #333;
+                margin-right: 8px;
+            }
+
+            .step-indicator {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 30px;
+                position: relative;
+            }
+
+            .step {
+                flex: 1;
+                text-align: center;
+                position: relative;
+                padding: 10px;
+            }
+
+            .step-number {
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                background: #e1e5e9;
+                color: #666;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 8px;
+                font-weight: 600;
+                font-size: 14px;
+            }
+
+            .step.active .step-number {
+                background: #667eea;
+                color: white;
+            }
+
+            .step.completed .step-number {
+                background: #28a745;
+                color: white;
+            }
+
+            .step-text {
+                font-size: 14px;
+                color: #666;
+            }
+
+            .step.active .step-text {
+                color: #667eea;
+                font-weight: 500;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔓 AES-GCM 解密工具</h1>
+
+            <div class="step-indicator">
+                <div class="step active" id="step1">
+                    <div class="step-number">1</div>
+                    <div class="step-text">載入參數</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-number">2</div>
+                    <div class="step-text">輸入密碼</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-number">3</div>
+                    <div class="step-text">解密完成</div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>使用說明：</strong><br />
+                1. 貼上 Base64 編碼的 JSON 加密參數<br />
+                2. 點擊「解析參數」載入加密設定<br />
+                3. 輸入密碼短語進行解密
+            </div>
+
+            <!-- 步驟1：載入加密參數 -->
+            <div id="loadSection">
+                <div class="form-group">
+                    <label for="base64Input">Base64 編碼的 JSON 加密參數</label>
+                    <textarea
+                        id="base64Input"
+                        placeholder="請貼上 Base64 編碼的 JSON 資料...&#10;例如：eyJrZXlEZXJpdmF0aW9uIjp7Im5hbWUiOiJQQktERjIi..."
+                    ></textarea>
+                </div>
+
+                <button type="button" id="parseBtn" onclick="parseBase64Data()">
+                    <span id="parseBtnText">📤 解析參數</span>
+                </button>
+            </div>
+
+            <!-- 顯示解析後的參數 -->
+            <div class="param-display" id="paramDisplay">
+                <div class="param-item">
+                    <span class="param-label">金鑰衍生：</span><span id="keyDerivationInfo"></span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">加密演算法：</span><span id="encryptionInfo"></span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">狀態：</span><span class="success">參數已載入 ✅</span>
+                </div>
+            </div>
+
+            <!-- 步驟2：輸入密碼進行解密 -->
+            <div id="decryptSection" style="display: none">
+                <form id="decryptForm">
+                    <div class="form-group">
+                        <label for="passphrase">密碼短語 (Passphrase)</label>
+                        <input type="password" id="passphrase" placeholder="請輸入解密用的密碼短語" required />
+                    </div>
+
+                    <button type="submit" id="decryptBtn">
+                        <span id="decryptBtnText">🔓 開始解密</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- 結果顯示區域 -->
+            <div id="result" class="result-section" style="display: none">
+                <div class="result-title" id="resultTitle">結果</div>
+                <div class="result-content" id="resultContent"></div>
+            </div>
+        </div>
+
+        <script>
+            let encryptedData = null;
+
+            // Base64 解碼函數
+            function base64ToArrayBuffer(base64) {
+                const binaryString = atob(base64);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                return bytes.buffer;
+            }
+
+            // 字串轉 ArrayBuffer
+            function stringToArrayBuffer(str) {
+                return new TextEncoder().encode(str);
+            }
+
+            // ArrayBuffer 轉字串
+            function arrayBufferToString(buffer) {
+                return new TextDecoder().decode(buffer);
+            }
+
+            // 解析 Base64 資料
+            function parseBase64Data() {
+                const base64Input = document.getElementById("base64Input").value.trim();
+                const parseBtn = document.getElementById("parseBtn");
+                const parseBtnText = document.getElementById("parseBtnText");
+
+                if (!base64Input) {
+                    showResult("請先輸入 Base64 編碼的 JSON 資料", true, "❌ 輸入錯誤");
+                    return;
+                }
+
+                parseBtn.disabled = true;
+                parseBtnText.innerHTML = '<span class="loading"></span>解析中...';
+
+                try {
+                    // Base64 解碼
+                    const jsonString = atob(base64Input);
+
+                    // 解析 JSON
+                    encryptedData = JSON.parse(jsonString);
+
+                    // 驗證必要欄位
+                    if (!encryptedData.keyDerivation || !encryptedData.encryption) {
+                        throw new Error("JSON 格式不正確：缺少必要的 keyDerivation 或 encryption 欄位");
+                    }
+
+                    // 顯示參數資訊
+                    displayParameters();
+
+                    // 更新步驟狀態
+                    updateStepStatus(2);
+
+                    // 顯示解密區域
+                    document.getElementById("decryptSection").style.display = "block";
+
+                    showResult("加密參數解析成功！請輸入密碼短語進行解密。", false, "✅ 參數載入完成");
+                } catch (error) {
+                    console.error("解析錯誤:", error);
+                    showResult(`Base64 解析失敗：${error.message}`, true, "❌ 解析錯誤");
+                } finally {
+                    parseBtn.disabled = false;
+                    parseBtnText.textContent = "📤 解析參數";
+                }
+            }
+
+            // 顯示參數資訊
+            function displayParameters() {
+                const paramDisplay = document.getElementById("paramDisplay");
+                const keyDerivationInfo = document.getElementById("keyDerivationInfo");
+                const encryptionInfo = document.getElementById("encryptionInfo");
+
+                keyDerivationInfo.textContent = `${encryptedData.keyDerivation.name} (${
+                    encryptedData.keyDerivation.hash
+                }, ${encryptedData.keyDerivation.iterations.toLocaleString()} 迭代)`;
+                encryptionInfo.textContent = `${encryptedData.encryption.name}`;
+
+                paramDisplay.style.display = "block";
+            }
+
+            // 更新步驟狀態
+            function updateStepStatus(currentStep) {
+                for (let i = 1; i <= 3; i++) {
+                    const step = document.getElementById(`step${i}`);
+                    if (i < currentStep) {
+                        step.className = "step completed";
+                    } else if (i === currentStep) {
+                        step.className = "step active";
+                    } else {
+                        step.className = "step";
+                    }
+                }
+            }
+
+            // 顯示結果
+            function showResult(content, isError = false, title = "結果") {
+                const resultDiv = document.getElementById("result");
+                const titleDiv = document.getElementById("resultTitle");
+                const contentDiv = document.getElementById("resultContent");
+
+                resultDiv.style.display = "block";
+                titleDiv.textContent = title;
+                contentDiv.textContent = content;
+
+                if (isError) {
+                    resultDiv.className = "result-section error";
+                } else if (title.includes("參數載入")) {
+                    resultDiv.className = "result-section info";
+                } else {
+                    resultDiv.className = "result-section success";
+                }
+            }
+
+            // 主要解密函數
+            async function decryptData(passphrase) {
+                try {
+                    // 所有參數都是 Base64 編碼，需要解碼
+                    const salt = base64ToArrayBuffer(encryptedData.keyDerivation.salt);
+                    const iv = base64ToArrayBuffer(encryptedData.encryption.iv);
+                    const ciphertext = base64ToArrayBuffer(encryptedData.encryption.ciphertext);
+                    const tag = base64ToArrayBuffer(encryptedData.encryption.tag);
+
+                    // 合併密文和標籤（AES-GCM 需要）
+                    const encryptedBuffer = new Uint8Array(ciphertext.byteLength + tag.byteLength);
+                    encryptedBuffer.set(new Uint8Array(ciphertext), 0);
+                    encryptedBuffer.set(new Uint8Array(tag), ciphertext.byteLength);
+
+                    // 使用 PBKDF2 衍生金鑰
+                    const keyMaterial = await crypto.subtle.importKey(
+                        "raw",
+                        stringToArrayBuffer(passphrase),
+                        "PBKDF2",
+                        false,
+                        ["deriveBits", "deriveKey"]
+                    );
+
+                    const key = await crypto.subtle.deriveKey(
+                        {
+                            name: "PBKDF2",
+                            salt: salt,
+                            iterations: encryptedData.keyDerivation.iterations,
+                            hash: encryptedData.keyDerivation.hash,
+                        },
+                        keyMaterial,
+                        { name: "AES-GCM", length: 256 },
+                        false,
+                        ["decrypt"]
+                    );
+
+                    // 執行 AES-GCM 解密
+                    const decryptedBuffer = await crypto.subtle.decrypt(
+                        {
+                            name: "AES-GCM",
+                            iv: iv,
+                            tagLength: encryptedData.encryption.tagLength,
+                        },
+                        key,
+                        encryptedBuffer
+                    );
+
+                    // 轉換為文字
+                    const decryptedText = arrayBufferToString(decryptedBuffer);
+                    return { success: true, data: decryptedText };
+                } catch (error) {
+                    console.error("解密錯誤:", error);
+                    return {
+                        success: false,
+                        error:
+                            error.name === "OperationError"
+                                ? "解密失敗：可能是密碼短語錯誤或資料損壞"
+                                : `解密錯誤：${error.message}`,
+                    };
+                }
+            }
+
+            // 表單提交處理
+            document.getElementById("decryptForm").addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                if (!encryptedData) {
+                    showResult("請先載入加密參數", true, "❌ 參數未載入");
+                    return;
+                }
+
+                const passphrase = document.getElementById("passphrase").value;
+                const decryptBtn = document.getElementById("decryptBtn");
+                const decryptBtnText = document.getElementById("decryptBtnText");
+
+                if (!passphrase.trim()) {
+                    showResult("請輸入密碼短語", true, "❌ 輸入錯誤");
+                    return;
+                }
+
+                // 顯示載入狀態
+                decryptBtn.disabled = true;
+                decryptBtnText.innerHTML = '<span class="loading"></span>解密中...';
+
+                try {
+                    const result = await decryptData(passphrase);
+
+                    if (result.success) {
+                        updateStepStatus(3);
+                        showResult(result.data, false, "🎉 解密成功");
+                    } else {
+                        showResult(result.error, true, "❌ 解密失敗");
+                    }
+                } catch (error) {
+                    showResult(`未預期的錯誤：${error.message}`, true, "❌ 系統錯誤");
+                } finally {
+                    // 恢復按鈕狀態
+                    decryptBtn.disabled = false;
+                    decryptBtnText.textContent = "🔓 開始解密";
+                }
+            });
+        </script>
+    </body>
+</html>
