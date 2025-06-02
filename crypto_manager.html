@@ -50,6 +50,9 @@
                 --success-color: #60d978;
                 --success-bg: #2a4a30;
             }
+            html {
+                scroll-behavior: smooth;
+            }
             body {
                 background: var(--bg-color);
                 color: var(--text-color);
@@ -113,6 +116,7 @@
                 resize: vertical;
             }
             button {
+                /* General button styles, BackToTopBtn will override some */
                 padding: 0.75rem 1.5rem;
                 background-color: var(--primary-color);
                 color: white;
@@ -267,6 +271,44 @@
             #themeToggleBtn:hover {
                 background-color: var(--border-color);
             }
+
+            /* Updated Back to Top Button Styles */
+            #backToTopBtn {
+                display: none; /* Hidden by default */
+                position: fixed;
+                bottom: 50px;
+                right: 50px;
+                z-index: 100;
+                background-color: var(--secondary-color);
+                color: #ffffff;
+                border: none;
+                box-shadow: none;
+                outline: none;
+                cursor: pointer;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                transition: background-color 0.3s, color 0.3s, transform 0.2s, visibility 0.3s;
+                /* For centering SVG */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+            }
+            #backToTopBtn:hover {
+                background-color: var(--secondary-hover-color);
+                transform: scale(1.05);
+            }
+            #backToTopBtn svg {
+                display: block;
+                width: 40px;
+                height: 40px;
+            }
+            #backToTopBtn svg path {
+                stroke: currentColor;
+                stroke-width: 0.5;
+                stroke-linejoin: round;
+            }
         </style>
     </head>
     <body>
@@ -327,6 +369,13 @@
             </p>
         </footer>
 
+        <button id="backToTopBtn" title="回到最上方">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 8L6 14L7.41 15.41L12 10.83L16.59 15.41L18 14L12 8Z" fill="currentColor" />
+                <path d="M12 4L6 10L7.41 11.41L12 6.83L16.59 11.41L18 10L12 4Z" fill="currentColor" />
+            </svg>
+        </button>
+
         <script type="module">
             import { chacha20poly1305 } from "https://cdn.jsdelivr.net/npm/@noble/ciphers/esm/chacha.js";
 
@@ -354,7 +403,7 @@
                 const outputDiv = getObject("output");
                 outputDiv.textContent = message;
                 outputDiv.className = `output ${type}`;
-                const showCopy = type === "success" && message.startsWith("✅"); // Show for any success
+                const showCopy = type === "success" && message.startsWith("✅");
                 getObject("copyDecryptedBtn").style.display = showCopy ? "block" : "none";
             }
             function toBase64(uint8array) {
@@ -384,8 +433,8 @@
                     return;
                 }
                 setOutput("info", "⏳ 正在加密，請稍候...");
-                await new Promise((r) => setTimeout(r, 50)); // UI responsiveness
-                const startTime = performance.now(); // Start timing
+                await new Promise((r) => setTimeout(r, 50));
+                const startTime = performance.now();
 
                 try {
                     const enc = new TextEncoder();
@@ -463,11 +512,11 @@
                         console.warn("QRCode library not loaded.");
                         qrCanvas.style.display = "none";
                     }
-                    const endTime = performance.now(); // End timing
+                    const endTime = performance.now();
                     const duration = ((endTime - startTime) / 1000).toFixed(2);
                     setOutput("success", `✅ ${selectedAlgo} 加密成功！ (執行時間：${duration} 秒)`);
                 } catch (e) {
-                    const endTime = performance.now(); // End timing
+                    const endTime = performance.now();
                     const duration = ((endTime - startTime) / 1000).toFixed(2);
                     console.error("加密失敗:", e);
                     setOutput("error", `❌ 加密失敗：${e.message} (執行時間：${duration} 秒)`);
@@ -482,8 +531,8 @@
                     return;
                 }
                 setOutput("info", "⏳ 正在解密，請稍候...");
-                await new Promise((r) => setTimeout(r, 50)); // UI responsiveness
-                const startTime = performance.now(); // Start timing
+                await new Promise((r) => setTimeout(r, 50));
+                const startTime = performance.now();
 
                 try {
                     const jsonString = atob(base64json);
@@ -570,7 +619,7 @@
                         throw new Error("解密時發生未知的演算法類型。");
                     }
 
-                    const endTime = performance.now(); // End timing
+                    const endTime = performance.now();
                     const duration = ((endTime - startTime) / 1000).toFixed(2);
                     setOutput(
                         "success",
@@ -580,7 +629,7 @@
                     copyDecryptedBtn.dataset.decryptedText = decryptedResult;
                     copyDecryptedBtn.style.display = "block";
                 } catch (e) {
-                    const endTime = performance.now(); // End timing
+                    const endTime = performance.now();
                     const duration = ((endTime - startTime) / 1000).toFixed(2);
                     console.error("解密失敗:", e);
                     if (
@@ -713,6 +762,25 @@
                     });
                 }
                 applyTheme(localStorage.getItem("crypto-tool-theme") || "dark");
+
+                const backToTopButton = document.getElementById("backToTopBtn");
+                if (backToTopButton) {
+                    window.addEventListener("scroll", () => {
+                        if (
+                            window.pageYOffset > 200 ||
+                            document.documentElement.scrollTop > 200 ||
+                            document.body.scrollTop > 200
+                        ) {
+                            backToTopButton.style.display = "flex"; // Use flex to enable align/justify
+                        } else {
+                            backToTopButton.style.display = "none";
+                        }
+                    });
+
+                    backToTopButton.addEventListener("click", () => {
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                    });
+                }
             }
             document.addEventListener("DOMContentLoaded", init);
         </script>
