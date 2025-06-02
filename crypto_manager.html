@@ -384,7 +384,8 @@
                     return;
                 }
                 setOutput("info", "⏳ 正在加密，請稍候...");
-                await new Promise((r) => setTimeout(r, 50));
+                await new Promise((r) => setTimeout(r, 50)); // UI responsiveness
+                const startTime = performance.now(); // Start timing
 
                 try {
                     const enc = new TextEncoder();
@@ -462,14 +463,17 @@
                         console.warn("QRCode library not loaded.");
                         qrCanvas.style.display = "none";
                     }
-                    setOutput("success", `✅ ${selectedAlgo} 加密成功！`);
+                    const endTime = performance.now(); // End timing
+                    const duration = ((endTime - startTime) / 1000).toFixed(2);
+                    setOutput("success", `✅ ${selectedAlgo} 加密成功！ (執行時間：${duration} 秒)`);
                 } catch (e) {
+                    const endTime = performance.now(); // End timing
+                    const duration = ((endTime - startTime) / 1000).toFixed(2);
                     console.error("加密失敗:", e);
-                    setOutput("error", `❌ 加密失敗：${e.message}`);
+                    setOutput("error", `❌ 加密失敗：${e.message} (執行時間：${duration} 秒)`);
                 }
             }
 
-            // --- 補齊的函式開始 ---
             async function decrypt() {
                 const passphrase = getObject("passphrase").value;
                 const base64json = getObject("base64json").value.trim();
@@ -478,7 +482,8 @@
                     return;
                 }
                 setOutput("info", "⏳ 正在解密，請稍候...");
-                await new Promise((r) => setTimeout(r, 50));
+                await new Promise((r) => setTimeout(r, 50)); // UI responsiveness
+                const startTime = performance.now(); // Start timing
 
                 try {
                     const jsonString = atob(base64json);
@@ -488,20 +493,16 @@
                     let keyMaterial;
 
                     let encryptionName;
-                    // 判斷格式與演算法
                     if (json.encryption && json.encryption.name && json.keyDerivation) {
-                        // 新結構化格式
                         encryptionName = json.encryption.name;
                         if (json.keyDerivation.name !== "PBKDF2") throw new Error("不支援的金鑰派生方法。");
                         salt = fromBase64(json.keyDerivation.salt);
                         iterations = json.keyDerivation.iterations;
                     } else if (json.algorithm && json.algorithm.name === "AES-GCM") {
-                        // 舊扁平化 AES 格式
                         encryptionName = "AES-GCM";
                         salt = fromBase64(json.salt);
                         iterations = json.iterations || LEGACY_AES_ITERATIONS;
                     } else if (json.algorithm && json.algorithm.name === "ChaCha20-Poly1305") {
-                        // 舊 (此工具先前版本) ChaCha20 格式
                         encryptionName = "ChaCha20-Poly1305";
                         salt = fromBase64(json.salt);
                         iterations = json.iterations || LEGACY_CHA_ITERATIONS;
@@ -516,13 +517,11 @@
                     if (encryptionName === "AES-GCM") {
                         let ivB64, ciphertextB64, tagB64, tagLengthVal;
                         if (json.encryption) {
-                            // 新 AES 格式
                             ivB64 = json.encryption.iv;
                             ciphertextB64 = json.encryption.ciphertext;
                             tagB64 = json.encryption.tag;
                             tagLengthVal = json.encryption.tagLength || TAG_LENGTH_BITS;
                         } else {
-                            // 舊 AES 格式
                             ivB64 = json.iv;
                             ciphertextB64 = json.ciphertext;
                             tagB64 = json.tag;
@@ -549,11 +548,9 @@
                     } else if (encryptionName === "ChaCha20-Poly1305") {
                         let nonceB64, ciphertextWithTagB64;
                         if (json.encryption) {
-                            // 新 ChaCha 格式
                             nonceB64 = json.encryption.nonce;
                             ciphertextWithTagB64 = json.encryption.ciphertext;
                         } else {
-                            // 舊 ChaCha 格式 (此工具先前版本)
                             nonceB64 = json.nonce;
                             ciphertextWithTagB64 = json.ciphertext;
                         }
@@ -573,11 +570,18 @@
                         throw new Error("解密時發生未知的演算法類型。");
                     }
 
-                    setOutput("success", `✅ ${encryptionName} 成功解密！\n\n${decryptedResult}`);
+                    const endTime = performance.now(); // End timing
+                    const duration = ((endTime - startTime) / 1000).toFixed(2);
+                    setOutput(
+                        "success",
+                        `✅ ${encryptionName} 成功解密！ (執行時間：${duration} 秒)\n\n${decryptedResult}`
+                    );
                     const copyDecryptedBtn = getObject("copyDecryptedBtn");
                     copyDecryptedBtn.dataset.decryptedText = decryptedResult;
                     copyDecryptedBtn.style.display = "block";
                 } catch (e) {
+                    const endTime = performance.now(); // End timing
+                    const duration = ((endTime - startTime) / 1000).toFixed(2);
                     console.error("解密失敗:", e);
                     if (
                         e.message?.toLowerCase().includes("tag") ||
@@ -585,9 +589,12 @@
                         e.message?.toLowerCase().includes("authentication") ||
                         e.name === "OperationError"
                     ) {
-                        setOutput("error", "❌ 解密失敗：密碼短語不正確，或密文已被竄改/損毀。");
+                        setOutput(
+                            "error",
+                            `❌ 解密失敗：密碼短語不正確，或密文已被竄改/損毀。 (執行時間：${duration} 秒)`
+                        );
                     } else {
-                        setOutput("error", `❌ 解密失敗：${e.message}`);
+                        setOutput("error", `❌ 解密失敗：${e.message} (執行時間：${duration} 秒)`);
                     }
                 }
             }
@@ -661,7 +668,6 @@
 
                 setOutput("", "點擊按鈕開始操作...");
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                    // 防禦性檢查
                     navigator.clipboard.writeText("").catch((err) => console.error("清除剪貼簿失敗", err));
                 }
             }
