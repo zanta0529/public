@@ -5,47 +5,67 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Zanta's Toolbox</title>
         <style>
-            /* --- CSS 變數定義 (淺色 & 深色主題) --- */
             :root {
-                --primary-color: #007bff;
-                --primary-hover-color: #0056b3;
-                --secondary-color: #6c757d;
-                --secondary-hover-color: #5a6268;
-                --bg-color: #f8f9fa;
+                /* Palette */
+                --primary-color: #f59e0b;
+                --primary-hover-color: #d97706;
+                --secondary-color: #6b7280;
+                --secondary-hover-color: #4b5563;
+                /* Status Colors */
+                --success-color: #059669;
+                --success-bg: #d1fae5;
+                --error-color: #dc2626;
+                --error-bg: #fee2e2;
+                --info-color: #0891b2;
+                --info-bg: #cffafe;
+                --note-color: #92400e;
+                --note-bg: #fefce8;
+                /* UI Elements */
+                --section-header-bg: #f3f4f6;
+                --bg-color: #f9fafb;
                 --container-bg: #ffffff;
-                --text-color: #212529;
-                --border-color: #dee2e6;
-                --input-bg: #e9f5ff;
-                --input-focus-shadow: rgba(0, 123, 255, 0.25);
-                --button-disabled-bg: #ccc;
-                --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-                --error-color: #dc3545;
-                --error-bg: #fbebeb;
-                --success-color: #198754;
-                --success-bg: #d1e7dd;
-                --toast-bg: #323232;
-                --toast-color: #fff;
+                --text-color: #1f2937;
+                --border-color: #e5e7eb;
+                --input-bg: #ffffff;
+                --input-focus-shadow: rgba(245, 158, 11, 0.25);
+                --button-disabled-bg: #d1d5db;
+                --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                --toast-bg: #1f2937;
+                --toast-color: #f9fafb;
+                --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
+                --tooltip-bg: #1f2937;
+                --tooltip-color: #f9fafb;
             }
-
             :root[data-theme="dark"] {
-                --primary-color: #1e90ff;
-                --primary-hover-color: #4ca8ff;
-                --secondary-color: #778899;
-                --secondary-hover-color: #90a0b1;
-                --bg-color: #1e1e2f;
-                --container-bg: #2f2f4f;
-                --text-color: #e8e8f0;
-                --border-color: #4a4a5f;
-                --input-bg: #444;
-                --input-focus-shadow: rgba(30, 144, 255, 0.4);
-                --button-disabled-bg: #5a5a70;
-                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-                --error-color: #ff7f7f;
-                --error-bg: #4f2e2e;
-                --success-color: #60d978;
-                --success-bg: #2a4a30;
-                --toast-bg: #eaec6e;
-                --toast-color: #1e1e2f;
+                /* Palette */
+                --primary-color: #f59e0b;
+                --primary-hover-color: #fbbf24;
+                --secondary-color: #9ca3af;
+                --secondary-hover-color: #d1d5db;
+                /* Status Colors */
+                --success-color: #6ee7b7;
+                --success-bg: #064e3b;
+                --error-color: #f87171;
+                --error-bg: #7f1d1d;
+                --info-color: #67e8f9;
+                --info-bg: #164e63;
+                --note-color: #fde047;
+                --note-bg: #451a03;
+                /* UI Elements */
+                --section-header-bg: rgba(255, 255, 255, 0.05);
+                --bg-color: #111827;
+                --container-bg: #1f2937;
+                --text-color: #d1d5db;
+                --border-color: #374151;
+                --input-bg: #374151;
+                --input-focus-shadow: rgba(245, 158, 11, 0.3);
+                --button-disabled-bg: #4b5563;
+                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                --toast-bg: #fde68a;
+                --toast-color: #78350f;
+                --modal-backdrop-bg: rgba(0, 0, 0, 0.7);
+                --tooltip-bg: #fde68a;
+                --tooltip-color: #78350f;
             }
 
             /* --- 基礎 & 佈局樣式 --- */
@@ -67,13 +87,13 @@
             .container {
                 background-color: var(--container-bg);
                 padding: 2rem;
-                border-radius: 8px;
+                border-radius: 12px;
                 box-shadow: var(--box-shadow);
                 width: 100%;
-                max-width: 900px; /* 為了容納較長的標題，稍微加寬 */
+                max-width: 900px;
                 margin-bottom: 2rem;
                 border: 1px solid var(--border-color);
-                transition: background-color 0.3s, border-color 0.3s;
+                transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
             }
 
             h1,
@@ -89,7 +109,7 @@
                 margin-bottom: 2rem;
             }
 
-            /* --- 組件：選項/頁籤組 (從樣本繼承) --- */
+            /* --- 組件：選項/頁籤組 --- */
             .option-group {
                 display: flex;
                 flex-direction: column;
@@ -98,17 +118,19 @@
             .option {
                 padding: 1rem 1.5rem;
                 border: 1px solid var(--border-color);
-                border-radius: 5px;
+                border-radius: 8px;
                 cursor: pointer;
-                transition: background-color 0.3s, border-color 0.3s, transform 0.2s;
+                transition: background-color 0.3s, border-color 0.3s, color 0.3s, transform 0.2s;
                 text-align: left;
                 font-size: 1.1em;
                 font-weight: 500;
+                color: var(--text-color);
+                background-color: transparent;
             }
             .option:hover {
                 border-color: var(--primary-color);
                 background-color: var(--primary-color);
-                color: white;
+                color: #422006;
                 transform: scale(1.02);
             }
 
