@@ -384,9 +384,8 @@
             const TAG_LENGTH_BITS = 128;
             const NONCE_BYTES = 12;
             const KEY_LENGTH_BITS = 256;
-            const NEW_DEFAULT_ITERATIONS = 900000;
-            const LEGACY_AES_ITERATIONS = 300000;
-            const LEGACY_CHA_ITERATIONS = 300000;
+            const DEFAULT_ITERATIONS = 2000000;
+            const FALLBACK_ITERATIONS = 300000;
 
             const SVG_EYE_OPEN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`;
             const SVG_EYE_SLASH = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`;
@@ -439,7 +438,7 @@
                 try {
                     const enc = new TextEncoder();
                     const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
-                    const iterations = NEW_DEFAULT_ITERATIONS;
+                    const iterations = DEFAULT_ITERATIONS;
                     const keyMaterial = await deriveKeyFromPassphrase(passphrase, salt, iterations);
                     let jsonOutput;
 
@@ -550,11 +549,11 @@
                     } else if (json.algorithm && json.algorithm.name === "AES-GCM") {
                         encryptionName = "AES-GCM";
                         salt = fromBase64(json.salt);
-                        iterations = json.iterations || LEGACY_AES_ITERATIONS;
+                        iterations = json.iterations || FALLBACK_ITERATIONS;
                     } else if (json.algorithm && json.algorithm.name === "ChaCha20-Poly1305") {
                         encryptionName = "ChaCha20-Poly1305";
                         salt = fromBase64(json.salt);
-                        iterations = json.iterations || LEGACY_CHA_ITERATIONS;
+                        iterations = json.iterations || FALLBACK_ITERATIONS;
                     } else {
                         throw new Error("無法識別的密文格式或缺少必要的演算法資訊。");
                     }
