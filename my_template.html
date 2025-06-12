@@ -19,9 +19,10 @@
                 --error-bg: #fbebeb;
                 --note-color: #083b06;
                 --note-bg: #baf1ac;
+                --info-color: #0c5460;
+                --info-bg: #d1ecf1;
                 /* UI Elements */
-                --title-color: #6d430b;
-                --title-bg: #ffba53;
+                --section-header-bg: #f7f7f9;
                 --bg-color: #f8f9fa;
                 --container-bg: #ffffff;
                 --text-color: #212529;
@@ -49,9 +50,10 @@
                 --error-bg: #4f2e2e;
                 --note-color: #a2f58d;
                 --note-bg: #2a5028;
+                --info-color: #66d9ef;
+                --info-bg: #233a40;
                 /* UI Elements */
-                --title-color: #ffba53;
-                --title-bg: #6d430b;
+                --section-header-bg: rgba(0, 0, 0, 0.2);
                 --bg-color: #1e1e2f;
                 --container-bg: #2f2f4f;
                 --text-color: #e8e8f0;
@@ -87,32 +89,16 @@
                 transition: background-color 0.3s, color 0.3s;
             }
             .container {
-                background-color: var(--container-bg);
-                padding: 2.5rem; /* [Layout] 增加內部 padding */
-                border-radius: 12px;
-                box-shadow: var(--box-shadow);
+                background-color: transparent;
+                padding: 0;
+                border: none;
+                box-shadow: none;
                 width: 100%;
                 max-width: 1024px;
-                margin-bottom: 2rem;
-                border: 1px solid var(--border-color);
-                transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
-            }
-            h1,
-            h2,
-            h3 {
-                color: var(--text-color);
-                margin: 0;
             }
             h1 {
                 text-align: center;
                 margin-bottom: 2.5rem;
-            }
-            h2 {
-                padding: 0.75rem;
-                margin-bottom: 1.2rem;
-                color: var(--title-color);
-                background-color: var(--title-bg);
-                border-radius: 10px;
             }
             h3 {
                 margin-top: 2.5rem;
@@ -120,8 +106,8 @@
                 color: var(--secondary-color);
             }
             section {
-                margin-bottom: 3rem;
-            } /* [Layout] 增加 section 之間距離 */
+                margin-bottom: 2.5rem;
+            }
             section:last-child {
                 margin-bottom: 0;
             }
@@ -130,13 +116,33 @@
                 display: block;
                 margin-bottom: 0.5rem;
             }
-
-            /* [Layout] 新增表單群組容器以利間距控制 */
             .form-group {
                 margin-bottom: 1.5rem;
             }
             .form-group:last-child {
                 margin-bottom: 0;
+            }
+
+            section.card {
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                background-color: var(--container-bg);
+                box-shadow: var(--box-shadow);
+                transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+            }
+            section.card > h2 {
+                padding: 0.85rem 1.5rem;
+                margin: 0;
+                font-size: 1.25em;
+                color: var(--text-color);
+                background-color: var(--section-header-bg);
+                border-bottom: 1px solid var(--border-color);
+                transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+                border-top-left-radius: 12px;
+                border-top-right-radius: 12px;
+            }
+            .card-content {
+                padding: 1.5rem;
             }
 
             /* --- 組件：按鈕 --- */
@@ -231,7 +237,7 @@
                 resize: vertical;
             }
 
-            /* --- [Restore] 組件：選項/頁籤組件 --- */
+            /* --- 組件：選項/頁籤組件 --- */
             .option-group {
                 display: flex;
                 flex-wrap: wrap;
@@ -270,7 +276,7 @@
             }
             .output-box + .output-box {
                 margin-top: 1rem;
-            } /* [Layout] 增加訊息框間距 */
+            }
             .output-box.success {
                 color: var(--success-color);
                 border-color: var(--success-color);
@@ -281,9 +287,13 @@
                 border-color: var(--error-color);
                 background-color: var(--error-bg);
             }
+            .output-box.info {
+                color: var(--info-color);
+                border-color: var(--info-color);
+                background-color: var(--info-bg);
+            }
 
-            /* --- 以下為其他組件樣式 (Modal, Accordion, Progress, Tabs, Toggle) --- */
-            /* ... 樣式與前一版相同，為節省篇幅此處省略，實際程式碼中為完整存在 ... */
+            /* --- 其他組件樣式 (Modal, Accordion, Progress, Tabs, Toggle) --- */
             .modal {
                 visibility: hidden;
                 opacity: 0;
@@ -448,7 +458,8 @@
                 height: 20px;
                 width: 20px;
                 left: 4px;
-                bottom: 4px;
+                top: 50%;
+                transform: translateY(-50%);
                 background-color: white;
                 border-radius: 50%;
                 transition: transform 0.3s;
@@ -457,7 +468,7 @@
                 background-color: var(--primary-color);
             }
             .toggle-checkbox:checked + .toggle-label::before {
-                transform: translateX(22px);
+                transform: translateX(22px) translateY(-50%);
             }
 
             /* --- 組件：頁尾 & 主題切換 --- */
@@ -513,12 +524,18 @@
                     padding: 1rem;
                 }
                 .container {
-                    padding: 1.5rem;
+                    padding: 0;
                 }
                 .button-group,
                 .tab-nav {
                     flex-direction: column;
                     align-items: stretch;
+                }
+                .card-content {
+                    padding: 1rem;
+                }
+                section.card > h2 {
+                    padding: 0.75rem 1rem;
                 }
             }
         </style>
@@ -530,101 +547,122 @@
             </header>
 
             <main>
-                <section>
+                <section class="card">
                     <h2>基礎控制項</h2>
-                    <div class="form-group">
-                        <label>按鈕</label>
-                        <div class="button-group">
-                            <button data-tooltip="點我開啟 Toast 提示訊息" data-toast-message="這是一個 Toast 提示！">
-                                主要按鈕
-                            </button>
-                            <button class="secondary" data-modal-target="#infoModal" data-tooltip="點我開啟互動視窗">
-                                次要按鈕
-                            </button>
-                            <button disabled>禁用按鈕</button>
+                    <div class="card-content">
+                        <div class="form-group">
+                            <label>按鈕</label>
+                            <div class="button-group">
+                                <button
+                                    data-tooltip="點我開啟 Toast 提示訊息"
+                                    data-toast-message="這是一個 Toast 提示！"
+                                >
+                                    主要按鈕
+                                </button>
+                                <button
+                                    class="secondary"
+                                    data-modal-target="#infoModal"
+                                    data-tooltip="點我開啟互動視窗"
+                                >
+                                    次要按鈕
+                                </button>
+                                <button disabled>禁用按鈕</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>選項</label>
-                        <div id="demoOptionGroup" class="option-group">
-                            <div class="option selected" data-value="opt1">選項一</div>
-                            <div class="option" data-value="opt2">選項二</div>
-                            <div class="option" data-value="opt3">選項三</div>
+                        <div class="form-group">
+                            <label>選項</label>
+                            <div id="demoOptionGroup" class="option-group">
+                                <div class="option selected" data-value="opt1">選項一</div>
+                                <div class="option" data-value="opt2">選項二</div>
+                                <div class="option" data-value="opt3">選項三</div>
+                            </div>
+                            <div id="option1Hint" class="hint-note">當「選項一」被選中時顯示此提示。</div>
                         </div>
-                        <div id="option1Hint" class="hint-note">當「選項一」被選中時顯示此提示。</div>
                     </div>
                 </section>
 
-                <section>
+                <section class="card">
                     <h2>進階控制項</h2>
-
-                    <h3>頁籤 (Tabs)</h3>
-                    <div class="tab-container">
-                        <div class="tab-nav" role="tablist">
-                            <button class="tab-btn active" role="tab" aria-selected="true" data-tab="tab1">
-                                分頁 1
-                            </button>
-                            <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab2">分頁 2</button>
-                            <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab3">分頁 3</button>
-                        </div>
-                        <div class="tab-content-container">
-                            <div id="tab1" class="tab-content active" role="tabpanel">
-                                <p>這裡是<strong>個人資料</strong>的內容。</p>
+                    <div class="card-content">
+                        <h3>頁籤 (Tabs)</h3>
+                        <div class="tab-container">
+                            <div class="tab-nav" role="tablist">
+                                <button class="tab-btn active" role="tab" aria-selected="true" data-tab="tab1">
+                                    分頁 1
+                                </button>
+                                <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab2">分頁 2</button>
+                                <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab3">分頁 3</button>
                             </div>
-                            <div id="tab2" class="tab-content" role="tabpanel">
-                                <p>這裡是<strong>帳戶設定</strong>的內容。</p>
-                            </div>
-                            <div id="tab3" class="tab-content" role="tabpanel">
-                                <p>這裡是<strong>通知</strong>設定。</p>
-                                <div class="toggle-container">
-                                    <label for="emailToggle">接收郵件通知：</label>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="emailToggle" class="toggle-checkbox" checked />
-                                        <label for="emailToggle" class="toggle-label"></label>
+                            <div class="tab-content-container">
+                                <div id="tab1" class="tab-content active" role="tabpanel">
+                                    <p>這裡是<strong>個人資料</strong>的內容。</p>
+                                </div>
+                                <div id="tab2" class="tab-content" role="tabpanel">
+                                    <p>這裡是<strong>帳戶設定</strong>的內容。</p>
+                                </div>
+                                <div id="tab3" class="tab-content" role="tabpanel">
+                                    <p>這裡是<strong>通知</strong>設定。</p>
+                                    <div class="toggle-container">
+                                        <label for="emailToggle">接收郵件通知：</label>
+                                        <div class="toggle-switch">
+                                            <input type="checkbox" id="emailToggle" class="toggle-checkbox" checked />
+                                            <label for="emailToggle" class="toggle-label"></label>
+                                        </div>
+                                        <span id="emailToggleStatus" class="hint-note" style="margin: 0">開啟</span>
                                     </div>
-                                    <span id="emailToggleStatus" class="hint-note" style="margin: 0">開啟</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <h3>可折疊內容 (Accordion)</h3>
-                    <div class="accordion">
-                        <div class="accordion-item">
-                            <button class="accordion-header" aria-expanded="false">第一項：這是什麼？</button>
-                            <div class="accordion-content" aria-hidden="true"><p>這是一個可折疊的內容區塊。</p></div>
+                        <h3>可折疊內容 (Accordion)</h3>
+                        <div class="accordion">
+                            <div class="accordion-item">
+                                <button class="accordion-header" aria-expanded="false">第一項：這是什麼？</button>
+                                <div class="accordion-content" aria-hidden="true">
+                                    <p>這是一個可折疊的內容區塊。</p>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <button class="accordion-header" aria-expanded="false">第二項：如何使用？</button>
+                                <div class="accordion-content" aria-hidden="true">
+                                    <p>點擊標題可以展開或收合內容。</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="accordion-item">
-                            <button class="accordion-header" aria-expanded="false">第二項：如何使用？</button>
-                            <div class="accordion-content" aria-hidden="true"><p>點擊標題可以展開或收合內容。</p></div>
-                        </div>
-                    </div>
 
-                    <h3>進度條 (Progress Bar)</h3>
-                    <div class="progress-container">
-                        <div class="progress-bar-wrapper"><div id="demoProgressBar" class="progress-bar">0%</div></div>
-                        <button id="progressBtn" class="secondary" style="margin-top: 1rem">模擬進度</button>
+                        <h3>進度條 (Progress Bar)</h3>
+                        <div class="progress-container">
+                            <div class="progress-bar-wrapper">
+                                <div id="demoProgressBar" class="progress-bar">0%</div>
+                            </div>
+                            <button id="progressBtn" class="secondary" style="margin-top: 1rem">模擬進度</button>
+                        </div>
                     </div>
                 </section>
 
-                <section>
+                <section class="card">
                     <h2>表單輸入</h2>
-                    <div class="form-group">
-                        <label for="sampleInput">文字輸入框</label>
-                        <input type="text" id="sampleInput" placeholder="請在此輸入文字..." />
-                    </div>
-                    <div class="form-group">
-                        <label for="sampleTextarea">文字方塊</label>
-                        <textarea id="sampleTextarea" placeholder="支援多行輸入..."></textarea>
+                    <div class="card-content">
+                        <div class="form-group">
+                            <label for="sampleInput">文字輸入框</label>
+                            <input type="text" id="sampleInput" placeholder="請在此輸入文字..." />
+                        </div>
+                        <div class="form-group">
+                            <label for="sampleTextarea">文字方塊</label>
+                            <textarea id="sampleTextarea" placeholder="支援多行輸入..."></textarea>
+                        </div>
                     </div>
                 </section>
 
-                <section>
+                <section class="card">
                     <h2>訊息回饋</h2>
-                    <div class="form-group">
-                        <label>訊息回饋提示</label>
-                        <div class="output-box success">這是一條成功的訊息。</div>
-                        <div class="output-box error">這是一條錯誤的訊息。</div>
+                    <div class="card-content">
+                        <div class="form-group">
+                            <label>訊息回饋提示</label>
+                            <div class="output-box info">💡 這是一般通知性的訊息。</div>
+                            <div class="output-box success">✅ 這是一條成功的訊息。</div>
+                            <div class="output-box error">❌ 這是一條錯誤的訊息。</div>
+                        </div>
                     </div>
                 </section>
             </main>
@@ -664,7 +702,6 @@
                         tabContainers: document.querySelectorAll(".tab-container"),
                         emailToggle: document.getElementById("emailToggle"),
                         emailToggleStatus: document.getElementById("emailToggleStatus"),
-                        // [Restore] 恢復原始組件的元素參照
                         optionGroup: document.getElementById("demoOptionGroup"),
                         option1Hint: document.getElementById("option1Hint"),
                     },
@@ -675,7 +712,7 @@
                         this.theme.init();
                         this.setupEventListeners();
                         this.updateToggleStatus();
-                        this.updateOptionStatus(); // [Restore] 初始化時執行
+                        this.updateOptionStatus();
                     },
 
                     setupEventListeners() {
@@ -714,7 +751,6 @@
                         if (this.elements.emailToggle)
                             this.elements.emailToggle.addEventListener("change", () => this.updateToggleStatus());
 
-                        // [Restore] 恢復選項組件的事件監聽
                         if (this.elements.optionGroup) {
                             this.elements.optionGroup.addEventListener("click", (e) => {
                                 const option = e.target.closest(".option");
@@ -814,8 +850,6 @@
                                 : "關閉";
                         }
                     },
-
-                    // [Restore] 恢復選項狀態更新的函式
                     updateOptionStatus() {
                         if (this.elements.optionGroup) {
                             const selected = this.elements.optionGroup.querySelector(".option.selected");
