@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>互動式零知識證明：阿里巴巴的洞穴</title>
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 0 20px;
+        background-color: #f9f9f9;
+    }
+    h1, h2 {
+        text-align: center;
+        color: #2c3e50;
+    }
+    .container {
+        background: #fff;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .cave-container {
+        position: relative;
+        width: 300px;
+        height: 150px;
+        margin: 30px auto;
+        border: 3px dashed #7f8c8d;
+        border-radius: 150px 150px 0 0;
+        border-bottom: none;
+    }
+    .prover {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background-color: #3498db;
+        color: white;
+        text-align: center;
+        line-height: 30px;
+        border-radius: 50%;
+        font-weight: bold;
+        transition: all 0.8s ease-in-out;
+    }
+    #prover-peggy {
+        bottom: -40px;
+        left: 135px;
+    }
+    .path-label {
+        position: absolute;
+        bottom: 10px;
+        font-weight: bold;
+        color: #7f8c8d;
+    }
+    #path-a { left: 40px; }
+    #path-b { right: 40px; }
+    .buttons {
+        text-align: center;
+        margin: 20px 0;
+    }
+    button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 5px;
+        transition: background-color 0.3s;
+    }
+    button:disabled {
+        background-color: #bdc3c7;
+        cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+        background-color: #2980b9;
+    }
+    .explanation {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #ecf0f1;
+        border-left: 5px solid #3498db;
+        border-radius: 4px;
+    }
+    .result {
+        text-align: center;
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-top: 15px;
+    }
+    #confidence {
+        width: 100%;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 10px;
+        background: #ddd;
+        border-radius: 5px;
+        outline: none;
+    }
+    #confidence::-webkit-progress-bar {
+        background-color: #ddd;
+        border-radius: 5px;
+    }
+    #confidence::-webkit-progress-value {
+        background-color: #2ecc71;
+        border-radius: 5px;
+    }
+    #confidence::-moz-progress-bar {
+        background-color: #2ecc71;
+        border-radius: 5px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>互動式零知識證明</h1>
+    <h2>阿里巴巴的洞穴 🏺</h2>
+
+    <div class="explanation">
+        <p><strong>您 (證明者)</strong> 知道一個環形洞穴深處魔法門的咒語。您的<strong>朋友 (驗證者)</strong> 站在洞外，想確認您是否真的知道咒語，但您不能讓他聽到咒語。</p>
+        <p><strong>規則：</strong></p>
+        <ol>
+            <li>您隨機從 A 或 B 入口進入洞穴（朋友此時會閉上眼睛）。</li>
+            <li>朋友隨機喊出一個出口（A 或 B），要求您從該出口出來。</li>
+            <li>如果您知道咒語，就能打開魔法門，總是能從指定的出口出來。如果不知道，您只有 50% 的機率猜對。</li>
+        </ol>
+    </div>
+
+    <div id="game">
+        <div class="cave-container">
+            <div id="prover-peggy" class="prover">您</div>
+            <div id="path-a" class="path-label">A</div>
+            <div id="path-b" class="path-label">B</div>
+        </div>
+
+        <div class="buttons">
+            <button id="start-round" onclick="startRound()">第 1 步：進入洞穴</button>
+            <p id="verifier-choice-text" style="display:none; margin-top: 15px; font-weight:bold;"></p>
+            <button id="call-a" onclick="verifierCall('A')" disabled>朋友要求從 A 出來</button>
+            <button id="call-b" onclick="verifierCall('B')" disabled>朋友要求從 B 出來</button>
+        </div>
+
+        <div class="result" id="result-text"></div>
+
+        <div>
+            <p style="text-align:center; margin-bottom: 5px;">朋友的信任度：<span id="confidence-percent">0%</span></p>
+            <progress id="confidence" value="0" max="100"></progress>
+        </div>
+         <div class="buttons">
+            <button id="reset-button" onclick="resetGame()" style="background-color: #e74c3c;">重新開始</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let proverChoice = '';
+    let round = 0;
+    let successfulRounds = 0;
+
+    const prover = document.getElementById('prover-peggy');
+    const startButton = document.getElementById('start-round');
+    const callAButton = document.getElementById('call-a');
+    const callBButton = document.getElementById('call-b');
+    const resultText = document.getElementById('result-text');
+    const verifierChoiceText = document.getElementById('verifier-choice-text');
+    const confidenceBar = document.getElementById('confidence');
+    const confidencePercent = document.getElementById('confidence-percent');
+    const resetButton = document.getElementById('reset-button');
+
+
+    function startRound() {
+        // 證明者隨機選擇一個入口
+        proverChoice = Math.random() < 0.5 ? 'A' : 'B';
+        
+        // 視覺化：證明者進入洞穴
+        prover.style.transition = 'all 0.8s ease-in-out';
+        if (proverChoice === 'A') {
+            prover.style.transform = 'translate(-100px, -100px)';
+        } else {
+            prover.style.transform = 'translate(100px, -100px)';
+        }
+        
+        resultText.textContent = `您選擇了從 ${proverChoice} 入口進入洞穴深處。`;
+        
+        startButton.disabled = true;
+
+        // 模擬驗證者等待後做決定
+        setTimeout(() => {
+            verifierChoiceText.textContent = "第 2 步：朋友隨機選擇一個出口...";
+            verifierChoiceText.style.display = 'block';
+            callAButton.disabled = false;
+            callBButton.disabled = false;
+        }, 1000);
+    }
+
+    function verifierCall(verifierChoice) {
+        callAButton.disabled = true;
+        callBButton.disabled = true;
+        verifierChoiceText.style.display = 'none';
+        round++;
+        
+        // 證明者從指定出口出來
+        if (verifierChoice === 'A') {
+            prover.style.transform = 'translate(-120px, 0px)';
+        } else {
+            prover.style.transform = 'translate(120px, 0px)';
+        }
+        
+        successfulRounds++;
+        resultText.innerHTML = `朋友要求您從 ${verifierChoice} 出來。<br>因為您知道咒語，您成功從 ${verifierChoice} 出口走出！`;
+        
+        // 更新信任度
+        // 信任度 = 1 - (1/2)^n
+        let confidenceValue = (1 - Math.pow(0.5, successfulRounds)) * 100;
+        confidenceBar.value = confidenceValue;
+        confidencePercent.textContent = `${confidenceValue.toFixed(2)}%`;
+
+        if (confidenceValue > 99) {
+             resultText.innerHTML += `<br><strong style="color: #27ae60;">朋友現在非常相信您知道秘密了！</strong>`;
+        }
+        
+        // 準備下一輪
+        setTimeout(() => {
+            prover.style.transform = 'translate(0, 0)'; // 回到原位
+             setTimeout(() => {
+                resultText.textContent = `準備進行第 ${round + 1} 輪證明。`;
+                startButton.disabled = false;
+            }, 800);
+        }, 2000);
+    }
+
+    function resetGame() {
+        proverChoice = '';
+        round = 0;
+        successfulRounds = 0;
+        
+        prover.style.transform = 'translate(0, 0)';
+        resultText.textContent = '';
+        verifierChoiceText.style.display = 'none';
+        
+        confidenceBar.value = 0;
+        confidencePercent.textContent = '0%';
+        
+        startButton.disabled = false;
+        callAButton.disabled = true;
+        callBButton.disabled = true;
+    }
+
+</script>
+
+</body>
+</html>

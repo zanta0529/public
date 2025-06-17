@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZKP 終極互動版：默克爾樹與駭客模式</title>
+<style>
+    :root {
+        --panel-bg: #fff;
+        --app-bg: #f4f6f9;
+        --text-color: #333;
+        --title-color: #2c3e50;
+        --accent-color: #3498db;
+        --accent-hover: #2980b9;
+        --hacker-color: #c0392b;
+        --hacker-hover: #a93226;
+        --warn-color: #e67e22;
+        --warn-hover: #d35400;
+        --toast-bg: #f1c40f;
+        --toast-text: #2c3e50;
+        --log-bg: #2c3e50;
+        --log-text: #f1c40f;
+        --fail-color: #e74c3c;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.7; color: var(--text-color); background-color: var(--app-bg); display: flex; justify-content: center; }
+    .main-container { max-width: 1400px; width: 100%; padding: 20px; }
+    .title-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .title-spacer { width: 100px; }
+    h1 { margin: 0; text-align: center; flex-grow: 1; color: var(--title-color); }
+    h2, h3, h4 { color: var(--title-color); }
+    .panel { background: var(--panel-bg); padding: 25px; border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+    button { color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; margin-top: 15px; transition: all 0.3s; }
+    button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    button:disabled { background-color: #bdc3c7 !important; cursor: not-allowed; transform: none; box-shadow: none; }
+    #reset-button { background-color: var(--warn-color); width: 100px; flex-shrink: 0; }
+    #reset-button:hover { background-color: var(--warn-hover); }
+    .btn-primary { background-color: var(--accent-color); }
+    .btn-primary:hover:not(:disabled) { background-color: var(--accent-hover); }
+    
+    /* Layout */
+    .top-container { display: flex; gap: 30px; margin-bottom: 30px; }
+    .blockchain-panel { flex: 2; }
+    .merkle-panel { flex: 3; }
+    .bottom-container { display: flex; gap: 30px; align-items: flex-start; }
+    
+    /* Merkle Tree & Logs */
+    .merkle-tree-container { background-color: #ecf0f1; border-radius: 8px; padding: 15px; min-height: 300px; overflow-x: auto; position: relative; }
+    .merkle-tree { display: flex; flex-direction: column-reverse; align-items: center; font-family: 'Courier New', Courier, monospace; font-size: 12px; }
+    .tree-level { display: flex; justify-content: center; }
+    .node { background: #fff; border: 1px solid #bdc3c7; padding: 5px; margin: 5px; border-radius: 4px; text-align: center; white-space: nowrap; transition: all 0.5s; }
+    .node.leaf { background-color: #d4e6f1; }
+    .node.highlight-path { border-color: var(--accent-color); border-width: 2px; transform: scale(1.05); }
+    .node.highlight-leaf { background-color: var(--accent-color); color: white; }
+    .merkle-root-display { margin-top: 10px; font-weight: bold; }
+    .mono { font-family: 'Courier New', Courier, monospace; background: #eee; padding: 2px 5px; border-radius: 4px; font-size: 0.9em; word-wrap: break-word; }
+    .log-item.highlight-fail { background-color: var(--fail-color); color: white; transition: all 0.2s; border-radius: 4px; }
+    #merkle-tree-container .fail-overlay {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(231, 76, 60, 0.1);
+        display: flex; justify-content: center; align-items: center; font-size: 4em; color: var(--fail-color);
+        opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    }
+    #merkle-tree-container .fail-overlay.visible { opacity: 1; }
+
+    /* Hacker Mode Integration */
+    .hacker-toggle-container { background-color: #e74c3c15; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
+    .hacker-toggle-container .toggle-switch { display: flex; align-items: center; justify-content: space-between; }
+    .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--hacker-color); }
+    input:checked + .slider:before { transform: translateX(22px); }
+    #note-selector option.spent-note { color: var(--fail-color); }
+    #note-selector option.fake-note { color: var(--hacker-color); font-weight: bold; }
+
+    /* Other styles */
+    #spend-magic-box { background-color: var(--log-bg); padding: 20px; border-radius: 8px; margin-top: 15px; display: none; }
+    #spend-magic-box h4 { margin-top: 0; text-align: center; color: var(--log-text); }
+    #spend-magic-box ul { list-style: none; padding: 0; margin: 0;}
+    #spend-magic-box li { padding: 8px 0; opacity: 0; transform: translateY(10px); transition: all 0.5s ease-out; color: white; }
+    #spend-magic-box li.visible { opacity: 1; transform: translateY(0); }
+    #spend-magic-box li.fail .status-icon { color: var(--fail-color); }
+    .status-icon { display: inline-block; width: 20px; text-align: center; margin-right: 10px; color: #2ecc71; }
+    .status { text-align: center; font-weight: bold; padding: 10px; border-radius: 5px; margin-top: 10px; visibility: hidden; }
+    .status.visible { visibility: visible; }
+    .status.success { background-color: #d4edda; color: #155724; }
+    .status.error { background-color: #f8d7da; color: #721c24; }
+    #toast-notification { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--toast-bg); color: var(--toast-text); padding: 16px 24px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; font-size: 16px; font-weight: 500; visibility: hidden; opacity: 0; transition: opacity 0.4s, bottom 0.4s, visibility 0.4s; }
+    #toast-notification.show { visibility: visible; opacity: 1; bottom: 40px; }
+</style>
+</head>
+<body>
+<div class="main-container">
+    <div class="title-container">
+        <div class="title-spacer"></div>
+        <h1>ZKP 終極互動版：默克爾樹與駭客模式</h1>
+        <button id="reset-button" onclick="resetSimulation()">🔄 重設</button>
+    </div>
+    <div class="top-container">
+        <div class="panel blockchain-panel">
+            <h2>模擬區塊鏈</h2>
+            <p>公開的「承諾」與已使用的「無效符」帳本。</p>
+            <h3>交易日誌 (公開的承諾):</h3>
+            <div id="log-commitments" style="height:120px; overflow-y:auto; background:#eee; padding:5px; border-radius:4px;"></div>
+            <h3>已使用的無效符 (Nullifiers):</h3>
+            <div id="log-nullifiers" style="height:120px; overflow-y:auto; background:#eee; padding:5px; border-radius:4px;"></div>
+        </div>
+        <div class="panel merkle-panel">
+            <h2>默克爾樹 (Merkle Tree) 視覺化</h2>
+            <p>所有「承諾」都被彙整成一棵樹，產生唯一的樹根雜湊值。</p>
+            <div class="merkle-tree-container" id="merkle-tree-container">
+                <div id="merkle-tree" class="merkle-tree"></div>
+                <div id="merkle-fail-overlay" class="fail-overlay">❌</div>
+            </div>
+            <div class="merkle-root-display">當前樹根 (Merkle Root): <span id="merkle-root" class="mono">N/A</span></div>
+        </div>
+    </div>
+    <div class="bottom-container">
+        <div class="panel">
+            <h2>第 1 步：鑄造 (Mint)</h2>
+            <p>建立一張隱私票據。</p>
+            <label for="mint-amount">隱藏金額 (1-100):</label>
+            <input type="number" id="mint-amount" min="1" max="100" value="50">
+            <button class="btn-primary" id="mint-button" onclick="mintNote()">建立票據</button>
+            <button class="btn-primary" id="publish-commitment-button" onclick="publishCommitment()" disabled>發布到區塊鏈</button>
+        </div>
+        <div class="panel" style="flex:1.2;">
+            <h2>第 2 步：花費 (Spend)</h2>
+            <div class="hacker-toggle-container">
+                <div class="toggle-switch">
+                    <span>😈 啟用駭客模式</span>
+                    <label class="switch">
+                        <input type="checkbox" id="hacker-toggle" onchange="toggleHackerMode(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <p>選擇一張您擁有的票據來花費。</p>
+            <select id="note-selector" disabled></select>
+            <button class="btn-primary" id="spend-button" onclick="spendNote()" disabled>產生證明並花費</button>
+            <div id="spend-magic-box"></div>
+        </div>
+    </div>
+</div>
+<div id="toast-notification"></div>
+
+<script>
+// --- UTILITIES ---
+async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const truncate = (str, len = 10) => `${str.slice(0, len)}...`;
+let toastTimeoutId = null;
+
+function showToast(message, duration = 5000) {
+    const toastEl = document.getElementById('toast-notification');
+    toastEl.innerHTML = message;
+    if (toastTimeoutId) clearTimeout(toastTimeoutId);
+    toastEl.classList.add('show');
+    toastTimeoutId = setTimeout(() => { toastEl.classList.remove('show'); }, duration);
+}
+
+// --- MERKLE TREE CLASS (No changes) ---
+class MerkleTree {
+    constructor() { this.leaves = []; this.levels = []; }
+    async addLeaf(leaf) { this.leaves.push(leaf); await this.build(); }
+    async build() {
+        if (this.leaves.length === 0) { this.levels = []; return; }
+        this.levels = [this.leaves.map(l => l)];
+        while (this.levels[0].length > 1) {
+            const currentLevel = this.levels[0];
+            const nextLevel = [];
+            for (let i = 0; i < currentLevel.length; i += 2) {
+                if (i + 1 === currentLevel.length) { nextLevel.push(currentLevel[i]); } 
+                else { const combined = await sha256(currentLevel[i] + currentLevel[i+1]); nextLevel.push(combined); }
+            }
+            this.levels.unshift(nextLevel);
+        }
+    }
+    getRoot() { return this.levels.length > 0 ? this.levels[0][0] : null; }
+    getProof(leaf) {
+        let leafIndex = this.leaves.findIndex(l => l === leaf);
+        if (leafIndex === -1) return null;
+        const proof = [];
+        for (let i = this.levels.length - 1; i > 0; i--) {
+            const level = this.levels[i];
+            const isRightNode = leafIndex % 2 !== 0;
+            const siblingIndex = isRightNode ? leafIndex - 1 : leafIndex + 1;
+            if (siblingIndex < level.length) { proof.push({ data: level[siblingIndex], position: isRightNode ? 'left' : 'right' }); }
+            leafIndex = Math.floor(leafIndex / 2);
+        }
+        return proof;
+    }
+    static async verify(proof, leaf, root) {
+        let computedHash = leaf;
+        for (const item of proof) { computedHash = (item.position === 'left') ? await sha256(item.data + computedHash) : await sha256(computedHash + item.data); }
+        return computedHash === root;
+    }
+}
+
+// --- DOM ELEMENTS & APP STATE ---
+const commitmentLog = document.getElementById('log-commitments');
+const nullifierLog = document.getElementById('log-nullifiers');
+const merkleTreeEl = document.getElementById('merkle-tree');
+const merkleRootEl = document.getElementById('merkle-root');
+const noteSelector = document.getElementById('note-selector');
+const spendButton = document.getElementById('spend-button');
+const mintButton = document.getElementById('mint-button');
+const publishBtn = document.getElementById('publish-commitment-button');
+const hackerToggle = document.getElementById('hacker-toggle');
+const magicBox = document.getElementById('spend-magic-box');
+let myNotes = [];
+let currentMintedNote = null;
+let merkleTree;
+
+function init() {
+    merkleTree = new MerkleTree();
+    drawTree();
+    updateNoteSelector();
+    commitmentLog.innerHTML = '';
+    nullifierLog.innerHTML = '';
+    merkleRootEl.textContent = 'N/A';
+    magicBox.style.display = 'none';
+}
+
+// --- UI & DRAWING FUNCTIONS ---
+function logCommitment(commitment) { commitmentLog.innerHTML += `<div class="log-item" data-hash="${commitment}"><span class="mono">${truncate(commitment)}</span></div>`; }
+function logNullifier(nullifier) { nullifierLog.innerHTML += `<div class="log-item" data-hash="${nullifier}"><span class="mono">${truncate(nullifier)}</span></div>`; }
+function drawTree() {
+    merkleTreeEl.innerHTML = '';
+    merkleTree.levels.forEach((level, i) => {
+        const levelEl = document.createElement('div');
+        levelEl.className = 'tree-level';
+        level.forEach(hash => {
+            const nodeEl = document.createElement('div');
+            nodeEl.className = 'node';
+            if (i === merkleTree.levels.length - 1) nodeEl.classList.add('leaf');
+            nodeEl.textContent = truncate(hash, 6);
+            nodeEl.dataset.hash = hash;
+            levelEl.appendChild(nodeEl);
+        });
+        merkleTreeEl.appendChild(levelEl);
+    });
+    const root = merkleTree.getRoot();
+    merkleRootEl.textContent = root ? truncate(root) : 'N/A';
+}
+function updateNoteSelector() {
+    const isHackerMode = hackerToggle.checked;
+    const notesToShow = isHackerMode ? myNotes : myNotes.filter(n => !n.spent);
+    noteSelector.innerHTML = '';
+
+    if (notesToShow.length === 0 && !isHackerMode) {
+        noteSelector.innerHTML = '<option>無可用票據</option>';
+        noteSelector.disabled = true;
+        spendButton.disabled = true;
+    } else {
+        notesToShow.forEach(note => {
+            const option = document.createElement('option');
+            option.value = note.id;
+            option.textContent = `票據 #${note.id} (金額: ${note.amount})${note.spent ? ' [已花費]' : ''}`;
+            if(note.spent) option.classList.add('spent-note');
+            noteSelector.appendChild(option);
+        });
+        if(isHackerMode) {
+            const fakeOption = document.createElement('option');
+            fakeOption.value = "fake";
+            fakeOption.textContent = "一張偽造的票據";
+            fakeOption.classList.add('fake-note');
+            noteSelector.appendChild(fakeOption);
+        }
+        noteSelector.disabled = false;
+        spendButton.disabled = false;
+    }
+}
+async function highlightProofPath(leaf, proof) {
+    document.querySelectorAll('.node').forEach(n => n.classList.remove('highlight-path', 'highlight-leaf'));
+    const leafEl = document.querySelector(`.node[data-hash="${leaf}"]`);
+    if(leafEl) leafEl.classList.add('highlight-leaf');
+    await sleep(200);
+    for (const item of proof) {
+        const siblingEl = document.querySelector(`.node[data-hash="${item.data}"]`);
+        if(siblingEl) siblingEl.classList.add('highlight-path');
+        await sleep(200);
+    }
+}
+async function highlightFail(selector, duration = 1500) {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    el.classList.add('highlight-fail');
+    await sleep(duration);
+    el.classList.remove('highlight-fail');
+}
+
+// --- CORE LOGIC ---
+async function mintNote() {
+    const amount = parseInt(document.getElementById('mint-amount').value);
+    const id = myNotes.length + 1;
+    const secretKey = 'sk-' + Math.random().toString(36).substr(2, 10);
+    const commitment = await sha256(`id:${id},amount:${amount},secret:${secretKey}`);
+    const nullifier = await sha256(`nullify:${secretKey}`);
+    currentMintedNote = { id, amount, secretKey, commitment, nullifier, spent: false };
+    myNotes.push(currentMintedNote);
+    showToast(`已建立票據 #${id}！<br>請記得點擊「發布到區塊鏈」。`);
+    mintButton.disabled = true;
+    publishBtn.disabled = false;
+}
+async function publishCommitment() {
+    if (!currentMintedNote) return;
+    await merkleTree.addLeaf(currentMintedNote.commitment);
+    logCommitment(currentMintedNote.commitment);
+    drawTree();
+    updateNoteSelector();
+    publishBtn.disabled = true;
+    mintButton.disabled = false;
+    currentMintedNote = null;
+}
+async function spendNote() {
+    magicBox.innerHTML = '<h4>✨ 正在生成零知識證明...</h4><ul><li id="p1"><span class="status-icon"></span></li><li id="p2"><span class="status-icon"></span></li><li id="p3"><span class="status-icon"></span></li></ul>';
+    magicBox.style.display = 'block';
+
+    const selectedValue = noteSelector.value;
+    
+    // --- HACK ATTEMPT: FAKE NOTE ---
+    if (selectedValue === 'fake') {
+        document.querySelector('#p1').innerHTML = `<span class="status-icon">❌</span>憑空創造一個不存在的「承諾」。`;
+        document.querySelector('#p2').innerHTML = `<span class="status-icon">❌</span>無法提供有效的默克爾路徑。`;
+        document.querySelector('#p3').innerHTML = `<span class="status-icon"></span>系統拒絕了此交易。`;
+        for (let i = 1; i <= 3; i++) { await sleep(300); document.getElementById(`p${i}`).classList.add('visible', 'fail'); }
+        const overlay = document.getElementById('merkle-fail-overlay');
+        overlay.classList.add('visible');
+        await sleep(1500);
+        overlay.classList.remove('visible');
+        return;
+    }
+
+    const noteToSpend = myNotes.find(n => n.id == selectedValue);
+    if (!noteToSpend) return;
+    
+    const merkleProof = merkleTree.getProof(noteToSpend.commitment);
+    const isNullifierUnused = !Array.from(nullifierLog.querySelectorAll('.log-item')).some(el => el.dataset.hash === noteToSpend.nullifier);
+
+    document.querySelector('#p1').innerHTML = `<span class="status-icon">✅</span>我知道票據 #${noteToSpend.id} 的秘密。`;
+    document.querySelector('#p2').innerHTML = `<span class="status-icon">${merkleProof ? '✅' : '❌'}</span>我能提供默克爾路徑。`;
+    document.querySelector('#p3').innerHTML = `<span class="status-icon">${isNullifierUnused ? '✅' : '❌'}</span>這張票據的無效符尚未使用。`;
+    
+    await sleep(300); document.getElementById('p1').classList.add('visible');
+    await sleep(300); document.getElementById('p2').classList.add('visible');
+    if(merkleProof) await highlightProofPath(noteToSpend.commitment, merkleProof);
+    await sleep(300); document.getElementById('p3').classList.add('visible');
+    
+    // --- HACK ATTEMPT: DOUBLE SPEND ---
+    if (!isNullifierUnused) {
+        document.getElementById('p3').classList.add('fail');
+        await highlightFail(`.log-item[data-hash="${noteToSpend.nullifier}"]`);
+        return;
+    }
+
+    // --- NORMAL SPEND ---
+    noteToSpend.spent = true;
+    logNullifier(noteToSpend.nullifier);
+    updateNoteSelector();
+    showToast(`✅ 驗證成功！票據 #${noteToSpend.id} 已花費。`, 3000);
+}
+
+// --- HACKER MODE TOGGLE ---
+function toggleHackerMode(isChecked) { 
+    updateNoteSelector();
+}
+
+// --- SIMULATION RESET ---
+function resetSimulation() {
+    myNotes = [];
+    currentMintedNote = null;
+    document.getElementById('mint-amount').value = 50;
+    hackerToggle.checked = false;
+    init();
+}
+
+// --- START ---
+init();
+</script>
+</body>
+</html>
