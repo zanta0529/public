@@ -2,7 +2,7 @@
     "name": "Zanta 的 AES 加密、解密工具",
     "short_name": "AES Utils",
     "description": "一個安全、可靠的純客戶端文字加密工具，可離線運作。",
-    "start_url": ".",
+    "start_url": "./crypto_manager.html",
     "display": "standalone",
     "background_color": "#111827",
     "theme_color": "#f59e0b",
