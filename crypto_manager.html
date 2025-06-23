@@ -779,11 +779,11 @@
                                 if (!kd || !enc) throw new Error("JSON 結構不符");
                                 const displayEl = app.elements.paramsDisplayArea;
                                 displayEl.innerHTML = `
-                                    <p>金鑰衍生: <span>${kd.name} (${kd.hash}, ${kd.iterations.toLocaleString(
+                                    <p>金鑰衍生：<span>${kd.name} (${kd.hash}，${kd.iterations.toLocaleString(
                                     "en-US"
                                 )} 迭代)</span></p>
-                                    <p>加密演算法: <span>${enc.name}</span></p>
-                                    <p style="color: var(--success-color);">狀態: <span>參數已載入 ✅</span></p>
+                                    <p>加密演算法：<span>${enc.name}</span></p>
+                                    <p style="color: var(--success-color);">狀態：<span>參數已載入 ✅</span></p>
                                 `;
                                 displayEl.hidden = false;
                                 app.elements.resultsArea.hidden = true;
@@ -802,7 +802,7 @@
                                     this.showToast(successMessage || "✅ 已複製到剪貼簿！");
                                 })
                                 .catch((err) => {
-                                    console.error("Copy failed:", err);
+                                    console.error("Copy failed：", err);
                                     this.showToast("❌ 複製失敗");
                                 });
                         },
@@ -814,7 +814,7 @@
                                     this.showToast("✅ 已貼上內容！");
                                 })
                                 .catch((err) => {
-                                    console.error("Paste failed:", err);
+                                    console.error("Paste failed：", err);
                                     this.showToast("❌ 貼上失敗或剪貼簿為空");
                                 });
                         },
