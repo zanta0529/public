@@ -1,6 +1,6 @@
 {
     "name": "Zanta 的 AES 加密、解密工具",
-    "short_name": "AES Utils",
+    "short_name": "Z 的加解密器",
     "description": "一個安全、可靠的純客戶端文字加密工具，可離線運作。",
     "start_url": "./crypto_manager.html",
     "display": "standalone",
