@@ -300,6 +300,8 @@
             #qrCanvas {
                 border-radius: 8px;
                 border: 1px solid var(--border-color);
+                max-width: 100%;
+                height: auto;
             }
             #jsonView,
             #base64ResultView {
@@ -417,12 +419,13 @@
                         <div class="button-group" style="justify-content: space-between">
                             <button id="pasteBtn" class="secondary" style="flex: 1" hidden>貼上密文</button>
                             <button id="copyBtn" class="secondary" style="flex: 1" hidden>複製</button>
+                            <button id="downloadBtn" class="secondary" style="flex: 1" hidden>下載檔案</button>
                             <button id="resetBtn" class="danger" style="flex: 1">全部重設</button>
                         </div>
 
                         <div id="results-area" class="results-area" hidden>
                             <div id="output" class="output-box info">...</div>
-                            <canvas id="qrCanvas" width="256" height="256" style="margin-top: 1.5rem"></canvas>
+                            <canvas id="qrCanvas" width="320" height="320" style="margin-top: 1.5rem"></canvas>
                             <div id="jsonView" hidden></div>
                             <textarea id="base64ResultView" readonly rows="5" hidden></textarea>
                         </div>
@@ -460,6 +463,7 @@
                         copyBtn: document.getElementById("copyBtn"),
                         pasteBtn: document.getElementById("pasteBtn"),
                         resetBtn: document.getElementById("resetBtn"),
+                        downloadBtn: document.getElementById("downloadBtn"), // NEW
                         resultsArea: document.getElementById("results-area"),
                         output: document.getElementById("output"),
                         qrCanvas: document.getElementById("qrCanvas"),
@@ -484,7 +488,7 @@
                         NONCE_BYTES: 12,
                         KEY_LENGTH_BITS: 256,
                         DEFAULT_ITERATIONS: 2000000,
-                        FALLBACK_ITERATIONS: 300000,
+                        QR_CODE_MAX_BYTES: 2953,
                         SVG_EYE_OPEN: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`,
                         SVG_EYE_SLASH: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`,
                     },
@@ -521,6 +525,15 @@
                         this.elements.resetBtn.addEventListener("click", () => this.ui.resetAll());
                         this.elements.pasteBtn.addEventListener("click", () => this.utils.pasteTo("base64json"));
                         this.elements.copyBtn.addEventListener("click", () => this.utils.copyFromResult());
+                        // NEW DOWNLOAD LISTENER
+                        this.elements.downloadBtn.addEventListener("click", () => {
+                            if (app.state.lastEncryptedText) {
+                                this.utils.downloadAsFile(
+                                    app.state.lastEncryptedText,
+                                    `encrypted-data-${Date.now()}.txt`
+                                );
+                            }
+                        });
                         this.elements.togglePasswordEncrypt.addEventListener("click", () =>
                             this.ui.togglePasswordVisibility("passphraseEncrypt", "togglePasswordEncrypt")
                         );
@@ -550,7 +563,7 @@
                                 (id) => (app.elements[id].value = "")
                             );
                             this.resetResults();
-                            app.elements.paramsDisplayArea.hidden = true; // Also hide params display on reset
+                            app.elements.paramsDisplayArea.hidden = true;
                             app.state.lastDecryptedText = null;
                             app.state.lastEncryptedText = null;
                         },
@@ -563,6 +576,7 @@
                             app.elements.jsonView.hidden = true;
                             app.elements.base64ResultView.hidden = true;
                             app.elements.copyBtn.hidden = true;
+                            app.elements.downloadBtn.hidden = true; // Hide download btn on reset
                         },
                         togglePasswordVisibility(inputId, iconId) {
                             const input = app.elements[inputId];
@@ -580,6 +594,15 @@
                     crypto: {
                         toBase64: (u8) => btoa(String.fromCharCode.apply(null, u8)),
                         fromBase64: (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
+
+                        getDynamicErrorCorrectionLevel(length) {
+                            if (length > app.constants.QR_CODE_MAX_BYTES) return "none";
+                            if (length < 1000) return "H";
+                            if (length < 1600) return "Q";
+                            if (length < 2300) return "M";
+                            return "L";
+                        },
+
                         async deriveKey(passphrase, salt, iterations) {
                             const enc = new TextEncoder();
                             return await crypto.subtle.importKey(
@@ -640,7 +663,6 @@
                                         },
                                     };
                                 } else {
-                                    // ChaCha20-Poly1305
                                     const nonce = crypto.getRandomValues(new Uint8Array(app.constants.NONCE_BYTES));
                                     const chachaKeyBytes = new Uint8Array(
                                         await crypto.subtle.deriveBits(
@@ -670,22 +692,34 @@
                                 );
                                 app.state.lastEncryptedText = outputBase64;
                                 const duration = ((performance.now() - startTime) / 1000).toFixed(2);
-                                app.ui.setOutput(
-                                    "success",
-                                    `✅ ${app.state.selectedAlgorithm} 加密成功！ (執行時間：${duration} 秒)`
-                                );
+
+                                const ecl = this.getDynamicErrorCorrectionLevel(outputBase64.length);
+                                let successMessage = `✅ ${app.state.selectedAlgorithm} 加密成功！ (執行時間：${duration} 秒)`;
+                                let qrNote = `<br>ℹ️ QR Code 容錯等級: ${ecl.toUpperCase()}`;
+                                if (ecl === "M" || ecl === "L" || ecl === "Q") {
+                                    qrNote += `<br>⚠️ <strong style="color:var(--note-color)">注意</strong>: QR Code 非常密集，可能掃描不易。若失敗，請改用「下載檔案」按鈕。`;
+                                }
+                                app.ui.setOutput("success", successMessage + qrNote);
+
                                 app.elements.jsonView.textContent =
                                     "JSON 參數預覽:\n" + JSON.stringify(jsonOutput, null, 2);
                                 app.elements.jsonView.hidden = false;
                                 app.elements.base64ResultView.value = outputBase64;
                                 app.elements.base64ResultView.hidden = false;
-                                app.elements.qrCanvas.hidden = false;
-                                QRCode.toCanvas(app.elements.qrCanvas, outputBase64, {
-                                    errorCorrectionLevel: "H",
-                                    width: 256,
-                                });
-                                app.elements.copyBtn.textContent = "複製 Base64 密文";
+
+                                if (ecl === "none") {
+                                    app.elements.qrCanvas.hidden = true;
+                                    app.utils.showToast("❌ 資料過長，無法生成 QR Code");
+                                } else {
+                                    app.elements.qrCanvas.hidden = false;
+                                    QRCode.toCanvas(app.elements.qrCanvas, outputBase64, {
+                                        errorCorrectionLevel: ecl,
+                                        width: 320,
+                                    });
+                                }
+
                                 app.elements.copyBtn.hidden = false;
+                                app.elements.downloadBtn.hidden = false; // Show download button
                             } catch (e) {
                                 console.error("Encrypt failed:", e);
                                 app.ui.setOutput("error", `❌ 加密失敗：${e.message}`);
@@ -757,6 +791,7 @@
                                 );
                                 app.elements.copyBtn.textContent = "複製解密結果";
                                 app.elements.copyBtn.hidden = false;
+                                app.elements.downloadBtn.hidden = true; // No need to download decrypted text
                             } catch (e) {
                                 console.error("Decrypt failed:", e);
                                 const msg =
@@ -824,6 +859,24 @@
                             } else if (app.state.currentMode === "decrypt" && app.state.lastDecryptedText) {
                                 this.copyToClipboard(app.state.lastDecryptedText, "✅ 已複製解密結果！");
                             }
+                        },
+                        /**
+                         * --- NEW ---
+                         * Triggers a browser download for the given content.
+                         * @param {string} content - The text content to be downloaded.
+                         * @param {string} filename - The name of the file to be saved.
+                         */
+                        downloadAsFile(content, filename) {
+                            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement("a");
+                            link.href = url;
+                            link.download = filename;
+                            document.body.appendChild(link); // Required for some browsers
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                            this.showToast("✅ 已開始下載檔案！");
                         },
                         showToast(message) {
                             if (app.state.toastTimer) clearTimeout(app.state.toastTimer);
