@@ -3,13 +3,14 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>純文字加密、解密器</title>
+        <title>進階加密、解密器</title>
 
         <link rel="manifest" href="manifest.json" />
         <link rel="apple-touch-icon" href="icon-192.png" />
         <meta name="apple-mobile-web-app-status-bar" content="#f59e0b" />
 
         <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.7/base64.min.js"></script>
         <style>
             :root {
                 --primary-color: #f59e0b;
@@ -127,7 +128,7 @@
                 border: none;
                 border-radius: 5px;
                 cursor: pointer;
-                font-size: 1em;
+                font-size: 1.2em;
                 font-weight: 600;
                 text-decoration: none;
                 text-align: center;
@@ -167,7 +168,7 @@
                 padding: 0.75rem;
                 border: 1px solid var(--border-color);
                 border-radius: 5px;
-                font-size: 1em;
+                font-size: 1.2em;
                 background-color: var(--input-bg);
                 color: var(--text-color);
                 transition: border-color 0.3s, box-shadow 0.3s;
@@ -193,6 +194,7 @@
                 overflow: hidden;
             }
             .option {
+                font-size: 1.2em;
                 padding: 10px 15px;
                 cursor: pointer;
                 transition: background-color 0.3s, color 0.3s;
@@ -209,12 +211,13 @@
                 font-weight: bold;
             }
             .hint-note {
-                font-size: 0.9em;
+                font-size: 1em;
                 color: var(--note-color);
                 background-color: var(--note-bg);
                 padding: 0.75rem 1rem;
                 border-radius: 5px;
-                margin-top: 1rem;
+                /* margin-top: 1rem; */
+                margin-bottom: 1rem;
                 border-left: 4px solid var(--note-color);
             }
             .output-box {
@@ -295,36 +298,34 @@
                 color: var(--secondary-color);
                 transition: color 0.2s;
             }
-            #passphrase {
+            .password-wrapper input {
                 padding-right: 40px;
             }
             .results-area {
                 margin-top: 1.5rem;
-                text-align: center;
             }
             #qrCanvas {
                 border-radius: 8px;
                 border: 1px solid var(--border-color);
                 max-width: 100%;
                 height: auto;
+                display: block;
+                margin: 1rem auto;
             }
             #jsonView,
             #base64ResultView {
-                margin-top: 1rem;
-                padding: 1rem;
-                background: var(--input-bg);
-                border: 1px solid var(--border-color);
-                border-radius: 5px;
-                white-space: pre-wrap;
-                word-break: break-all;
-                text-align: left;
+                font-size: 1em;
+            }
+            #jsonView {
+                background-color: var(--section-header-bg);
             }
             #params-display-area {
-                background-color: var(--section-header-bg);
+                background-color: var(--container-bg);
                 border: 1px solid var(--border-color);
                 border-radius: 5px;
                 padding: 1rem;
-                margin-top: 1.5rem;
+                margin-top: 1rem;
+                margin-bottom: 1rem;
             }
             #params-display-area p {
                 margin: 0.5rem 0;
@@ -332,6 +333,40 @@
             #params-display-area p > span {
                 font-weight: bold;
                 color: var(--primary-color);
+            }
+            .file-input-wrapper {
+                position: relative;
+                overflow: hidden;
+                display: inline-block;
+                width: 100%;
+                border: 2px dashed var(--border-color);
+                border-radius: 8px;
+                padding: 2rem;
+                text-align: center;
+                cursor: pointer;
+                transition: border-color 0.3s, background-color 0.3s;
+            }
+            .file-input-wrapper:hover {
+                border-color: var(--primary-color);
+                background-color: var(--section-header-bg);
+            }
+            .file-input-wrapper input[type="file"] {
+                position: absolute;
+                left: 0;
+                top: 0;
+                opacity: 0;
+                width: 100%;
+                height: 100%;
+                cursor: pointer;
+            }
+            .file-info {
+                margin-top: 1rem;
+                font-size: 0.9em;
+                color: var(--secondary-color);
+            }
+            .file-info span {
+                font-weight: bold;
+                color: var(--text-color);
             }
             [hidden] {
                 display: none !important;
@@ -341,98 +376,178 @@
     <body>
         <div class="container">
             <header>
-                <h1>純文字加密、解密器</h1>
+                <h1>進階加密、解密器</h1>
             </header>
             <main>
                 <section class="card">
                     <div class="card-content">
-                        <div id="modeSelector" class="option-group">
-                            <div class="option selected" data-mode="encrypt">加密模式</div>
-                            <div class="option" data-mode="decrypt">解密模式</div>
+                        <div id="appModeSelector" class="option-group">
+                            <div class="option selected" data-app-mode="text">純文字模式</div>
+                            <div class="option" data-app-mode="file">檔案模式</div>
                         </div>
 
-                        <div id="encrypt-section">
-                            <div class="form-group">
-                                <label for="mnemonic">明文 (Plain-Text)</label>
-                                <textarea id="mnemonic" rows="4" placeholder="在此輸入要加密的文字"></textarea>
+                        <div id="text-mode-section">
+                            <div id="modeSelector" class="option-group">
+                                <div class="option selected" data-mode="encrypt">加密模式</div>
+                                <div class="option" data-mode="decrypt">解密模式</div>
                             </div>
-                            <div class="form-group">
-                                <label>加密演算法</label>
-                                <div id="algoSelectionGroup" class="option-group">
-                                    <div
-                                        class="option selected"
-                                        data-value="AES-GCM"
-                                        title="AES-GCM (Advanced Encryption Standard - Galois/Counter Mode)"
-                                    >
-                                        AES-GCM
-                                    </div>
-                                    <div
-                                        class="option"
-                                        data-value="ChaCha20-Poly1305"
-                                        title="ChaCha20-Poly1305 (Stream Cipher with Poly1305 Authentication)"
-                                    >
-                                        ChaCha20-Poly1305
+                            <div id="encrypt-section">
+                                <div class="form-group">
+                                    <label for="mnemonic">明文 (Plain-Text)</label>
+                                    <textarea id="mnemonic" rows="4" placeholder="在此輸入要加密的文字"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>加密演算法</label>
+                                    <div id="algoSelectionGroup" class="option-group">
+                                        <div class="option selected" data-value="AES-GCM" title="AES-GCM">AES-GCM</div>
+                                        <div class="option" data-value="ChaCha20-Poly1305" title="ChaCha20-Poly1305">
+                                            ChaCha20-Poly1305
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="hint-note" style="margin-top: 0">
-                                    💡 註：僅「加密」模式才須指定演算法，「解密」模式時由工具自動偵測演算法並進行解密。
+                                <div class="form-group">
+                                    <label for="passphrase-encrypt">密碼短語 (Passphrase)</label>
+                                    <div class="hint-note">ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。</div>
+                                    <div class="password-wrapper">
+                                        <input id="passphrase-encrypt" type="password" placeholder="輸入密碼短語" />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-encrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
                                 </div>
+                                <div class="form-group"><button id="encryptBtn">執行加密</button></div>
                             </div>
-                            <div class="form-group">
-                                <label for="passphrase-encrypt">密碼短語 (Passphrase)</label>
-                                <div class="password-wrapper">
-                                    <input id="passphrase-encrypt" type="password" placeholder="輸入密碼短語" />
-                                    <span
-                                        id="togglePasswordEncrypt"
-                                        class="toggle-password-icon"
-                                        title="顯示/隱藏密碼"
-                                    ></span>
+                            <div id="decrypt-section" hidden>
+                                <div class="form-group">
+                                    <label for="ciphertext-input">密文 (Base64 JSON)</label>
+                                    <textarea
+                                        id="ciphertext-input"
+                                        rows="6"
+                                        placeholder="在此貼上加密後的 Base64 密文"
+                                    ></textarea>
                                 </div>
+                                <div class="form-group">
+                                    <button id="parseBtn" class="secondary">解析參數 (可選)</button>
+                                </div>
+                                <div id="params-display-area" hidden></div>
+                                <div class="form-group">
+                                    <label for="passphrase-decrypt">密碼短語 (Passphrase)</label>
+                                    <div class="hint-note">ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。</div>
+                                    <div class="password-wrapper">
+                                        <input
+                                            id="passphrase-decrypt"
+                                            type="password"
+                                            placeholder="輸入解密用的密碼短語"
+                                        />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-decrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
+                                </div>
+                                <div class="form-group"><button id="decryptBtn">開始解密</button></div>
                             </div>
-                            <div class="form-group"><button id="encryptBtn">執行加密</button></div>
                         </div>
 
-                        <div id="decrypt-section" hidden>
-                            <div class="form-group">
-                                <label for="base64json">密文 (Base64 JSON)</label>
-                                <textarea
-                                    id="base64json"
-                                    rows="6"
-                                    placeholder="在此貼上加密後的 Base64 JSON 密文"
-                                ></textarea>
+                        <div id="file-mode-section" hidden>
+                            <div class="hint-note">
+                                ℹ️ 檔案加解密流程全程在您的瀏覽器本機完成，您的檔案不會被上傳到任何伺服器。
                             </div>
-                            <div class="form-group">
-                                <button id="parseBtn" class="secondary">解析參數 (可選)</button>
-                            </div>
-                            <div id="params-display-area" hidden></div>
-                            <div class="form-group">
-                                <label for="passphrase-decrypt">密碼短語 (Passphrase)</label>
-                                <div class="password-wrapper">
-                                    <input id="passphrase-decrypt" type="password" placeholder="輸入解密用的密碼短語" />
-                                    <span
-                                        id="togglePasswordDecrypt"
-                                        class="toggle-password-icon"
-                                        title="顯示/隱藏密碼"
-                                    ></span>
+                            <div id="file-encrypt-section" class="form-group" style="margin-top: 1rem">
+                                <label>檔案加密</label>
+                                <div class="file-input-wrapper">
+                                    <span>點擊此處選擇檔案，或將檔案拖曳至此</span>
+                                    <input type="file" id="file-encrypt-input" />
                                 </div>
+                                <div id="file-encrypt-info" class="file-info" hidden></div>
+                                <div class="form-group" style="margin-top: 1rem">
+                                    <label for="passphrase-file-encrypt">密碼短語 (Passphrase)</label>
+                                    <div class="hint-note">ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。</div>
+                                    <div class="password-wrapper">
+                                        <input
+                                            id="passphrase-file-encrypt"
+                                            type="password"
+                                            placeholder="輸入加密用的密碼短語"
+                                        />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-file-encrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
+                                </div>
+                                <div class="form-group"><button id="encryptFileBtn">加密並下載檔案</button></div>
                             </div>
-                            <div class="form-group">
-                                <button id="decryptBtn">開始解密</button>
+                            <div id="file-decrypt-section" class="form-group">
+                                <hr style="margin: 2rem 0; border-color: var(--border-color)" />
+                                <label>檔案解密</label>
+                                <div class="file-input-wrapper">
+                                    <span>點擊選擇加密檔 (.enc)，或將檔案拖曳至此</span>
+                                    <input type="file" id="file-decrypt-input" accept=".enc" />
+                                </div>
+                                <div id="file-decrypt-info" class="file-info" hidden></div>
+                                <div class="form-group" style="margin-top: 1rem">
+                                    <label for="passphrase-file-decrypt">密碼短語 (Passphrase)</label>
+                                    <div class="password-wrapper">
+                                        <input
+                                            id="passphrase-file-decrypt"
+                                            type="password"
+                                            placeholder="輸入解密用的密碼短語"
+                                        />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-file-decrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
+                                </div>
+                                <div class="form-group"><button id="decryptFileBtn">解密並下載檔案</button></div>
                             </div>
                         </div>
 
-                        <div class="button-group" style="justify-content: space-between">
-                            <button id="pasteBtn" class="secondary" style="flex: 1" hidden>貼上密文</button>
-                            <button id="copyBtn" class="secondary" style="flex: 1" hidden>複製</button>
-                            <button id="downloadBtn" class="secondary" style="flex: 1" hidden>下載檔案</button>
-                            <button id="resetBtn" class="danger" style="flex: 1">全部重設</button>
+                        <div class="button-group" style="justify-content: center; margin-top: 1rem">
+                            <button id="pasteBtn" class="secondary" style="flex: 1; max-width: 200px" hidden>
+                                貼上密文
+                            </button>
+                            <button id="resetBtn" class="danger" style="flex: 1; max-width: 200px">全部重設</button>
                         </div>
 
                         <div id="results-area" class="results-area" hidden>
                             <div id="output" class="output-box info">...</div>
-                            <canvas id="qrCanvas" width="320" height="320" style="margin-top: 1.5rem"></canvas>
-                            <div id="jsonView" hidden></div>
-                            <textarea id="base64ResultView" readonly rows="5" hidden></textarea>
+                            <div id="text-mode-results" hidden>
+                                <div class="form-group" style="margin-top: 1.5rem">
+                                    <label for="base64ResultView">最終 Base64 密文 (可複製/分享)</label>
+                                    <textarea id="base64ResultView" readonly rows="10"></textarea>
+                                    <div class="button-group" style="margin-top: 0.5rem; justify-content: center">
+                                        <button id="copyBtn" class="secondary" style="max-width: 180px">
+                                            複製密文
+                                        </button>
+                                        <button id="downloadBtn" class="secondary" style="max-width: 180px">
+                                            下載為 .enc
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group" style="text-align: center">
+                                    <canvas id="qrCanvas" width="320" height="320"></canvas>
+                                </div>
+                                <div class="form-group">
+                                    <label for="jsonView">內部 JSON 結構 (僅供檢視)</label>
+                                    <textarea id="jsonView" readonly rows="20"></textarea>
+                                </div>
+                            </div>
+                            <div
+                                id="decryption-actions"
+                                class="button-group"
+                                style="margin-top: 1rem; justify-content: center"
+                                hidden
+                            >
+                                <button id="copyDecryptedBtn" class="secondary" style="max-width: 200px">
+                                    複製解密結果
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -452,25 +567,36 @@
             document.addEventListener("DOMContentLoaded", () => {
                 const app = {
                     elements: {
+                        // ... (all other elements remain the same)
+                        appModeSelector: document.getElementById("appModeSelector"),
+                        textModeSection: document.getElementById("text-mode-section"),
+                        fileModeSection: document.getElementById("file-mode-section"),
                         modeSelector: document.getElementById("modeSelector"),
                         encryptSection: document.getElementById("encrypt-section"),
                         decryptSection: document.getElementById("decrypt-section"),
                         mnemonic: document.getElementById("mnemonic"),
-                        base64json: document.getElementById("base64json"),
+                        ciphertextInput: document.getElementById("ciphertext-input"),
                         passphraseEncrypt: document.getElementById("passphrase-encrypt"),
                         passphraseDecrypt: document.getElementById("passphrase-decrypt"),
-                        togglePasswordEncrypt: document.getElementById("togglePasswordEncrypt"),
-                        togglePasswordDecrypt: document.getElementById("togglePasswordDecrypt"),
                         algoSelectionGroup: document.getElementById("algoSelectionGroup"),
                         encryptBtn: document.getElementById("encryptBtn"),
                         decryptBtn: document.getElementById("decryptBtn"),
                         parseBtn: document.getElementById("parseBtn"),
-                        copyBtn: document.getElementById("copyBtn"),
+                        fileEncryptInput: document.getElementById("file-encrypt-input"),
+                        fileEncryptInfo: document.getElementById("file-encrypt-info"),
+                        passphraseFileEncrypt: document.getElementById("passphrase-file-encrypt"),
+                        encryptFileBtn: document.getElementById("encryptFileBtn"),
+                        fileDecryptInput: document.getElementById("file-decrypt-input"),
+                        fileDecryptInfo: document.getElementById("file-decrypt-info"),
+                        passphraseFileDecrypt: document.getElementById("passphrase-file-decrypt"),
+                        decryptFileBtn: document.getElementById("decryptFileBtn"),
                         pasteBtn: document.getElementById("pasteBtn"),
                         resetBtn: document.getElementById("resetBtn"),
-                        downloadBtn: document.getElementById("downloadBtn"),
                         resultsArea: document.getElementById("results-area"),
+                        textModeResults: document.getElementById("text-mode-results"),
                         output: document.getElementById("output"),
+                        copyBtn: document.getElementById("copyBtn"),
+                        downloadBtn: document.getElementById("downloadBtn"),
                         qrCanvas: document.getElementById("qrCanvas"),
                         jsonView: document.getElementById("jsonView"),
                         base64ResultView: document.getElementById("base64ResultView"),
@@ -478,13 +604,19 @@
                         themeToggleBtn: document.getElementById("themeToggleBtn"),
                         currentYear: document.getElementById("currentYear"),
                         toast: document.getElementById("toast"),
+                        passwordToggles: document.querySelectorAll(".toggle-password-icon"),
+                        decryptionActions: document.getElementById("decryption-actions"),
+                        copyDecryptedBtn: document.getElementById("copyDecryptedBtn"),
                     },
                     state: {
+                        currentAppMode: "text",
                         currentMode: "encrypt",
                         selectedAlgorithm: "AES-GCM",
                         toastTimer: null,
-                        lastDecryptedText: null,
-                        lastEncryptedText: null,
+                        lastEncryptedOutput: null,
+                        lastDecryptedText: null, // Add state for decrypted text
+                        fileToEncrypt: null,
+                        fileToDecrypt: null,
                     },
                     constants: {
                         SALT_BYTES: 16,
@@ -494,6 +626,7 @@
                         KEY_LENGTH_BITS: 256,
                         DEFAULT_ITERATIONS: 2000000,
                         QR_CODE_MAX_BYTES: 2953,
+                        FILE_SIZE_LIMIT_BYTES: 10 * 1024 * 1024,
                         SVG_EYE_OPEN: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`,
                         SVG_EYE_SLASH: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`,
                     },
@@ -502,16 +635,15 @@
                         this.elements.currentYear.textContent = new Date().getFullYear();
                         this.theme.init();
                         this.setupEventListeners();
-                        this.ui.setMode("encrypt");
-                        [this.elements.togglePasswordEncrypt, this.elements.togglePasswordDecrypt].forEach(
-                            (el) => (el.innerHTML = this.constants.SVG_EYE_OPEN)
-                        );
-                        // PWA Service Worker Registration
-                        this.pwa.register();
+                        this.ui.setAppMode("text");
                     },
 
                     setupEventListeners() {
                         this.elements.themeToggleBtn.addEventListener("click", () => this.theme.toggle());
+                        this.elements.appModeSelector.addEventListener("click", (e) => {
+                            const target = e.target.closest(".option");
+                            if (target?.dataset.appMode) this.ui.setAppMode(target.dataset.appMode);
+                        });
                         this.elements.modeSelector.addEventListener("click", (e) => {
                             const target = e.target.closest(".option");
                             if (target?.dataset.mode) this.ui.setMode(target.dataset.mode);
@@ -526,30 +658,49 @@
                                 this.state.selectedAlgorithm = target.dataset.value;
                             }
                         });
-                        this.elements.encryptBtn.addEventListener("click", () => this.crypto.encrypt());
-                        this.elements.decryptBtn.addEventListener("click", () => this.crypto.decrypt());
+                        this.elements.encryptBtn.addEventListener("click", () => this.crypto.encryptText());
+                        this.elements.decryptBtn.addEventListener("click", () => this.crypto.decryptText());
                         this.elements.parseBtn.addEventListener("click", () => this.crypto.parseParameters());
+                        this.elements.fileEncryptInput.addEventListener("change", (e) =>
+                            this.fileHandler.handleFileSelect(e, "encrypt")
+                        );
+                        this.elements.fileDecryptInput.addEventListener("change", (e) =>
+                            this.fileHandler.handleFileSelect(e, "decrypt")
+                        );
+                        this.elements.encryptFileBtn.addEventListener("click", () => this.crypto.encryptFile());
+                        this.elements.decryptFileBtn.addEventListener("click", () => this.crypto.decryptFile());
                         this.elements.resetBtn.addEventListener("click", () => this.ui.resetAll());
-                        this.elements.pasteBtn.addEventListener("click", () => this.utils.pasteTo("base64json"));
+                        this.elements.pasteBtn.addEventListener("click", () => this.utils.pasteTo("ciphertextInput"));
                         this.elements.copyBtn.addEventListener("click", () => this.utils.copyFromResult());
+                        this.elements.copyDecryptedBtn.addEventListener("click", () =>
+                            this.utils.copyDecryptedResult()
+                        );
                         this.elements.downloadBtn.addEventListener("click", () => {
-                            if (app.state.lastEncryptedText) {
-                                this.utils.downloadAsFile(
-                                    app.state.lastEncryptedText,
-                                    `encrypted-data-${Date.now()}.txt`
-                                );
+                            if (app.state.lastEncryptedOutput) {
+                                this.utils.downloadAsFile(app.state.lastEncryptedOutput, `encrypted-${Date.now()}.enc`);
                             }
                         });
-                        this.elements.togglePasswordEncrypt.addEventListener("click", () =>
-                            this.ui.togglePasswordVisibility("passphraseEncrypt", "togglePasswordEncrypt")
-                        );
-                        this.elements.togglePasswordDecrypt.addEventListener("click", () =>
-                            this.ui.togglePasswordVisibility("passphraseDecrypt", "togglePasswordDecrypt")
-                        );
+                        this.elements.passwordToggles.forEach((el) => {
+                            el.innerHTML = this.constants.SVG_EYE_OPEN;
+                            el.addEventListener("click", (e) => this.ui.togglePasswordVisibility(e.currentTarget));
+                        });
                     },
 
                     ui: {
+                        setAppMode(appMode) {
+                            this.resetAll();
+                            app.state.currentAppMode = appMode;
+                            const isTextMode = appMode === "text";
+                            app.elements.appModeSelector.querySelector(".selected").classList.remove("selected");
+                            app.elements.appModeSelector
+                                .querySelector(`[data-app-mode="${appMode}"]`)
+                                .classList.add("selected");
+                            app.elements.textModeSection.hidden = !isTextMode;
+                            app.elements.fileModeSection.hidden = isTextMode;
+                            this.setMode("encrypt");
+                        },
                         setMode(mode) {
+                            this.resetAll();
                             app.state.currentMode = mode;
                             const isEncrypt = mode === "encrypt";
                             app.elements.modeSelector.querySelector(".selected").classList.remove("selected");
@@ -557,36 +708,57 @@
                             app.elements.encryptSection.hidden = !isEncrypt;
                             app.elements.decryptSection.hidden = isEncrypt;
                             app.elements.pasteBtn.hidden = isEncrypt;
-                            app.ui.resetAll();
                         },
                         setOutput(type, message) {
                             app.elements.resultsArea.hidden = false;
                             app.elements.output.className = `output-box ${type}`;
                             app.elements.output.innerHTML = message;
+                            // Hide specific result areas by default
+                            app.elements.textModeResults.hidden = true;
+                            app.elements.decryptionActions.hidden = true;
+
+                            if (type === "success" && app.state.currentAppMode === "text") {
+                                if (app.state.currentMode === "encrypt") {
+                                    app.elements.textModeResults.hidden = false;
+                                } else {
+                                    // decrypt
+                                    app.elements.decryptionActions.hidden = false;
+                                }
+                            }
                         },
                         resetAll() {
-                            ["mnemonic", "base64json", "passphraseEncrypt", "passphraseDecrypt"].forEach(
-                                (id) => (app.elements[id].value = "")
-                            );
-                            this.resetResults();
-                            app.elements.paramsDisplayArea.hidden = true;
-                            app.state.lastDecryptedText = null;
-                            app.state.lastEncryptedText = null;
-                        },
-                        resetResults() {
+                            const fields = [
+                                "mnemonic",
+                                "ciphertextInput",
+                                "passphraseEncrypt",
+                                "passphraseDecrypt",
+                                "passphraseFileEncrypt",
+                                "passphraseFileDecrypt",
+                            ];
+                            fields.forEach((id) => {
+                                if (app.elements[id]) app.elements[id].value = "";
+                            });
+                            app.elements.fileEncryptInput.value = "";
+                            app.elements.fileDecryptInput.value = "";
+                            app.state.fileToEncrypt = null;
+                            app.state.fileToDecrypt = null;
+                            app.elements.fileEncryptInfo.hidden = true;
+                            app.elements.fileDecryptInfo.hidden = true;
                             app.elements.resultsArea.hidden = true;
-                            app.elements.qrCanvas
-                                .getContext("2d")
-                                .clearRect(0, 0, app.elements.qrCanvas.width, app.elements.qrCanvas.height);
-                            app.elements.qrCanvas.hidden = true;
-                            app.elements.jsonView.hidden = true;
-                            app.elements.base64ResultView.hidden = true;
-                            app.elements.copyBtn.hidden = true;
-                            app.elements.downloadBtn.hidden = true;
+                            app.elements.textModeResults.hidden = true;
+                            app.elements.decryptionActions.hidden = true;
+                            app.elements.paramsDisplayArea.hidden = true;
+                            app.state.lastEncryptedOutput = null;
+                            app.state.lastDecryptedText = null;
+                            if (app.elements.qrCanvas) {
+                                app.elements.qrCanvas
+                                    .getContext("2d")
+                                    .clearRect(0, 0, app.elements.qrCanvas.width, app.elements.qrCanvas.height);
+                            }
                         },
-                        togglePasswordVisibility(inputId, iconId) {
-                            const input = app.elements[inputId];
-                            const icon = app.elements[iconId];
+                        togglePasswordVisibility(icon) {
+                            const targetId = icon.dataset.for;
+                            const input = document.getElementById(targetId);
                             if (input.type === "password") {
                                 input.type = "text";
                                 icon.innerHTML = app.constants.SVG_EYE_SLASH;
@@ -597,277 +769,335 @@
                         },
                     },
 
-                    crypto: {
-                        toBase64: (u8) => btoa(String.fromCharCode.apply(null, u8)),
-                        fromBase64: (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
-
-                        getDynamicErrorCorrectionLevel(length) {
-                            if (length > app.constants.QR_CODE_MAX_BYTES) return "none";
-                            if (length < 1000) return "H";
-                            if (length < 1600) return "Q";
-                            if (length < 2300) return "M";
-                            return "L";
+                    fileHandler: {
+                        handleFileSelect(event, type) {
+                            const file = event.target.files[0];
+                            if (!file) return;
+                            const infoEl = app.elements[`file${type.charAt(0).toUpperCase() + type.slice(1)}Info`];
+                            if (file.size > app.constants.FILE_SIZE_LIMIT_BYTES) {
+                                infoEl.innerHTML = `<p style="color: var(--error-color);">❌ 檔案過大：${(
+                                    file.size /
+                                    1024 /
+                                    1024
+                                ).toFixed(2)} MB</p>`;
+                                infoEl.hidden = false;
+                                app.state[type === "encrypt" ? "fileToEncrypt" : "fileToDecrypt"] = null;
+                                return;
+                            }
+                            infoEl.innerHTML = `檔案名稱: <span>${file.name}</span><br>檔案大小: <span>${(
+                                file.size / 1024
+                            ).toFixed(2)} KB</span>`;
+                            infoEl.hidden = false;
+                            app.state[type === "encrypt" ? "fileToEncrypt" : "fileToDecrypt"] = file;
                         },
+                        readFileAsArrayBuffer: (file) => file.arrayBuffer(),
+                        readFileAsText: (file) => file.text(),
+                    },
 
-                        async deriveKey(passphrase, salt, iterations) {
-                            const enc = new TextEncoder();
-                            return await crypto.subtle.importKey(
+                    crypto: {
+                        async importPassphraseKey(passphrase) {
+                            return crypto.subtle.importKey(
                                 "raw",
-                                enc.encode(passphrase),
+                                new TextEncoder().encode(passphrase),
                                 { name: "PBKDF2" },
                                 false,
                                 ["deriveKey", "deriveBits"]
                             );
                         },
-                        async encrypt() {
-                            const mnemonic = app.elements.mnemonic.value.trim();
-                            const passphrase = app.elements.passphraseEncrypt.value;
-                            if (!mnemonic || !passphrase) {
-                                app.ui.setOutput("error", "❌ 錯誤：明文和密碼短語不能為空。");
-                                return;
-                            }
-                            app.ui.setOutput("info", "⏳ 正在加密，請稍候...");
-                            await new Promise((r) => setTimeout(r, 50));
-                            const startTime = performance.now();
-                            try {
-                                const enc = new TextEncoder();
-                                const salt = crypto.getRandomValues(new Uint8Array(app.constants.SALT_BYTES));
-                                const iterations = app.constants.DEFAULT_ITERATIONS;
-                                const keyMaterial = await this.deriveKey(passphrase, salt, iterations);
-                                let jsonOutput;
-                                if (app.state.selectedAlgorithm === "AES-GCM") {
-                                    const iv = crypto.getRandomValues(new Uint8Array(app.constants.IV_BYTES));
-                                    const aesKey = await crypto.subtle.deriveKey(
+
+                        async getDerivedKey(keyMaterial, salt, iterations, algo, usages) {
+                            if (algo === "AES-GCM") {
+                                return await crypto.subtle.deriveKey(
+                                    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+                                    keyMaterial,
+                                    { name: "AES-GCM", length: app.constants.KEY_LENGTH_BITS },
+                                    false,
+                                    usages
+                                );
+                            } else {
+                                // ChaCha20
+                                return new Uint8Array(
+                                    await crypto.subtle.deriveBits(
                                         { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
                                         keyMaterial,
-                                        { name: "AES-GCM", length: app.constants.KEY_LENGTH_BITS },
-                                        false,
-                                        ["encrypt"]
-                                    );
-                                    const encrypted = await crypto.subtle.encrypt(
-                                        { name: "AES-GCM", iv, tagLength: app.constants.TAG_LENGTH_BITS },
-                                        aesKey,
-                                        enc.encode(mnemonic)
-                                    );
-                                    jsonOutput = {
-                                        keyDerivation: {
-                                            name: "PBKDF2",
-                                            salt: this.toBase64(salt),
-                                            iterations,
-                                            hash: "SHA-256",
-                                        },
-                                        encryption: {
-                                            name: "AES-GCM",
-                                            iv: this.toBase64(iv),
-                                            ciphertext: this.toBase64(
-                                                new Uint8Array(encrypted.slice(0, -app.constants.TAG_LENGTH_BITS / 8))
-                                            ),
-                                            tag: this.toBase64(
-                                                new Uint8Array(encrypted.slice(-app.constants.TAG_LENGTH_BITS / 8))
-                                            ),
-                                            tagLength: app.constants.TAG_LENGTH_BITS,
-                                        },
-                                    };
-                                } else {
-                                    const nonce = crypto.getRandomValues(new Uint8Array(app.constants.NONCE_BYTES));
-                                    const chachaKeyBytes = new Uint8Array(
-                                        await crypto.subtle.deriveBits(
-                                            { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
-                                            keyMaterial,
-                                            app.constants.KEY_LENGTH_BITS
-                                        )
-                                    );
-                                    const aead = chacha20poly1305(chachaKeyBytes, nonce);
-                                    const ciphertextWithTag = aead.encrypt(enc.encode(mnemonic));
-                                    jsonOutput = {
-                                        keyDerivation: {
-                                            name: "PBKDF2",
-                                            salt: this.toBase64(salt),
-                                            iterations,
-                                            hash: "SHA-256",
-                                        },
-                                        encryption: {
-                                            name: "ChaCha20-Poly1305",
-                                            nonce: this.toBase64(nonce),
-                                            ciphertext: this.toBase64(ciphertextWithTag),
-                                        },
-                                    };
-                                }
-                                const outputBase64 = this.toBase64(
-                                    new TextEncoder().encode(JSON.stringify(jsonOutput))
+                                        app.constants.KEY_LENGTH_BITS
+                                    )
                                 );
-                                app.state.lastEncryptedText = outputBase64;
-                                const duration = ((performance.now() - startTime) / 1000).toFixed(2);
-
-                                const ecl = this.getDynamicErrorCorrectionLevel(outputBase64.length);
-                                let successMessage = `✅ ${app.state.selectedAlgorithm} 加密成功！ (執行時間：${duration} 秒)`;
-                                let qrNote = `<br>ℹ️ QR Code 容錯等級: ${ecl.toUpperCase()}`;
-                                if (ecl === "M" || ecl === "L" || ecl === "Q") {
-                                    qrNote += `<br>⚠️ <strong style="color:var(--note-color)">注意</strong>: QR Code 非常密集，可能掃描不易。若失敗，請改用「下載檔案」按鈕。`;
-                                }
-                                app.ui.setOutput("success", successMessage + qrNote);
-
-                                app.elements.jsonView.textContent =
-                                    "JSON 參數預覽:\n" + JSON.stringify(jsonOutput, null, 2);
-                                app.elements.jsonView.hidden = false;
-                                app.elements.base64ResultView.value = outputBase64;
-                                app.elements.base64ResultView.hidden = false;
-
-                                if (ecl === "none") {
-                                    app.elements.qrCanvas.hidden = true;
-                                    app.utils.showToast("❌ 資料過長，無法生成 QR Code");
-                                } else {
-                                    app.elements.qrCanvas.hidden = false;
-                                    QRCode.toCanvas(app.elements.qrCanvas, outputBase64, {
-                                        errorCorrectionLevel: ecl,
-                                        width: 320,
-                                    });
-                                }
-
-                                app.elements.copyBtn.hidden = false;
-                                app.elements.downloadBtn.hidden = false;
-                            } catch (e) {
-                                console.error("Encrypt failed:", e);
-                                app.ui.setOutput("error", `❌ 加密失敗：${e.message}`);
                             }
                         },
-                        async decrypt() {
-                            const base64json = app.elements.base64json.value.trim();
-                            const passphrase = app.elements.passphraseDecrypt.value;
-                            if (!base64json || !passphrase) {
-                                app.ui.setOutput("error", "❌ 錯誤：密文與密碼短語不能為空。");
-                                return;
+
+                        async encrypt(dataToEncrypt, passphrase, selectedAlgorithm) {
+                            const salt = crypto.getRandomValues(new Uint8Array(app.constants.SALT_BYTES));
+                            const iterations = app.constants.DEFAULT_ITERATIONS;
+                            const keyMaterial = await this.importPassphraseKey(passphrase);
+                            let jsonOutput;
+
+                            if (selectedAlgorithm === "AES-GCM") {
+                                const iv = crypto.getRandomValues(new Uint8Array(app.constants.IV_BYTES));
+                                const aesKey = await this.getDerivedKey(
+                                    keyMaterial,
+                                    salt,
+                                    iterations,
+                                    selectedAlgorithm,
+                                    ["encrypt"]
+                                );
+                                const encryptedBuffer = await crypto.subtle.encrypt(
+                                    { name: "AES-GCM", iv, tagLength: app.constants.TAG_LENGTH_BITS },
+                                    aesKey,
+                                    dataToEncrypt
+                                );
+                                const tagLengthBytes = app.constants.TAG_LENGTH_BITS / 8;
+                                const ciphertext = encryptedBuffer.slice(
+                                    0,
+                                    encryptedBuffer.byteLength - tagLengthBytes
+                                );
+                                const tag = encryptedBuffer.slice(encryptedBuffer.byteLength - tagLengthBytes);
+                                jsonOutput = {
+                                    keyDerivation: {
+                                        name: "PBKDF2",
+                                        salt: Base64.fromUint8Array(salt),
+                                        iterations,
+                                        hash: "SHA-256",
+                                    },
+                                    encryption: {
+                                        name: "AES-GCM",
+                                        iv: Base64.fromUint8Array(iv),
+                                        ciphertext: Base64.fromUint8Array(new Uint8Array(ciphertext)),
+                                        tag: Base64.fromUint8Array(new Uint8Array(tag)),
+                                        tagLength: app.constants.TAG_LENGTH_BITS,
+                                    },
+                                };
+                            } else {
+                                const nonce = crypto.getRandomValues(new Uint8Array(app.constants.NONCE_BYTES));
+                                const chachaKeyBytes = await this.getDerivedKey(
+                                    keyMaterial,
+                                    salt,
+                                    iterations,
+                                    selectedAlgorithm,
+                                    []
+                                );
+                                const ciphertextWithTag = chacha20poly1305(chachaKeyBytes, nonce).encrypt(
+                                    new Uint8Array(dataToEncrypt)
+                                );
+                                jsonOutput = {
+                                    keyDerivation: {
+                                        name: "PBKDF2",
+                                        salt: Base64.fromUint8Array(salt),
+                                        iterations,
+                                        hash: "SHA-256",
+                                    },
+                                    encryption: {
+                                        name: "ChaCha20-Poly1305",
+                                        nonce: Base64.fromUint8Array(nonce),
+                                        ciphertext: Base64.fromUint8Array(ciphertextWithTag),
+                                    },
+                                };
                             }
+
+                            const finalBase64 = Base64.encode(JSON.stringify(jsonOutput), true);
+                            return { finalBase64, jsonOutput };
+                        },
+
+                        async decrypt(base64Cipher, passphrase) {
+                            const jsonStr = Base64.decode(base64Cipher);
+                            const json = JSON.parse(jsonStr);
+                            if (!json.keyDerivation || !json.encryption) throw new Error("無效或不支援的密文格式。");
+
+                            const salt = Base64.toUint8Array(json.keyDerivation.salt);
+                            const iterations = json.keyDerivation.iterations;
+                            const keyMaterial = await this.importPassphraseKey(passphrase);
+                            const encryptionName = json.encryption.name;
+                            let decryptedBytes;
+
+                            if (encryptionName === "AES-GCM") {
+                                const iv = Base64.toUint8Array(json.encryption.iv);
+                                const ciphertext = Base64.toUint8Array(json.encryption.ciphertext);
+                                const tag = Base64.toUint8Array(json.encryption.tag);
+                                const aesKey = await this.getDerivedKey(keyMaterial, salt, iterations, encryptionName, [
+                                    "decrypt",
+                                ]);
+                                const combinedBuffer = new Uint8Array(ciphertext.length + tag.length);
+                                combinedBuffer.set(ciphertext, 0);
+                                combinedBuffer.set(tag, ciphertext.length);
+                                decryptedBytes = await crypto.subtle.decrypt(
+                                    { name: "AES-GCM", iv, tagLength: app.constants.TAG_LENGTH_BITS },
+                                    aesKey,
+                                    combinedBuffer
+                                );
+                            } else if (encryptionName === "ChaCha20-Poly1305") {
+                                const nonce = Base64.toUint8Array(json.encryption.nonce);
+                                const ciphertext = Base64.toUint8Array(json.encryption.ciphertext);
+                                const chachaKeyBytes = await this.getDerivedKey(
+                                    keyMaterial,
+                                    salt,
+                                    iterations,
+                                    encryptionName,
+                                    []
+                                );
+                                decryptedBytes = chacha20poly1305(chachaKeyBytes, nonce).decrypt(ciphertext);
+                            } else {
+                                throw new Error("不支援的解密演算法。");
+                            }
+                            return decryptedBytes;
+                        },
+
+                        async encryptText() {
+                            const mnemonic = app.elements.mnemonic.value.trim();
+                            const passphrase = app.elements.passphraseEncrypt.value;
+                            if (!mnemonic || !passphrase) return app.utils.showToast("❌ 明文和密碼短語不能為空。");
+
+                            app.ui.setOutput("info", "⏳ 正在加密，請稍候...");
+                            await new Promise((r) => setTimeout(r, 50));
+
+                            try {
+                                const { finalBase64, jsonOutput } = await this.encrypt(
+                                    new TextEncoder().encode(mnemonic),
+                                    passphrase,
+                                    app.state.selectedAlgorithm
+                                );
+                                app.state.lastEncryptedOutput = finalBase64;
+                                app.ui.setOutput("success", `✅ 加密成功！`);
+                                app.elements.base64ResultView.value = finalBase64;
+                                app.elements.jsonView.value = JSON.stringify(jsonOutput, null, 2);
+                                if (finalBase64.length < app.constants.QR_CODE_MAX_BYTES) {
+                                    app.elements.qrCanvas.hidden = false;
+                                    QRCode.toCanvas(app.elements.qrCanvas, finalBase64, {
+                                        errorCorrectionLevel: "L",
+                                        width: 320,
+                                    });
+                                } else {
+                                    app.elements.qrCanvas.hidden = true;
+                                }
+                            } catch (e) {
+                                app.ui.setOutput("error", `❌ 加密失敗：${e.message}`);
+                                console.error("Encrypt failed:", e);
+                            }
+                        },
+
+                        async decryptText() {
+                            const base64Cipher = app.elements.ciphertextInput.value.trim();
+                            const passphrase = app.elements.passphraseDecrypt.value;
+                            if (!base64Cipher || !passphrase) return app.utils.showToast("❌ 密文和密碼短語不能為空。");
                             app.ui.setOutput("info", "⏳ 正在解密，請稍候...");
                             await new Promise((r) => setTimeout(r, 50));
-                            const startTime = performance.now();
                             try {
-                                const json = JSON.parse(new TextDecoder().decode(this.fromBase64(base64json)));
-                                if (!json.keyDerivation || !json.encryption)
-                                    throw new Error("無效或不支援的密文格式。");
-                                const salt = this.fromBase64(json.keyDerivation.salt);
-                                const iterations = json.keyDerivation.iterations;
-                                const keyMaterial = await this.deriveKey(passphrase, salt, iterations);
-                                let decryptedResult;
-                                const encryptionName = json.encryption.name;
-                                if (encryptionName === "AES-GCM") {
-                                    const { iv, ciphertext, tag, tagLength } = json.encryption;
-                                    const aesKey = await crypto.subtle.deriveKey(
-                                        { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
-                                        keyMaterial,
-                                        { name: "AES-GCM", length: app.constants.KEY_LENGTH_BITS },
-                                        false,
-                                        ["decrypt"]
-                                    );
-                                    const fullCipher = new Uint8Array([
-                                        ...this.fromBase64(ciphertext),
-                                        ...this.fromBase64(tag),
-                                    ]);
-                                    const decrypted = await crypto.subtle.decrypt(
-                                        {
-                                            name: "AES-GCM",
-                                            iv: this.fromBase64(iv),
-                                            tagLength: tagLength || app.constants.TAG_LENGTH_BITS,
-                                        },
-                                        aesKey,
-                                        fullCipher
-                                    );
-                                    decryptedResult = new TextDecoder().decode(decrypted);
-                                } else if (encryptionName === "ChaCha20-Poly1305") {
-                                    const { nonce, ciphertext } = json.encryption;
-                                    const chachaKeyBytes = new Uint8Array(
-                                        await crypto.subtle.deriveBits(
-                                            { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
-                                            keyMaterial,
-                                            app.constants.KEY_LENGTH_BITS
-                                        )
-                                    );
-                                    const aead = chacha20poly1305(chachaKeyBytes, this.fromBase64(nonce));
-                                    decryptedResult = new TextDecoder().decode(
-                                        aead.decrypt(this.fromBase64(ciphertext))
-                                    );
-                                } else {
-                                    throw new Error("不支援的解密演算法。");
-                                }
-                                app.state.lastDecryptedText = decryptedResult;
-                                const duration = ((performance.now() - startTime) / 1000).toFixed(2);
+                                const decryptedBytes = await this.decrypt(base64Cipher, passphrase);
+                                const decryptedText = new TextDecoder().decode(decryptedBytes);
+                                app.state.lastDecryptedText = decryptedText; // Store result for copying
                                 app.ui.setOutput(
                                     "success",
-                                    `✅ ${encryptionName} 解密成功 (耗時 ${duration}s)<br><br><strong style="font-size: 1.1em;">${decryptedResult}</strong>`
+                                    `✅ 解密成功<br><br><strong style="font-size: 1.1em; white-space: pre-wrap; word-break: break-word;">${decryptedText}</strong>`
                                 );
-                                app.elements.copyBtn.textContent = "複製解密結果";
-                                app.elements.copyBtn.hidden = false;
-                                app.elements.downloadBtn.hidden = true;
                             } catch (e) {
                                 console.error("Decrypt failed:", e);
                                 const msg =
-                                    e.name === "OperationError" || e.message.includes("tag")
+                                    e.message.includes("Cannot decrypt") ||
+                                    e.message.includes("tag") ||
+                                    e instanceof DOMException
                                         ? "密碼短語不正確，或密文已被竄改。"
                                         : e.message;
                                 app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
                             }
                         },
-                        async parseParameters() {
-                            const base64json = app.elements.base64json.value.trim();
-                            if (!base64json) {
-                                app.utils.showToast("請先貼上密文");
-                                return;
-                            }
+
+                        async encryptFile() {
+                            const file = app.state.fileToEncrypt;
+                            const passphrase = app.elements.passphraseFileEncrypt.value;
+                            if (!file || !passphrase) return app.utils.showToast("❌ 請選擇檔案並輸入密碼短語。");
+                            app.ui.setOutput("info", `⏳ 正在加密檔案 ${file.name}，請稍候...`);
+                            await new Promise((r) => setTimeout(r, 50));
                             try {
-                                const json = JSON.parse(new TextDecoder().decode(this.fromBase64(base64json)));
+                                const fileBuffer = await app.fileHandler.readFileAsArrayBuffer(file);
+                                const { finalBase64 } = await this.encrypt(
+                                    fileBuffer,
+                                    passphrase,
+                                    app.state.selectedAlgorithm
+                                );
+                                app.utils.downloadAsFile(finalBase64, file.name + ".enc");
+                                app.ui.setOutput("success", `✅ 檔案加密成功！已開始下載 ${file.name + ".enc"}`);
+                            } catch (e) {
+                                app.ui.setOutput("error", `❌ 檔案加密失敗：${e.message}`);
+                                console.error("File Encrypt failed:", e);
+                            }
+                        },
+
+                        async decryptFile() {
+                            const file = app.state.fileToDecrypt;
+                            const passphrase = app.elements.passphraseFileDecrypt.value;
+                            if (!file || !passphrase) return app.utils.showToast("❌ 請選擇檔案並輸入密碼短語。");
+                            app.ui.setOutput("info", `⏳ 正在解密檔案 ${file.name}，請稍候...`);
+                            await new Promise((r) => setTimeout(r, 50));
+                            try {
+                                const base64Cipher = await app.fileHandler.readFileAsText(file);
+                                const decryptedBytes = await this.decrypt(base64Cipher, passphrase);
+                                const originalFilename = file.name.endsWith(".enc")
+                                    ? file.name.slice(0, -4)
+                                    : `decrypted-${file.name}`;
+                                app.utils.downloadAsFile(new Blob([decryptedBytes]), originalFilename);
+                                app.ui.setOutput("success", `✅ 檔案解密成功！已開始下載 ${originalFilename}`);
+                            } catch (e) {
+                                console.error("File Decrypt failed:", e);
+                                const msg =
+                                    e.message.includes("Cannot decrypt") ||
+                                    e.message.includes("tag") ||
+                                    e instanceof DOMException
+                                        ? "密碼短語不正確，或密文已被竄改。"
+                                        : e.message;
+                                app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
+                            }
+                        },
+
+                        async parseParameters() {
+                            const base64Cipher = app.elements.ciphertextInput.value.trim();
+                            if (!base64Cipher) return app.utils.showToast("請先貼上密文");
+                            try {
+                                const json = JSON.parse(Base64.decode(base64Cipher));
                                 const kd = json.keyDerivation;
                                 const enc = json.encryption;
                                 if (!kd || !enc) throw new Error("JSON 結構不符");
-                                const displayEl = app.elements.paramsDisplayArea;
-                                displayEl.innerHTML = `
-                                    <p>金鑰衍生：<span>${kd.name} (${kd.hash}，${kd.iterations.toLocaleString(
-                                    "en-US"
-                                )} 迭代)</span></p>
-                                    <p>加密演算法：<span>${enc.name}</span></p>
-                                    <p style="color: var(--success-color);">狀態：<span>參數已載入 ✅</span></p>
-                                `;
-                                displayEl.hidden = false;
-                                app.elements.resultsArea.hidden = true;
+                                app.elements.paramsDisplayArea.innerHTML = `<p>金鑰衍生：<span>${kd.name} (${
+                                    kd.hash
+                                }, ${kd.iterations.toLocaleString("en-US")} 迭代)</span></p><p>加密演算法：<span>${
+                                    enc.name
+                                }</span></p><p style="color: var(--success-color);">狀態：<span>參數已載入 ✅</span></p>`;
+                                app.elements.paramsDisplayArea.hidden = false;
                             } catch (e) {
-                                console.error("Parse failed:", e);
-                                app.elements.paramsDisplayArea.innerHTML = `<p style="color: var(--error-color);">❌ 解析失敗：無效的 Base64 或 JSON 格式。</p>`;
+                                app.elements.paramsDisplayArea.innerHTML = `<p style="color: var(--error-color);">❌ 解析失敗：無效的密文格式。</p>`;
                                 app.elements.paramsDisplayArea.hidden = false;
                             }
                         },
                     },
                     utils: {
-                        copyToClipboard(text, successMessage) {
-                            navigator.clipboard
-                                .writeText(text)
-                                .then(() => {
-                                    this.showToast(successMessage || "✅ 已複製到剪貼簿！");
-                                })
-                                .catch((err) => {
-                                    console.error("Copy failed：", err);
-                                    this.showToast("❌ 複製失敗");
-                                });
-                        },
-                        pasteTo(elementId) {
-                            navigator.clipboard
-                                .readText()
-                                .then((text) => {
-                                    app.elements[elementId].value = text;
-                                    this.showToast("✅ 已貼上內容！");
-                                })
-                                .catch((err) => {
-                                    console.error("Paste failed：", err);
-                                    this.showToast("❌ 貼上失敗或剪貼簿為空");
-                                });
-                        },
                         copyFromResult() {
-                            if (app.state.currentMode === "encrypt" && app.state.lastEncryptedText) {
-                                this.copyToClipboard(app.state.lastEncryptedText, "✅ 已複製 Base64 密文！");
-                            } else if (app.state.currentMode === "decrypt" && app.state.lastDecryptedText) {
-                                this.copyToClipboard(app.state.lastDecryptedText, "✅ 已複製解密結果！");
+                            if (app.state.lastEncryptedOutput) {
+                                navigator.clipboard.writeText(app.state.lastEncryptedOutput).then(
+                                    () => this.showToast("✅ 已複製 Base64 密文！"),
+                                    () => this.showToast("❌ 複製失敗")
+                                );
                             }
                         },
+                        copyDecryptedResult() {
+                            if (app.state.lastDecryptedText) {
+                                navigator.clipboard.writeText(app.state.lastDecryptedText).then(
+                                    () => this.showToast("✅ 已複製解密結果！"),
+                                    () => this.showToast("❌ 複製失敗")
+                                );
+                            }
+                        },
+                        pasteTo(elementId) {
+                            navigator.clipboard.readText().then(
+                                (text) => {
+                                    app.elements[elementId].value = text;
+                                    this.showToast("✅ 已貼上內容！");
+                                },
+                                () => this.showToast("❌ 貼上失敗")
+                            );
+                        },
                         downloadAsFile(content, filename) {
-                            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                            const blob =
+                                content instanceof Blob
+                                    ? content
+                                    : new Blob([content], { type: "application/octet-stream" });
                             const url = URL.createObjectURL(blob);
                             const link = document.createElement("a");
                             link.href = url;
@@ -876,7 +1106,6 @@
                             link.click();
                             document.body.removeChild(link);
                             URL.revokeObjectURL(url);
-                            this.showToast("✅ 已開始下載檔案！");
                         },
                         showToast(message) {
                             if (app.state.toastTimer) clearTimeout(app.state.toastTimer);
@@ -902,26 +1131,6 @@
                             const newTheme =
                                 document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
                             this.apply(newTheme);
-                        },
-                    },
-
-                    pwa: {
-                        register() {
-                            if ("serviceWorker" in navigator) {
-                                window.addEventListener("load", () => {
-                                    navigator.serviceWorker
-                                        .register("./sw.js")
-                                        .then((registration) => {
-                                            console.log(
-                                                "PWA: ServiceWorker registration successful with scope: ",
-                                                registration.scope
-                                            );
-                                        })
-                                        .catch((err) => {
-                                            console.log("PWA: ServiceWorker registration failed: ", err);
-                                        });
-                                });
-                            }
                         },
                     },
                 };
