@@ -5,7 +5,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Zanta's Toolbox</title>
         <style>
-            /* --- CSS 變數 (繼承自原始檔案) --- */
             :root {
                 /* Palette */
                 --primary-color: #f59e0b;
@@ -68,7 +67,7 @@
                 color: var(--text-color);
             }
 
-            /* --- 新增：搜尋區塊樣式 --- */
+            /* --- 搜尋區塊樣式 --- */
             .search-section {
                 margin-bottom: 2.5rem;
             }
@@ -81,7 +80,7 @@
                 background-color: var(--input-bg);
                 color: var(--text-color);
                 transition: border-color 0.3s, box-shadow 0.3s;
-                box-sizing: border-box; /* 確保 padding 不會影響寬度 */
+                box-sizing: border-box;
             }
             #searchInput:focus {
                 outline: none;
@@ -98,7 +97,7 @@
                 border-radius: 12px;
             }
 
-            /* --- 新增：卡片式分類樣式 (來自 my_template.html) --- */
+            /* --- 卡片式分類樣式 --- */
             .card {
                 margin-bottom: 2rem;
                 border: 1px solid var(--border-color);
@@ -106,23 +105,27 @@
                 background-color: var(--container-bg);
                 box-shadow: var(--box-shadow);
                 transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s, opacity 0.4s ease;
+                overflow: hidden; /* 確保子元素的圓角裁切正確 */
             }
+
+            /* --- 更新：卡片標題樣式，使其更突出 --- */
             .card > h2 {
                 padding: 0.85rem 1.5rem;
                 margin: 0;
-                font-size: 1.25em;
-                color: var(--text-color);
-                background-color: var(--section-header-bg);
-                border-bottom: 1px solid var(--border-color);
+                font-size: 1.3em; /* 略微增大字體 */
+                font-weight: 700; /* 加粗字體 */
+                color: #422006; /* 深色文字以搭配亮色背景 */
+                background-color: var(--primary-color); /* 使用主題主色 */
+                border-bottom: 1px solid var(--primary-hover-color); /* 使用較深的主題色作為邊框 */
+                letter-spacing: 0.5px; /* 增加字元間距 */
                 transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-                border-top-left-radius: 12px;
-                border-top-right-radius: 12px;
             }
+
             .card-content {
                 padding: 1.5rem;
             }
 
-            /* --- 更新：選項列表樣式 --- */
+            /* --- 選項列表樣式 --- */
             .option-group {
                 display: flex;
                 flex-direction: column;
@@ -142,9 +145,13 @@
             }
             .option:hover {
                 border-color: var(--primary-color);
+                background-color: var(--section-header-bg);
+                transform: scale(1.02);
+            }
+            /* 當深色模式時，選項懸停時使用不同的顏色組合 */
+            :root[data-theme="dark"] .option:hover {
                 background-color: var(--primary-color);
                 color: #422006;
-                transform: scale(1.02);
             }
 
             /* --- 頁尾 & 主題切換按鈕 --- */
@@ -181,6 +188,9 @@
                 }
                 .card-content {
                     padding: 1rem;
+                }
+                .card > h2 {
+                    padding: 0.75rem 1rem;
                 }
             }
         </style>
@@ -221,30 +231,32 @@
         </footer>
 
         <script>
-            // 更新：分類化的工具資料結構
             const categorizedTools = [
                 {
                     category: "加解密工具",
                     tools: [
-                        { uri: "crypto_manager.html", display: "進階版純文字與檔案加密、解密" },
-                        { uri: "crypto.html", display: "通用版純文字與檔案加密、解密" },
-                        { uri: "aes_decrypt.html", display: "AES 版純文字解密" },
-                        { uri: "chacha20_decrypt.html", display: "ChaCha20 版純文字解密" },
+                        { uri: "crypto_manager.html", display: "進階版-純文字與檔案加密、解密" },
+                        { uri: "aes_decrypt.html", display: "AES 純文字解密" },
+                        { uri: "chacha20_decrypt.html", display: "ChaCha20 純文字解密" },
                         { uri: "aes_decrypt_alt1.html", display: "簡易 AES 純文字解密 1" },
                         { uri: "aes_decrypt_alt2.html", display: "簡易 AES 純文字解密 2" },
+                        { uri: "crypto.html", display: "實驗版-純文字與檔案加密、解密" },
                     ],
-                },
-                {
-                    category: "格式與轉換",
-                    tools: [{ uri: "shamir.html", display: "Shamir 密鑰分割還原" }],
                 },
                 {
                     category: "開發者工具",
                     tools: [
                         { uri: "text_compressor.html", display: "長文字壓縮、解壓縮" },
+                        { uri: "shamir.html", display: "Shamir 祕密分割與還原" },
                         { uri: "bip39.html", display: "BIP39 助記詞產生器" },
-                        { uri: "zkp-demo-blockchain.html", display: "ZKP 零知識證明示範網頁" },
                         { uri: "my_template.html", display: "Zanta 的通用網頁設計風格樣本" },
+                    ],
+                },
+                {
+                    category: "觀念說明",
+                    tools: [
+                        { uri: "zkp-demo-blockchain.html", display: "ZKP 零知識證明（區塊鏈）" },
+                        { uri: "zkp-demo-cave.html", display: "ZKP 零知識證明（阿里巴巴山洞）" },
                     ],
                 },
             ];
