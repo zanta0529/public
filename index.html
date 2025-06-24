@@ -5,21 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Zanta's Toolbox</title>
         <style>
+            /* --- CSS 變數 (繼承自原始檔案) --- */
             :root {
                 /* Palette */
                 --primary-color: #f59e0b;
                 --primary-hover-color: #d97706;
                 --secondary-color: #6b7280;
                 --secondary-hover-color: #4b5563;
-                /* Status Colors */
-                --success-color: #059669;
-                --success-bg: #d1fae5;
-                --error-color: #dc2626;
-                --error-bg: #fee2e2;
-                --info-color: #0891b2;
-                --info-bg: #cffafe;
-                --note-color: #92400e;
-                --note-bg: #fefce8;
                 /* UI Elements */
                 --section-header-bg: #f3f4f6;
                 --bg-color: #f9fafb;
@@ -28,13 +20,7 @@
                 --border-color: #e5e7eb;
                 --input-bg: #ffffff;
                 --input-focus-shadow: rgba(245, 158, 11, 0.25);
-                --button-disabled-bg: #d1d5db;
                 --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-                --toast-bg: #1f2937;
-                --toast-color: #f9fafb;
-                --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
-                --tooltip-bg: #1f2937;
-                --tooltip-color: #f9fafb;
             }
             :root[data-theme="dark"] {
                 /* Palette */
@@ -42,15 +28,6 @@
                 --primary-hover-color: #fbbf24;
                 --secondary-color: #9ca3af;
                 --secondary-hover-color: #d1d5db;
-                /* Status Colors */
-                --success-color: #6ee7b7;
-                --success-bg: #064e3b;
-                --error-color: #f87171;
-                --error-bg: #7f1d1d;
-                --info-color: #67e8f9;
-                --info-bg: #164e63;
-                --note-color: #fde047;
-                --note-bg: #451a03;
                 /* UI Elements */
                 --section-header-bg: rgba(255, 255, 255, 0.05);
                 --bg-color: #111827;
@@ -59,13 +36,7 @@
                 --border-color: #374151;
                 --input-bg: #374151;
                 --input-focus-shadow: rgba(245, 158, 11, 0.3);
-                --button-disabled-bg: #4b5563;
                 --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-                --toast-bg: #fde68a;
-                --toast-color: #78350f;
-                --modal-backdrop-bg: rgba(0, 0, 0, 0.7);
-                --tooltip-bg: #fde68a;
-                --tooltip-color: #78350f;
             }
 
             /* --- 基礎 & 佈局樣式 --- */
@@ -85,31 +56,73 @@
             }
 
             .container {
-                background-color: var(--container-bg);
-                padding: 2rem;
-                border-radius: 12px;
-                box-shadow: var(--box-shadow);
                 width: 100%;
                 max-width: 900px;
                 margin-bottom: 2rem;
-                border: 1px solid var(--border-color);
-                transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
             }
 
-            h1,
-            h2 {
-                margin-top: 0;
-                color: var(--text-color);
-            }
             h1 {
                 text-align: center;
+                margin-top: 0;
                 margin-bottom: 1.5rem;
-            }
-            section {
-                margin-bottom: 2rem;
+                color: var(--text-color);
             }
 
-            /* --- 組件：選項/頁籤組 --- */
+            /* --- 新增：搜尋區塊樣式 --- */
+            .search-section {
+                margin-bottom: 2.5rem;
+            }
+            #searchInput {
+                width: 100%;
+                padding: 0.85rem 1.2rem;
+                font-size: 1.1em;
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
+                background-color: var(--input-bg);
+                color: var(--text-color);
+                transition: border-color 0.3s, box-shadow 0.3s;
+                box-sizing: border-box; /* 確保 padding 不會影響寬度 */
+            }
+            #searchInput:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
+            }
+            #noResultsMessage {
+                text-align: center;
+                color: var(--secondary-color);
+                padding: 2rem;
+                font-size: 1.2em;
+                background-color: var(--container-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+            }
+
+            /* --- 新增：卡片式分類樣式 (來自 my_template.html) --- */
+            .card {
+                margin-bottom: 2rem;
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                background-color: var(--container-bg);
+                box-shadow: var(--box-shadow);
+                transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s, opacity 0.4s ease;
+            }
+            .card > h2 {
+                padding: 0.85rem 1.5rem;
+                margin: 0;
+                font-size: 1.25em;
+                color: var(--text-color);
+                background-color: var(--section-header-bg);
+                border-bottom: 1px solid var(--border-color);
+                transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+                border-top-left-radius: 12px;
+                border-top-right-radius: 12px;
+            }
+            .card-content {
+                padding: 1.5rem;
+            }
+
+            /* --- 更新：選項列表樣式 --- */
             .option-group {
                 display: flex;
                 flex-direction: column;
@@ -120,7 +133,7 @@
                 border: 1px solid var(--border-color);
                 border-radius: 8px;
                 cursor: pointer;
-                transition: background-color 0.3s, border-color 0.3s, color 0.3s, transform 0.2s;
+                transition: background-color 0.3s, border-color 0.3s, color 0.3s, transform 0.2s, display 0.4s ease;
                 text-align: left;
                 font-size: 1.1em;
                 font-weight: 500;
@@ -134,7 +147,7 @@
                 transform: scale(1.02);
             }
 
-            /* --- 組件：頁尾 --- */
+            /* --- 頁尾 & 主題切換按鈕 --- */
             footer {
                 text-align: center;
                 margin-top: auto;
@@ -164,8 +177,10 @@
                     padding: 1rem;
                 }
                 .container {
-                    padding: 1.5rem;
-                    max-width: 95%;
+                    max-width: 98%;
+                }
+                .card-content {
+                    padding: 1rem;
                 }
             }
         </style>
@@ -186,9 +201,15 @@
             </header>
 
             <main>
-                <section>
-                    <div id="func" class="option-group"></div>
+                <section class="search-section">
+                    <input type="text" id="searchInput" placeholder="🔍  在此輸入關鍵字搜尋工具..." />
                 </section>
+
+                <div id="toolboxContainer"></div>
+
+                <div id="noResultsMessage" style="display: none">
+                    <p>找不到符合條件的工具</p>
+                </div>
             </main>
         </div>
 
@@ -200,26 +221,41 @@
         </footer>
 
         <script>
-            // JSON 格式的工具資料
-            const optionsData = [
-                { uri: "crypto_manager.html", display: "【加密、解密】進階版純文字與檔案加密、解密" },
-                { uri: "aes_decrypt.html", display: "【解密】AES 版進階純文字解密" },
-                { uri: "chacha20_decrypt.html", display: "【解密】ChaCha20 版進階純文字解密" },
-                { uri: "crypto.html", display: "通用版純文字與檔案加密、解密" },
-                { uri: "text_compressor.html", display: "長文字壓縮、解壓縮" },
-                { uri: "shamir.html", display: "Shamir 密鑰分割還原" },
-                { uri: "bip39.html", display: "BIP39 助記詞產生器" },
-                { uri: "aes_decrypt_alt1.html", display: "簡易 AES 純文字解密 1" },
-                { uri: "aes_decrypt_alt2.html", display: "簡易 AES 純文字解密 2" },
-                { uri: "zkp-demo-blockchain.html", display: "ZKP 零知識證明示範網頁" },
-                { uri: "my_template.html", display: "Zanta 的通用網頁設計風格樣本" },
+            // 更新：分類化的工具資料結構
+            const categorizedTools = [
+                {
+                    category: "加解密工具",
+                    tools: [
+                        { uri: "crypto_manager.html", display: "進階版純文字與檔案加密、解密" },
+                        { uri: "crypto.html", display: "通用版純文字與檔案加密、解密" },
+                        { uri: "aes_decrypt.html", display: "AES 版純文字解密" },
+                        { uri: "chacha20_decrypt.html", display: "ChaCha20 版純文字解密" },
+                        { uri: "aes_decrypt_alt1.html", display: "簡易 AES 純文字解密 1" },
+                        { uri: "aes_decrypt_alt2.html", display: "簡易 AES 純文字解密 2" },
+                    ],
+                },
+                {
+                    category: "格式與轉換",
+                    tools: [{ uri: "shamir.html", display: "Shamir 密鑰分割還原" }],
+                },
+                {
+                    category: "開發者工具",
+                    tools: [
+                        { uri: "text_compressor.html", display: "長文字壓縮、解壓縮" },
+                        { uri: "bip39.html", display: "BIP39 助記詞產生器" },
+                        { uri: "zkp-demo-blockchain.html", display: "ZKP 零知識證明示範網頁" },
+                        { uri: "my_template.html", display: "Zanta 的通用網頁設計風格樣本" },
+                    ],
+                },
             ];
 
             document.addEventListener("DOMContentLoaded", () => {
                 // --- DOM 元素 ---
                 const themeToggleBtn = document.getElementById("themeToggleBtn");
                 const currentYear = document.getElementById("currentYear");
-                const funcContainer = document.getElementById("func");
+                const toolboxContainer = document.getElementById("toolboxContainer");
+                const searchInput = document.getElementById("searchInput");
+                const noResultsMessage = document.getElementById("noResultsMessage");
 
                 // --- 核心功能 ---
 
@@ -230,16 +266,66 @@
                     localStorage.setItem("my-toolbox-theme", theme);
                 }
 
-                // 動態生成工具選項
-                function generateOptions(options) {
-                    funcContainer.innerHTML = ""; // 清空容器
-                    options.forEach((option) => {
-                        const optionElement = document.createElement("div");
-                        optionElement.classList.add("option");
-                        optionElement.dataset.link = option.uri;
-                        optionElement.textContent = option.display;
-                        funcContainer.appendChild(optionElement);
+                // 新增：渲染整個工具箱
+                function renderToolbox(data) {
+                    toolboxContainer.innerHTML = ""; // 清空容器
+                    data.forEach((categoryData) => {
+                        // 創建卡片結構
+                        const card = document.createElement("section");
+                        card.className = "card";
+
+                        const title = document.createElement("h2");
+                        title.textContent = categoryData.category;
+                        card.appendChild(title);
+
+                        const cardContent = document.createElement("div");
+                        cardContent.className = "card-content";
+
+                        const optionGroup = document.createElement("div");
+                        optionGroup.className = "option-group";
+
+                        // 創建工具選項
+                        categoryData.tools.forEach((tool) => {
+                            const optionElement = document.createElement("div");
+                            optionElement.className = "option";
+                            optionElement.dataset.link = tool.uri;
+                            optionElement.textContent = tool.display;
+                            optionGroup.appendChild(optionElement);
+                        });
+
+                        cardContent.appendChild(optionGroup);
+                        card.appendChild(cardContent);
+                        toolboxContainer.appendChild(card);
                     });
+                }
+
+                // 新增：處理搜尋過濾
+                function handleSearch() {
+                    const searchTerm = searchInput.value.toLowerCase().trim();
+                    let totalResults = 0;
+
+                    const cards = toolboxContainer.querySelectorAll(".card");
+
+                    cards.forEach((card) => {
+                        const options = card.querySelectorAll(".option");
+                        let categoryHasVisibleTools = false;
+
+                        options.forEach((option) => {
+                            const optionText = option.textContent.toLowerCase();
+                            const matches = optionText.includes(searchTerm);
+                            option.style.display = matches ? "block" : "none";
+                            if (matches) {
+                                categoryHasVisibleTools = true;
+                            }
+                        });
+
+                        card.style.display = categoryHasVisibleTools ? "block" : "none";
+                        if (categoryHasVisibleTools) {
+                            totalResults++;
+                        }
+                    });
+
+                    noResultsMessage.style.display = totalResults === 0 && searchTerm !== "" ? "block" : "none";
                 }
 
                 // --- 事件監聽器 ---
@@ -251,20 +337,20 @@
                 });
 
                 // 工具選項點擊事件 (事件委派)
-                funcContainer.addEventListener("click", (e) => {
+                toolboxContainer.addEventListener("click", (e) => {
                     const selectedOption = e.target.closest(".option");
-                    if (selectedOption) {
-                        const link = selectedOption.dataset.link;
-                        if (link) {
-                            window.open(link, "_blank"); // 在新分頁中開啟連結
-                        }
+                    if (selectedOption && selectedOption.dataset.link) {
+                        window.open(selectedOption.dataset.link, "_blank");
                     }
                 });
+
+                // 搜尋框輸入事件
+                searchInput.addEventListener("input", handleSearch);
 
                 // --- 初始化 ---
                 currentYear.textContent = new Date().getFullYear();
                 applyTheme(localStorage.getItem("my-toolbox-theme") || "dark");
-                generateOptions(optionsData); // 產生工具列表
+                renderToolbox(categorizedTools); // 產生卡片式工具列表
             });
         </script>
     </body>
