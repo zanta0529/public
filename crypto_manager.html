@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>進階加密、解密器</title>
 
+        <meta name="theme-color" content="#f59e0b" />
         <link rel="manifest" href="manifest.json" />
         <link rel="apple-touch-icon" href="icon-192.png" />
         <meta name="apple-mobile-web-app-status-bar" content="#f59e0b" />
@@ -491,6 +492,7 @@
                                 <div id="file-decrypt-info" class="file-info" hidden></div>
                                 <div class="form-group" style="margin-top: 1rem">
                                     <label for="passphrase-file-decrypt">密碼短語 (Passphrase)</label>
+                                    <div class="hint-note">ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。</div>
                                     <div class="password-wrapper">
                                         <input
                                             id="passphrase-file-decrypt"
@@ -636,6 +638,7 @@
                         this.theme.init();
                         this.setupEventListeners();
                         this.ui.setAppMode("text");
+                        this.pwa.register(); // Re-add PWA registration
                     },
 
                     setupEventListeners() {
@@ -1131,6 +1134,26 @@
                             const newTheme =
                                 document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
                             this.apply(newTheme);
+                        },
+                    },
+                    // Add PWA registration logic
+                    pwa: {
+                        register() {
+                            if ("serviceWorker" in navigator) {
+                                window.addEventListener("load", () => {
+                                    navigator.serviceWorker.register("./sw.js").then(
+                                        (registration) => {
+                                            console.log(
+                                                "ServiceWorker registration successful with scope: ",
+                                                registration.scope
+                                            );
+                                        },
+                                        (err) => {
+                                            console.log("ServiceWorker registration failed: ", err);
+                                        }
+                                    );
+                                });
+                            }
                         },
                     },
                 };
