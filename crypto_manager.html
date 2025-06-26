@@ -347,7 +347,8 @@
                 cursor: pointer;
                 transition: border-color 0.3s, background-color 0.3s;
             }
-            .file-input-wrapper:hover {
+            .file-input-wrapper:hover,
+            .file-input-wrapper.drag-over {
                 border-color: var(--primary-color);
                 background-color: var(--section-header-bg);
             }
@@ -687,6 +688,36 @@
                             el.innerHTML = this.constants.SVG_EYE_OPEN;
                             el.addEventListener("click", (e) => this.ui.togglePasswordVisibility(e.currentTarget));
                         });
+
+                        const setupDragDrop = (wrapper, input) => {
+                            if (!wrapper) return;
+                            ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+                                wrapper.addEventListener(eventName, (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                });
+                            });
+                            ["dragenter", "dragover"].forEach((eventName) => {
+                                wrapper.addEventListener(eventName, () => wrapper.classList.add("drag-over"));
+                            });
+                            ["dragleave", "drop"].forEach((eventName) => {
+                                wrapper.addEventListener(eventName, () => wrapper.classList.remove("drag-over"));
+                            });
+                            wrapper.addEventListener("drop", (e) => {
+                                if (e.dataTransfer.files.length > 0) {
+                                    input.files = e.dataTransfer.files;
+                                    input.dispatchEvent(new Event("change", { bubbles: true }));
+                                }
+                            });
+                        };
+                        setupDragDrop(
+                            this.elements.fileEncryptInput.closest(".file-input-wrapper"),
+                            this.elements.fileEncryptInput
+                        );
+                        setupDragDrop(
+                            this.elements.fileDecryptInput.closest(".file-input-wrapper"),
+                            this.elements.fileDecryptInput
+                        );
                     },
 
                     ui: {
