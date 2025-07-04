@@ -1,14 +1,6 @@
 let locationsData = [
     {
         date: "2025-10-20",
-        location: "Home, Sweet Home",
-        category: "transport",
-        coordinates: [25.033, 121.5654],
-        description: "出發前往日本關西！",
-        image: "",
-    },
-    {
-        date: "2025-10-20",
         location: "關西國際機場 (Kansai Intl. Airport)",
         category: "transport",
         coordinates: [34.4343, 135.2444],
@@ -317,14 +309,6 @@ let locationsData = [
         category: "transport",
         coordinates: [34.4343, 135.2444],
         description: "滿載回憶，準備回家。",
-        image: "",
-    },
-    {
-        date: "2025-10-24",
-        location: "Home, Sweet Home",
-        category: "stay",
-        coordinates: [25.033, 121.5654],
-        description: "旅途結束！",
         image: "",
     },
 ];
