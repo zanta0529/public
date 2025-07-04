@@ -96,9 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-    // ================================================================
-    // MODIFIED: createFilterControls function
-    // ================================================================
     function createFilterControls() {
         const dates = [...new Set(state.locations.map((loc) => loc.date))].sort();
         dateFiltersContainer.innerHTML = `<button data-date="all" class="${
@@ -186,26 +183,60 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     }
 
+    // ================================================================
+    // MODIFIED: drawMap function with hover-to-preview functionality
+    // ================================================================
     function drawMap(locationsToDraw) {
         layerGroup.clearLayers();
         if (locationsToDraw.length === 0) return;
+
         const bounds = L.latLngBounds();
         let visibleIndex = 1;
+
         locationsToDraw.forEach((loc) => {
             const categoryInfo = categoryMapping[loc.category] || categoryMapping.default;
-            const marker = L.marker(loc.coordinates, {
-                icon: L.divIcon({
-                    html: `<div style="background-color: ${
-                        categoryInfo.color
-                    }; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: var(--shadow); display: flex; justify-content: center; align-items: center; color: white; font-size: 14px; font-weight: bold;">${visibleIndex++}</div>`,
-                    className: "custom-marker-icon",
-                    iconSize: [28, 28],
-                    iconAnchor: [14, 14],
-                }),
-            }).bindPopup(createPopupContent(loc), { className: "custom-popup" });
+            const markerIcon = L.divIcon({
+                html: `<div style="background-color: ${
+                    categoryInfo.color
+                }; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: var(--shadow); display: flex; justify-content: center; align-items: center; color: white; font-size: 14px; font-weight: bold;">${visibleIndex++}</div>`,
+                className: "custom-marker-icon",
+                iconSize: [28, 28],
+                iconAnchor: [14, 14],
+            });
+
+            const marker = L.marker(loc.coordinates, { icon: markerIcon });
+
+            // 1. Bind popup content
+            marker.bindPopup(createPopupContent(loc), { className: "custom-popup" });
+
+            // 2. Add custom flag to manage sticky state
+            marker.isSticky = false;
+
+            // 3. Add event listeners
+            marker.on("click", function () {
+                this.isSticky = true;
+                this.openPopup();
+            });
+
+            marker.on("popupclose", function () {
+                this.isSticky = false;
+            });
+
+            marker.on("mouseover", function () {
+                this.openPopup();
+            });
+
+            marker.on("mouseout", function () {
+                // Only close popup if it wasn't made sticky by a click
+                if (!this.isSticky) {
+                    this.closePopup();
+                }
+            });
+
             marker.addTo(layerGroup);
             bounds.extend(loc.coordinates);
         });
+
         for (let i = 0; i < locationsToDraw.length - 1; i++) {
             if (locationsToDraw[i].date === locationsToDraw[i + 1].date) {
                 L.polyline([locationsToDraw[i].coordinates, locationsToDraw[i + 1].coordinates], {
@@ -215,6 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }).addTo(layerGroup);
             }
         }
+
         if (bounds.isValid()) map.fitBounds(bounds.pad(0.2), { maxZoom: 15 });
     }
 
