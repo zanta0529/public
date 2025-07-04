@@ -334,23 +334,85 @@ document.addEventListener("DOMContentLoaded", () => {
         // 匯出可列印頁面的按鈕事件
         document.getElementById("export-printable").addEventListener("click", () => {
             showToast("正在準備預覽頁面...", "normal");
+
+            // 準備統計數據文字
             const statsDays = document.getElementById("stats-days").innerText;
             const statsLocations = document.getElementById("stats-locations").innerText;
             const statsDistance = document.getElementById("stats-distance").innerText;
             const statsText = `總天數: ${statsDays} 天  |  總地點: ${statsLocations} 個  |  總距離: ${statsDistance} km`;
-            let tableHtml = `<table border="1" style="width: 100%; border-collapse: collapse; font-size: 12px;"><thead><tr style="background-color: #3498db; color: white;"><th style="padding: 8px;">#</th><th style="padding: 8px;">日期</th><th style="padding: 8px;">地點</th><th style="padding: 8px;">分類</th><th style="padding: 8px;">描述</th></tr></thead><tbody>`;
+
+            // 動態建立表格的 HTML
+            let tableHtml = `
+        <table border="1" style="width: 100%; border-collapse: collapse; font-size: 12px;">
+            <thead>
+                <tr style="background-color: #3498db; color: white;">
+                    <th style="padding: 8px;">#</th>
+                    <th style="padding: 8px;">日期</th>
+                    <th style="padding: 8px;">地點</th>
+                    <th style="padding: 8px;">分類</th>
+                    <th style="padding: 8px;">描述</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
             state.locations.forEach((loc, index) => {
-                tableHtml += `<tr><td style="padding: 8px;">${index + 1}</td><td style="padding: 8px;">${
-                    loc.date
-                }</td><td style="padding: 8px;">${loc.location}</td><td style="padding: 8px;">${
-                    categoryMapping[loc.category]?.name || "其他"
-                }</td><td style="padding: 8px;">${loc.description}</td></tr>`;
+                tableHtml += `
+            <tr>
+                <td style="padding: 8px;">${index + 1}</td>
+                <td style="padding: 8px;">${loc.date}</td>
+                <td style="padding: 8px;">${loc.location}</td>
+                <td style="padding: 8px;">${categoryMapping[loc.category]?.name || "其他"}</td>
+                <td style="padding: 8px;">${loc.description}</td>
+            </tr>
+        `;
             });
             tableHtml += `</tbody></table>`;
-            const printableHtml = `<html><head><title>我的旅遊行程 - 可列印版</title><meta charset="UTF-8"><link rel="stylesheet" href="style.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet"><style>body { font-family: 'Noto Sans TC', sans-serif; margin: 20px; } @media print { @page { margin: 20mm; } body { margin: 0; } h1, p { margin-bottom: 15px; } table { page-break-inside: auto; } tr { page-break-inside: avoid; page-break-after: auto; } }</style></head><body><h1>我的旅遊行程</h1><p>${statsText}</p>${tableHtml}</body></html>`;
+
+            // 建立一個完整的 HTML 頁面字串
+            const printableHtml = `
+        <html>
+        <head>
+            <title>我的旅遊行程 - 可列印版</title>
+            <meta charset="UTF-8">
+            <link rel="stylesheet" href="style.css">
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+            <style>
+                /* --- REVISED STYLE BLOCK --- */
+                
+                /* 1. 覆蓋主樣式的 body 設定，允許這個彈出視窗捲動 */
+                body {
+                    overflow-y: auto !important; /* 允許垂直捲動 */
+                    background-color: #ffffff; /* 設定一個乾淨的白色背景 */
+                    font-family: 'Noto Sans TC', sans-serif; 
+                    margin: 20px;
+                }
+
+                /* 2. 列印時的特定樣式 (維持不變) */
+                @media print {
+                    @page { margin: 20mm; } /* 設定列印邊界 */
+                    body { margin: 0; }
+                    h1, p { margin-bottom: 15px; }
+                    table { page-break-inside: auto; } /* 允許表格跨頁 */
+                    tr { page-break-inside: avoid; page-break-after: auto; }
+                }
+            </style>
+        </head>
+        <body>
+            <h1>我的旅遊行程</h1>
+            <p>${statsText}</p>
+            ${tableHtml}
+        </body>
+        </html>
+    `;
+
+            // 開啟一個新的瀏覽器分頁並寫入 HTML
             const newWindow = window.open();
             newWindow.document.write(printableHtml);
             newWindow.document.close();
+
+            // 延遲一點時間確保頁面渲染完成後再觸發列印
             setTimeout(() => {
                 newWindow.print();
             }, 500);
