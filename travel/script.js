@@ -39,8 +39,10 @@ document.addEventListener("DOMContentLoaded", () => {
             refreshUI();
             if (window.innerWidth > 768) {
                 panel.classList.add("open");
+                panelHandle.classList.add("open"); // 同步把手狀態
             } else {
                 panel.classList.remove("open");
+                panelHandle.classList.remove("open"); // 同步把手狀態
             }
         } else {
             showToast("沒有有效的行程資料可以顯示", "warning");
@@ -310,6 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         panelHandle.addEventListener("click", () => {
             panel.classList.toggle("open");
+            panelHandle.classList.toggle("open");
             setTimeout(() => map.invalidateSize(true), 300);
         });
 

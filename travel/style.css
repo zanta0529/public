@@ -209,12 +209,12 @@ body {
     background-color: var(--category-food);
 }
 
-/* --- 側邊欄把手 --- */
+/* --- 側邊欄把手 (REVISED) --- */
 #panel-handle {
     position: absolute;
     top: 50%;
+    left: 360px; /* 預設為桌面版展開位置 */
     transform: translateY(-50%);
-    right: -20px;
     width: 20px;
     height: 60px;
     background-color: var(--secondary-color);
@@ -222,9 +222,16 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: background-color 0.2s ease;
+    transition: left 0.3s ease-in-out, right 0.3s ease-in-out, background-color 0.2s ease;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
+    z-index: 2001; /* 確保在側邊欄之上 */
+}
+
+/* 當把手沒有 .open class 時 (關閉狀態) */
+#panel-handle:not(.open) {
+    left: 0;
+    right: auto;
 }
 
 #panel-handle:hover {
@@ -242,14 +249,16 @@ body {
     align-items: center;
 }
 
+/* 把手圖示預設為展開 '»' */
 .handle-icon::before {
-    content: "«"; /* 收合圖示 */
+    content: "»";
     position: absolute;
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-#itinerary-panel:not(.open) .handle-icon::before {
-    content: "»"; /* 展開圖示 */
+/* 當把手有 .open class 時，圖示變為收合 '«' */
+#panel-handle.open .handle-icon::before {
+    content: "«";
 }
 
 /* --- 地圖上方的篩選器 --- */
@@ -436,6 +445,19 @@ body {
         justify-content: flex-start;
         overflow-x: auto;
         padding-bottom: 5px;
+    }
+
+    /* REVISED: Mobile handle positioning */
+    /* 在手機上，當側邊欄展開時，將把手定位到螢幕最右側 */
+    #panel-handle.open {
+        left: auto;
+        right: 0;
+    }
+
+    /* 在手機上，當側邊欄收合時，確保把手在螢幕最左側 */
+    #panel-handle:not(.open) {
+        left: 0;
+        right: auto;
     }
 }
 
