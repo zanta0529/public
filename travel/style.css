@@ -191,18 +191,6 @@ body {
     color: white;
     flex-shrink: 0;
 }
-.category-badge.sight {
-    background-color: var(--category-sight);
-}
-.category-badge.stay {
-    background-color: var(--category-stay);
-}
-.category-badge.transport {
-    background-color: var(--category-transport);
-}
-.category-badge.food {
-    background-color: var(--category-food);
-}
 
 /* --- 側邊欄把手 --- */
 #panel-handle {
@@ -243,7 +231,6 @@ body {
     align-items: center;
 }
 
-/* 預設 (側邊欄收合時) 指向右方 */
 .handle-icon::before {
     content: "▲";
     position: absolute;
@@ -251,7 +238,6 @@ body {
     transform: rotate(90deg) scale(0.6);
 }
 
-/* 當側邊欄展開時，箭頭指向左方 */
 #panel-handle.open .handle-icon::before {
     transform: rotate(-90deg) scale(0.6);
 }
@@ -296,15 +282,13 @@ body {
     justify-content: center;
 }
 
-/* ================================================================ */
-/* MODIFIED: Filter button styles */
-/* ================================================================ */
+/* --- Filter Button Styles --- */
 #filters button {
     padding: 8px 15px;
     border-radius: 5px;
     border: 1px solid var(--border-color);
-    background-color: white; /* Default background for non-category buttons */
-    color: var(--text-color); /* Default text color */
+    background-color: white;
+    color: var(--text-color);
     cursor: pointer;
     font-size: 0.9em;
     transition: all 0.2s;
@@ -314,9 +298,37 @@ body {
     filter: brightness(1.1);
 }
 
-/* New active state style: an outer ring */
+/* Optimized active state with outline */
 #filters button.active {
-    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--primary-color);
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Category button colors defined in CSS */
+#filters button[data-category="sight"] {
+    background-color: var(--category-sight);
+    color: white;
+    border-color: transparent;
+}
+#filters button[data-category="stay"] {
+    background-color: var(--category-stay);
+    color: white;
+    border-color: transparent;
+}
+#filters button[data-category="transport"] {
+    background-color: var(--category-transport);
+    color: white;
+    border-color: transparent;
+}
+#filters button[data-category="food"] {
+    background-color: var(--category-food);
+    color: white;
+    border-color: transparent;
+}
+#filters button[data-category="default"] {
+    background-color: var(--category-default);
+    color: white;
+    border-color: transparent;
 }
 
 /* --- 頂部篩選器握把 --- */
@@ -348,7 +360,6 @@ body {
     align-items: center;
 }
 
-/* 預設 (篩選器展開時) 指向上方 */
 .filters-handle-icon::before {
     content: "▲";
     position: absolute;
@@ -357,7 +368,6 @@ body {
     transform: scale(0.6);
 }
 
-/* 當篩選器收合時，箭頭指向下方 */
 #filters-handle.collapsed .filters-handle-icon::before {
     transform: scale(0.6) rotate(180deg);
 }

@@ -71,14 +71,14 @@
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-        <script src="locatons.js"></script>
-        <script src="script.js"></script>
+        <script src="locatons.js" defer></script>
+        <script src="script.js" defer></script>
 
         <script>
             if ("serviceWorker" in navigator) {
                 window.addEventListener("load", () => {
                     navigator.serviceWorker
-                        .register("./sw.js") // 註冊 service worker 檔案
+                        .register("./sw.js")
                         .then((registration) => {
                             console.log("ServiceWorker registration successful with scope: ", registration.scope);
                         })
