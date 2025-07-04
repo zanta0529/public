@@ -1,0 +1,454 @@
+/* --- 全域設定 --- */
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --background-color: #f5f5f5;
+    --panel-bg-color: #ffffff;
+    --text-color: #333;
+    --light-text-color: #7f8c8d;
+    --border-color: #ecf0f1;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --category-sight: #27ae60;
+    --category-stay: #e67e22;
+    --category-transport: #8e44ad;
+    /* NEW: food category color */
+    --category-food: #c0392b;
+    --category-default: #7f8c8d;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    overflow: hidden; /* 防止頁面滾動 */
+}
+
+/* --- 主體與側邊欄佈局 --- */
+#app-container {
+    position: relative;
+    overflow: hidden;
+    height: 100vh;
+}
+
+#itinerary-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 360px;
+    height: 100%;
+    background-color: var(--panel-bg-color);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    z-index: 2000;
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(0); /* 預設開啟 */
+}
+
+#itinerary-panel:not(.open) {
+    transform: translateX(-100%); /* 收合 */
+}
+
+#map-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+/* --- 側邊行程列表 --- */
+.panel-header {
+    padding: 15px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    flex-shrink: 0;
+}
+
+.panel-header h1 {
+    font-size: 1.4em;
+    margin: 0 0 10px 0;
+    text-align: center;
+}
+
+.header-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#search-input {
+    flex-grow: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 0.9em;
+    padding: 8px;
+}
+#search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+#export-pdf {
+    padding: 8px 12px;
+    background-color: white;
+    color: var(--primary-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.2em;
+    line-height: 1;
+}
+#export-pdf:hover {
+    background-color: #f1f1f1;
+}
+
+/* NEW: Stats Panel */
+#stats-panel {
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+.stat-item {
+    text-align: center;
+}
+.stat-item span {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+.stat-item label {
+    font-size: 0.8em;
+    color: var(--light-text-color);
+    display: block;
+}
+
+#itinerary-list {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 10px 0;
+}
+
+.day-group {
+    margin-bottom: 20px;
+}
+
+.day-header {
+    padding: 10px 20px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--secondary-color);
+    background-color: var(--border-color);
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+
+.location-item {
+    padding: 15px 20px;
+    cursor: grab;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* NEW: Style for dragging */
+.location-item.dragging {
+    opacity: 0.5;
+    background: #cce5ff;
+}
+
+.location-item:hover {
+    background-color: #e8f4fd;
+}
+
+.location-item p {
+    font-size: 1em;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.location-number {
+    font-weight: bold;
+    color: var(--secondary-color);
+    font-size: 1.1em;
+}
+
+/* NEW: Category Badge */
+.category-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    color: white;
+    flex-shrink: 0;
+}
+.category-badge.sight {
+    background-color: var(--category-sight);
+}
+.category-badge.stay {
+    background-color: var(--category-stay);
+}
+.category-badge.transport {
+    background-color: var(--category-transport);
+}
+/* NEW: food category style */
+.category-badge.food {
+    background-color: var(--category-food);
+}
+
+/* --- 側邊欄把手 --- */
+#panel-handle {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: -20px;
+    width: 20px;
+    height: 60px;
+    background-color: var(--secondary-color);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+#panel-handle:hover {
+    background-color: #495f75;
+}
+
+.handle-icon {
+    width: 100%;
+    height: 40px;
+    color: white;
+    font-size: 1.2em;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.handle-icon::before {
+    content: "«"; /* 收合圖示 */
+    position: absolute;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#itinerary-panel:not(.open) .handle-icon::before {
+    content: "»"; /* 展開圖示 */
+}
+
+/* --- 地圖上方的篩選器 --- */
+#filters {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column; /* Changed to column */
+    gap: 8px;
+}
+
+#date-filters,
+#category-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#filters button {
+    padding: 8px 15px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    background-color: white;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s;
+}
+
+#filters button:hover {
+    background-color: #f1f1f1;
+}
+
+#filters button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* --- 地圖 Popup 視窗樣式 --- */
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 0;
+    overflow: hidden; /* Hide overflowing content */
+}
+.custom-popup .leaflet-popup-content {
+    margin: 0 !important;
+    width: auto !important;
+    min-width: 250px;
+    max-width: 350px;
+}
+/* NEW: Popup Header */
+.popup-header {
+    padding: 10px 15px;
+    background-color: var(--secondary-color);
+    color: white;
+}
+.popup-header h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+.popup-body {
+    padding: 15px;
+}
+.custom-popup .popup-dates {
+    font-size: 0.9em;
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+.custom-popup p {
+    margin: 0;
+    color: var(--light-text-color);
+    line-height: 1.5;
+    font-size: 0.95em;
+}
+.custom-popup img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 10px;
+    display: block;
+}
+
+/* --- 座標說明區塊樣式 --- */
+#coord-help {
+    padding: 10px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+#coord-help-toggle {
+    font-size: 0.9em;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+#coord-help-content {
+    display: none;
+    margin-top: 10px;
+    font-size: 0.85em;
+    color: var(--light-text-color);
+    line-height: 1.6;
+}
+#coord-help-content ol {
+    padding-left: 20px;
+}
+
+/* --- Toast 提示訊息 --- */
+.toast-message {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    transform: translate(-50%, 100%);
+}
+
+.toast-message.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+.toast-message.warning {
+    background-color: #e67e22;
+}
+.toast-message.success {
+    background-color: #2ecc71;
+}
+
+/* --- 響應式設計 (RWD) --- */
+@media (max-width: 768px) {
+    #itinerary-panel {
+        width: 100%;
+        transform: translateX(-100%); /* Start closed on mobile */
+    }
+    #itinerary-panel.open {
+        transform: translateX(0);
+    }
+    #filters {
+        left: 10px;
+        right: 10px;
+        transform: translateX(0);
+        width: calc(100% - 20px);
+    }
+    #date-filters,
+    #category-filters {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 5px;
+    }
+}
+
+/* --- Print-Specific Styles --- */
+@media print {
+    /* 隱藏所有不需要列印的元素 */
+    body > #app-container,
+    #panel-handle,
+    .header-controls,
+    #stats-panel,
+    #coord-help {
+        display: none !important;
+    }
+
+    /* 讓列印內容佔滿整個頁面 */
+    body > #printable-content {
+        display: block !important;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* 確保表格在列印時不會被截斷 */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th,
+    td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    /* 防止表格中的長單字或 URL 破壞版面 */
+    td {
+        word-wrap: break-word;
+    }
+}

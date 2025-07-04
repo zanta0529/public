@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>旅遊行程小幫手</title>
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    </head>
+    <body>
+        <div id="app-container">
+            <aside id="itinerary-panel">
+                <div class="panel-header">
+                    <h1>我的行程</h1>
+                    <div class="header-controls">
+                        <input type="text" id="search-input" placeholder="搜尋地點..." />
+                        <button id="export-json" title="匯出 JSON 原始資料">💾</button>
+                        <button id="export-printable" title="匯出可列印頁面">🖨️</button>
+                    </div>
+                </div>
+                <div id="stats-panel">
+                    <div class="stat-item">
+                        <span id="stats-days">0</span>
+                        <label>天</label>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stats-locations">0</span>
+                        <label>地點</label>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stats-distance">0</span>
+                        <label>公里</label>
+                    </div>
+                </div>
+                <div id="coord-help">
+                    <a href="#" id="coord-help-toggle">ℹ️ 如何取得景點座標？</a>
+                    <div id="coord-help-content">
+                        <p>使用 Google Maps 即可輕鬆取得：</p>
+                        <ol>
+                            <li>在 Google Maps 搜尋景點。</li>
+                            <li>在景點的圖釘上按一下「滑鼠右鍵」。</li>
+                            <li>選單最上方會出現經緯度，直接「左鍵點擊」即可複製。</li>
+                            <li>將複製的座標貼到 locatons.js 的 coordinates 欄位中。</li>
+                        </ol>
+                    </div>
+                </div>
+                <div id="itinerary-list"></div>
+                <div id="panel-handle">
+                    <div class="handle-icon"></div>
+                </div>
+            </aside>
+            <main id="map-container">
+                <div id="filters">
+                    <div id="date-filters"></div>
+                    <div id="category-filters"></div>
+                </div>
+                <div id="map"></div>
+            </main>
+        </div>
+
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <script src="locatons.js"></script>
+        <script src="script.js"></script>
+    </body>
+</html>
