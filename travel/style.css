@@ -391,6 +391,31 @@ body {
     background-color: #2ecc71;
 }
 
+/* --- Styles for Collapsed Day Group --- */
+.day-group.collapsed .location-item {
+    /* 隱藏收合群組中的所有行程項目 */
+    display: none;
+}
+
+.day-group.collapsed .day-header {
+    /* 讓使用者知道這個標題是可以點擊的 */
+    cursor: pointer;
+    background-color: #f8f9fa; /* 使用稍微不同的背景色以示區別 */
+}
+
+.day-group.collapsed .day-header:hover {
+    background-color: #e9ecef; /* 滑鼠懸停時變色 */
+}
+
+.day-group.collapsed .day-header::after {
+    /* 在右側加上一個 '+' 符號，提示可以展開 */
+    content: "+";
+    float: right;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
 /* --- 響應式設計 (RWD) --- */
 @media (max-width: 768px) {
     #itinerary-panel {
