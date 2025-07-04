@@ -9,9 +9,8 @@ const urlsToCache = [
     "./index.html",
     "./style.css",
     "./script.js",
-    "./locatons.js", // 注意：您的 HTML 中可能是 locations.js，請確保檔名一致
+    "./locatons.js",
     "./manifest.json",
-    "./icon-192.png",
     "./icon-512.png",
     // -- 外部資源 (CDN) --
     "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
