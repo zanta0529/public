@@ -56,9 +56,14 @@
                 <div class="handle-icon"></div>
             </div>
             <main id="map-container">
-                <div id="filters">
-                    <div id="date-filters"></div>
-                    <div id="category-filters"></div>
+                <div id="filters-wrapper">
+                    <div id="filters">
+                        <div id="date-filters"></div>
+                        <div id="category-filters"></div>
+                    </div>
+                    <div id="filters-handle">
+                        <div class="filters-handle-icon"></div>
+                    </div>
                 </div>
                 <div id="map"></div>
             </main>
@@ -69,7 +74,6 @@
         <script src="locatons.js"></script>
         <script src="script.js"></script>
 
-        <!--PWA 註冊 -->
         <script>
             if ("serviceWorker" in navigator) {
                 window.addEventListener("load", () => {

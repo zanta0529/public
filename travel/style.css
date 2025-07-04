@@ -11,7 +11,6 @@
     --category-sight: #27ae60;
     --category-stay: #e67e22;
     --category-transport: #8e44ad;
-    /* NEW: food category color */
     --category-food: #c0392b;
     --category-default: #7f8c8d;
 }
@@ -112,7 +111,6 @@ body {
     background-color: #f1f1f1;
 }
 
-/* NEW: Stats Panel */
 #stats-panel {
     display: flex;
     justify-content: space-around;
@@ -165,7 +163,6 @@ body {
     gap: 15px;
 }
 
-/* NEW: Style for dragging */
 .location-item.dragging {
     opacity: 0.5;
     background: #cce5ff;
@@ -187,7 +184,6 @@ body {
     font-size: 1.1em;
 }
 
-/* NEW: Category Badge */
 .category-badge {
     padding: 3px 8px;
     border-radius: 12px;
@@ -204,16 +200,15 @@ body {
 .category-badge.transport {
     background-color: var(--category-transport);
 }
-/* NEW: food category style */
 .category-badge.food {
     background-color: var(--category-food);
 }
 
-/* --- 側邊欄把手 (REVISED) --- */
+/* --- 側邊欄把手 --- */
 #panel-handle {
     position: absolute;
     top: 50%;
-    left: 360px; /* 預設為桌面版展開位置 */
+    left: 360px;
     transform: translateY(-50%);
     width: 20px;
     height: 60px;
@@ -225,10 +220,9 @@ body {
     transition: left 0.3s ease-in-out, right 0.3s ease-in-out, background-color 0.2s ease;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
-    z-index: 2001; /* 確保在側邊欄之上 */
+    z-index: 2001;
 }
 
-/* 當把手沒有 .open class 時 (關閉狀態) */
 #panel-handle:not(.open) {
     left: 0;
     right: auto;
@@ -249,32 +243,49 @@ body {
     align-items: center;
 }
 
-/* 把手圖示預設為展開 '»' */
+/* 預設 (側邊欄收合時) 指向右方 */
 .handle-icon::before {
-    content: "»";
+    content: "▲";
     position: absolute;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: transform 0.3s ease;
+    transform: rotate(90deg) scale(0.6);
 }
 
-/* 當把手有 .open class 時，圖示變為收合 '«' */
+/* 當側邊欄展開時，箭頭指向左方 */
 #panel-handle.open .handle-icon::before {
-    content: "«";
+    transform: rotate(-90deg) scale(0.6);
 }
 
 /* --- 地圖上方的篩選器 --- */
-#filters {
+#filters-wrapper {
     position: absolute;
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
+    z-index: 1000;
+    width: 90%;
+    max-width: 800px;
+}
+
+#filters {
     background-color: rgba(255, 255, 255, 0.9);
     padding: 8px;
     border-radius: 8px;
     box-shadow: var(--shadow);
-    z-index: 1000;
     display: flex;
-    flex-direction: column; /* Changed to column */
+    flex-direction: column;
     gap: 8px;
+    overflow: hidden;
+    max-height: 500px;
+    transition: max-height 0.35s ease-in-out, padding 0.35s ease-in-out;
+}
+
+#filters.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border: none;
+    box-shadow: none;
 }
 
 #date-filters,
@@ -285,24 +296,70 @@ body {
     justify-content: center;
 }
 
+/* ================================================================ */
+/* MODIFIED: Filter button styles */
+/* ================================================================ */
 #filters button {
     padding: 8px 15px;
     border-radius: 5px;
     border: 1px solid var(--border-color);
-    background-color: white;
+    background-color: white; /* Default background for non-category buttons */
+    color: var(--text-color); /* Default text color */
     cursor: pointer;
     font-size: 0.9em;
     transition: all 0.2s;
 }
 
 #filters button:hover {
-    background-color: #f1f1f1;
+    filter: brightness(1.1);
 }
 
+/* New active state style: an outer ring */
 #filters button.active {
-    background-color: var(--primary-color);
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--primary-color);
+}
+
+/* --- 頂部篩選器握把 --- */
+#filters-handle {
+    width: 60px;
+    height: 20px;
+    background-color: var(--secondary-color);
+    margin: -1px auto 0 auto;
+    border-radius: 0 0 5px 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+#filters-handle:hover {
+    background-color: #495f75;
+}
+
+.filters-handle-icon {
+    width: 100%;
+    height: 100%;
     color: white;
-    border-color: var(--primary-color);
+    font-size: 1.2em;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 預設 (篩選器展開時) 指向上方 */
+.filters-handle-icon::before {
+    content: "▲";
+    position: absolute;
+    font-weight: normal;
+    transition: transform 0.3s ease-in-out;
+    transform: scale(0.6);
+}
+
+/* 當篩選器收合時，箭頭指向下方 */
+#filters-handle.collapsed .filters-handle-icon::before {
+    transform: scale(0.6) rotate(180deg);
 }
 
 /* --- 地圖 Popup 視窗樣式 --- */
@@ -310,7 +367,7 @@ body {
     border-radius: 8px;
     box-shadow: var(--shadow);
     padding: 0;
-    overflow: hidden; /* Hide overflowing content */
+    overflow: hidden;
 }
 .custom-popup .leaflet-popup-content {
     margin: 0 !important;
@@ -318,7 +375,6 @@ body {
     min-width: 250px;
     max-width: 350px;
 }
-/* NEW: Popup Header */
 .popup-header {
     padding: 10px 15px;
     background-color: var(--secondary-color);
@@ -402,22 +458,19 @@ body {
 
 /* --- Styles for Collapsed Day Group --- */
 .day-group.collapsed .location-item {
-    /* 隱藏收合群組中的所有行程項目 */
     display: none;
 }
 
 .day-group.collapsed .day-header {
-    /* 讓使用者知道這個標題是可以點擊的 */
     cursor: pointer;
-    background-color: #f8f9fa; /* 使用稍微不同的背景色以示區別 */
+    background-color: #f8f9fa;
 }
 
 .day-group.collapsed .day-header:hover {
-    background-color: #e9ecef; /* 滑鼠懸停時變色 */
+    background-color: #e9ecef;
 }
 
 .day-group.collapsed .day-header::after {
-    /* 在右側加上一個 '+' 符號，提示可以展開 */
     content: "+";
     float: right;
     font-size: 1.2em;
@@ -434,7 +487,8 @@ body {
     #itinerary-panel.open {
         transform: translateX(0);
     }
-    #filters {
+    #filters-wrapper {
+        /* Adjust wrapper for mobile */
         left: 10px;
         right: 10px;
         transform: translateX(0);
@@ -447,14 +501,10 @@ body {
         padding-bottom: 5px;
     }
 
-    /* REVISED: Mobile handle positioning */
-    /* 在手機上，當側邊欄展開時，將把手定位到螢幕最右側 */
     #panel-handle.open {
         left: auto;
         right: 0;
     }
-
-    /* 在手機上，當側邊欄收合時，確保把手在螢幕最左側 */
     #panel-handle:not(.open) {
         left: 0;
         right: auto;
@@ -463,7 +513,6 @@ body {
 
 /* --- Print-Specific Styles --- */
 @media print {
-    /* 隱藏所有不需要列印的元素 */
     body > #app-container,
     #panel-handle,
     .header-controls,
@@ -472,7 +521,6 @@ body {
         display: none !important;
     }
 
-    /* 讓列印內容佔滿整個頁面 */
     body > #printable-content {
         display: block !important;
         width: 100%;
@@ -480,7 +528,6 @@ body {
         padding: 0;
     }
 
-    /* 確保表格在列印時不會被截斷 */
     table {
         width: 100%;
         border-collapse: collapse;
@@ -494,7 +541,6 @@ body {
     th {
         background-color: #f2f2f2;
     }
-    /* 防止表格中的長單字或 URL 破壞版面 */
     td {
         word-wrap: break-word;
     }
