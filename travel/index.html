@@ -6,6 +6,12 @@
         <title>旅遊行程小幫手</title>
         <link rel="stylesheet" href="style.css" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <link rel="manifest" href="manifest.json" />
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Z 旅遊幫手" />
+        <link rel="apple-touch-icon" href="icon-512.png" />
     </head>
     <body>
         <div id="app-container">
@@ -62,5 +68,21 @@
 
         <script src="locatons.js"></script>
         <script src="script.js"></script>
+
+        <!--PWA 註冊 -->
+        <script>
+            if ("serviceWorker" in navigator) {
+                window.addEventListener("load", () => {
+                    navigator.serviceWorker
+                        .register("/sw.js") // 註冊 service worker 檔案
+                        .then((registration) => {
+                            console.log("ServiceWorker registration successful with scope: ", registration.scope);
+                        })
+                        .catch((error) => {
+                            console.log("ServiceWorker registration failed: ", error);
+                        });
+                });
+            }
+        </script>
     </body>
 </html>
