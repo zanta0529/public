@@ -5,7 +5,7 @@ const CACHE_NAME = "travel-helper-cache-v1";
 
 // 2. 需要被快取的檔案清單
 const urlsToCache = [
-    "./", // 代表根目錄，也就是 index.html
+    "./", // 代表 /travel/ 目錄本身
     "./index.html",
     "./style.css",
     "./script.js",

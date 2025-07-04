@@ -74,7 +74,7 @@
             if ("serviceWorker" in navigator) {
                 window.addEventListener("load", () => {
                     navigator.serviceWorker
-                        .register("/sw.js") // 註冊 service worker 檔案
+                        .register("./travel/sw.js") // 註冊 service worker 檔案
                         .then((registration) => {
                             console.log("ServiceWorker registration successful with scope: ", registration.scope);
                         })
