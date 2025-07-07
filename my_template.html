@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Zanta 的網頁風格樣板</title>
+        <title>Zanta 的網頁風格樣板 (v2)</title>
         <style>
             /* --- CSS 變數定義 (淺色 & 深色主題) --- */
             :root {
@@ -12,6 +12,7 @@
                 --primary-hover-color: #d97706;
                 --secondary-color: #6b7280;
                 --secondary-hover-color: #4b5563;
+                --secondary-text-color: #ffffff; /* [新增] 淺色模式下次要按鈕 hover 時的文字顏色 */
                 /* Status Colors */
                 --success-color: #059669;
                 --success-bg: #d1fae5;
@@ -22,8 +23,8 @@
                 --note-color: #92400e;
                 --note-bg: #fefce8;
                 /* UI Elements */
-                --section-header-bg: #f3f4f6;
-                --bg-color: #f9fafb;
+                --section-header-bg: #f8fafc;
+                --bg-color: #f1f5f9;
                 --container-bg: #ffffff;
                 --text-color: #1f2937;
                 --border-color: #e5e7eb;
@@ -39,10 +40,11 @@
             }
             :root[data-theme="dark"] {
                 /* Palette */
-                --primary-color: #f59e0b;
-                --primary-hover-color: #fbbf24;
+                --primary-color: #facc15;
+                --primary-hover-color: #fde047;
                 --secondary-color: #9ca3af;
                 --secondary-hover-color: #d1d5db;
+                --secondary-text-color: #1e293b; /* [新增] 深色模式下次要按鈕 hover 時的文字顏色 */
                 /* Status Colors */
                 --success-color: #6ee7b7;
                 --success-bg: #064e3b;
@@ -53,19 +55,19 @@
                 --note-color: #fde047;
                 --note-bg: #451a03;
                 /* UI Elements */
-                --section-header-bg: rgba(255, 255, 255, 0.05);
-                --bg-color: #111827;
-                --container-bg: #1f2937;
+                --section-header-bg: #334155;
+                --bg-color: #1e293b;
+                --container-bg: #293548;
                 --text-color: #d1d5db;
-                --border-color: #374151;
+                --border-color: #475569;
                 --input-bg: #374151;
-                --input-focus-shadow: rgba(245, 158, 11, 0.3);
-                --button-disabled-bg: #4b5563;
-                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-                --toast-bg: #fde68a;
-                --toast-color: #78350f;
+                --input-focus-shadow: rgba(250, 204, 21, 0.3);
+                --button-disabled-bg: #334155; /* [修正3] 調整禁用按鈕背景色，使其更明確 */
+                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+                --toast-bg: #fde68a; /* [修正1] 恢復為高對比的亮黃色背景 */
+                --toast-color: #78350f; /* [修正1] 恢復為高對比的深棕色文字 */
                 --modal-backdrop-bg: rgba(0, 0, 0, 0.7);
-                --tooltip-bg: #fde68a;
+                --tooltip-bg: #fde68a; /* Tooltip 也可沿用 Toast 的高對比配色 */
                 --tooltip-color: #78350f;
             }
 
@@ -122,7 +124,6 @@
             .form-group:last-child {
                 margin-bottom: 0;
             }
-
             section.card {
                 border: 1px solid var(--border-color);
                 border-radius: 12px;
@@ -158,37 +159,43 @@
                 padding: 0.75rem 1.5rem;
                 background-color: var(--primary-color);
                 color: #422006;
-                border: none;
+                border: 1px solid transparent; /* 為了描邊按鈕，先預留 1px 邊框位置 */
                 border-radius: 5px;
                 cursor: pointer;
                 font-size: 1em;
                 font-weight: 600;
                 text-decoration: none;
                 text-align: center;
-                transition: background-color 0.3s, transform 0.1s;
+                transition: background-color 0.3s, color 0.3s, border-color 0.3s, transform 0.1s;
             }
             button:hover:not(:disabled),
             .button:hover:not(:disabled) {
                 background-color: var(--primary-hover-color);
                 transform: translateY(-1px);
             }
+
+            /* [修正4] 次要按鈕改為描邊樣式 */
             button.secondary,
             .button.secondary {
-                background-color: var(--secondary-color);
-                color: var(--text-color);
-            }
-            :root[data-theme="dark"] button.secondary {
-                color: var(--bg-color);
+                background-color: transparent;
+                border-color: var(--secondary-color);
+                color: var(--secondary-color);
             }
             button.secondary:hover:not(:disabled),
             .button.secondary:hover:not(:disabled) {
                 background-color: var(--secondary-hover-color);
+                border-color: var(--secondary-hover-color);
+                color: var(--secondary-text-color);
             }
+
+            /* [修正3] 禁用按鈕樣式調整 */
             button:disabled,
             .button:disabled {
                 background-color: var(--button-disabled-bg);
+                border-color: transparent;
+                color: var(--secondary-color); /* 文字顏色也變淡 */
                 cursor: not-allowed;
-                opacity: 0.7;
+                opacity: 0.7; /* 可略微調高不透明度，靠顏色區分 */
             }
 
             /* --- 組件：工具提示 (Tooltip) --- */
@@ -212,6 +219,7 @@
                 opacity: 0;
                 visibility: hidden;
                 transition: opacity 0.2s, visibility 0.2s;
+                z-index: 10; /* [修正2] 提升 z-index，解決 tooltip 被裁切問題 */
             }
             [data-tooltip]:hover::after {
                 opacity: 1;
@@ -496,20 +504,33 @@
                 font-size: 0.9em;
                 color: var(--secondary-color);
             }
+
+            /* [修正5] 主題切換按鈕的全新浮動樣式 */
             #themeToggleBtn {
-                background: none;
-                border: 1px solid var(--border-color);
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1001; /* 確保在最上層 */
+                width: 48px;
+                height: 48px;
+                background-color: var(--container-bg);
                 color: var(--text-color);
-                padding: 5px 10px;
-                border-radius: 5px;
+                border: 1px solid var(--border-color);
+                border-radius: 50%;
                 cursor: pointer;
-                font-size: 1.2em;
-                margin-left: 10px;
-                vertical-align: middle;
-                transition: 0.3s;
+                font-size: 1.5em; /* 放大圖示 */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: var(--box-shadow);
+                transition: all 0.3s ease;
             }
             #themeToggleBtn:hover {
-                background-color: var(--border-color);
+                transform: translateY(-2px) scale(1.05);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+            :root[data-theme="dark"] #themeToggleBtn:hover {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             }
 
             /* --- 組件：Toast 浮動提示 --- */
@@ -523,11 +544,12 @@
                 border-radius: 5px;
                 padding: 16px;
                 position: fixed;
-                z-index: 1001;
+                z-index: 1002; /* 比主題按鈕更高 */
                 left: 50%;
                 transform: translateX(-50%);
                 bottom: 30px;
                 font-size: 17px;
+                box-shadow: var(--box-shadow);
                 transition: opacity 0.5s, visibility 0.5s, bottom 0.5s;
             }
             #toast.show {
@@ -561,19 +583,16 @@
                 transform: translateY(-2px);
             }
             #scroll-to-top.active {
-                opacity: 0.9; /* [修改] 按鈕本身的不透明度 */
+                opacity: 0.9;
                 visibility: visible;
                 transform: translateY(0);
             }
-            /* 使用偽元素 ::after 來繪製三角形 */
             #scroll-to-top::after {
                 content: "";
                 width: 0;
                 height: 0;
-                /* [修改] 放大箭頭尺寸 */
                 border-left: 12px solid transparent;
                 border-right: 12px solid transparent;
-                /* [修改] 放大箭頭並加上半透明效果 */
                 border-bottom: 15px solid rgba(255, 255, 255, 0.8);
                 margin-bottom: 4px;
             }
@@ -597,10 +616,24 @@
                 section.card > h2 {
                     padding: 0.75rem 1rem;
                 }
+                /* 調整浮動按鈕在小螢幕的位置 */
+                #themeToggleBtn {
+                    top: 15px;
+                    right: 15px;
+                    width: 44px;
+                    height: 44px;
+                    font-size: 1.3em;
+                }
+                #scroll-to-top {
+                    right: 15px;
+                    bottom: 15px;
+                }
             }
         </style>
     </head>
     <body>
+        <button id="themeToggleBtn" title="切換主題">🌙</button>
+
         <div class="container">
             <header>
                 <h1>Zanta 的網頁風格樣板</h1>
@@ -729,10 +762,7 @@
         </div>
 
         <footer>
-            <p>
-                &copy; <span id="currentYear"></span> Zanta's Utilities
-                <button id="themeToggleBtn" title="切換主題">🌙</button>
-            </p>
+            <p>&copy; <span id="currentYear"></span> Zanta's Utilities</p>
         </footer>
 
         <div id="infoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -894,16 +924,16 @@
                         },
                     },
                     progressBar: {
-                        update(p) {
-                            const n = Math.max(0, Math.min(100, p));
-                            app.elements.progressBar.style.width = n + "%";
-                            app.elements.progressBar.textContent = Math.round(n) + "%";
-                        },
                         simulate() {
                             app.state.progress = (app.state.progress + 20) % 120;
                             this.update(app.state.progress);
                             app.elements.progressBtn.disabled = true;
                             setTimeout(() => (app.elements.progressBtn.disabled = false), 500);
+                        },
+                        update(p) {
+                            const n = Math.max(0, Math.min(100, p));
+                            app.elements.progressBar.style.width = n + "%";
+                            app.elements.progressBar.textContent = Math.round(n) + "%";
                         },
                     },
                     tabs: {
