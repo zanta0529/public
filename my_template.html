@@ -535,6 +535,49 @@
                 opacity: 1;
             }
 
+            /* --- 回到頂端按鈕 (純 CSS 繪製) --- */
+            #scroll-to-top {
+                position: fixed;
+                bottom: 25px;
+                right: 25px;
+                width: 50px;
+                height: 50px;
+                z-index: 1000;
+                background-color: var(--primary-color);
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                box-shadow: var(--box-shadow);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(20px);
+                transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+            }
+            #scroll-to-top:hover {
+                background-color: var(--primary-hover-color);
+                transform: translateY(-2px);
+            }
+            #scroll-to-top.active {
+                opacity: 0.9; /* [修改] 按鈕本身的不透明度 */
+                visibility: visible;
+                transform: translateY(0);
+            }
+            /* 使用偽元素 ::after 來繪製三角形 */
+            #scroll-to-top::after {
+                content: "";
+                width: 0;
+                height: 0;
+                /* [修改] 放大箭頭尺寸 */
+                border-left: 12px solid transparent;
+                border-right: 12px solid transparent;
+                /* [修改] 放大箭頭並加上半透明效果 */
+                border-bottom: 15px solid rgba(255, 255, 255, 0.8);
+                margin-bottom: 4px;
+            }
+
             /* --- 響應式設計 --- */
             @media (max-width: 768px) {
                 body {
@@ -704,6 +747,8 @@
         </div>
         <div id="toast"></div>
 
+        <button id="scroll-to-top" title="回到頂端"></button>
+
         <script>
             document.addEventListener("DOMContentLoaded", () => {
                 const app = {
@@ -721,6 +766,7 @@
                         emailToggleStatus: document.getElementById("emailToggleStatus"),
                         optionGroup: document.getElementById("demoOptionGroup"),
                         option1Hint: document.getElementById("option1Hint"),
+                        scrollTopBtn: document.getElementById("scroll-to-top"),
                     },
                     state: { toastimer: null, progress: 0 },
 
@@ -778,6 +824,19 @@
                                     option.classList.add("selected");
                                     this.updateOptionStatus();
                                 }
+                            });
+                        }
+
+                        if (this.elements.scrollTopBtn) {
+                            window.addEventListener("scroll", () => {
+                                if (window.scrollY > 300) {
+                                    this.elements.scrollTopBtn.classList.add("active");
+                                } else {
+                                    this.elements.scrollTopBtn.classList.remove("active");
+                                }
+                            });
+                            this.elements.scrollTopBtn.addEventListener("click", () => {
+                                window.scrollTo({ top: 0, behavior: "smooth" });
                             });
                         }
                     },
