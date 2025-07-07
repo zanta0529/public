@@ -5,19 +5,24 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>進階加密、解密器</title>
 
-        <meta name="theme-color" content="#f59e0b" />
+        <meta name="theme-color" content="#4f46e5" />
         <link rel="manifest" href="manifest.json" />
         <link rel="apple-touch-icon" href="icon-192.png" />
-        <meta name="apple-mobile-web-app-status-bar" content="#f59e0b" />
+        <meta name="apple-mobile-web-app-status-bar" content="#4f46e5" />
 
         <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.7/base64.min.js"></script>
         <style>
+            /* --- CSS 變數定義 (淺色 & 深色主題) --- */
             :root {
-                --primary-color: #f59e0b;
-                --primary-hover-color: #d97706;
+                /* Palette - 沉穩藍靛色系 */
+                --primary-color: #4f46e5;
+                --primary-hover-color: #6366f1;
+                --primary-text-color: #ffffff;
                 --secondary-color: #6b7280;
                 --secondary-hover-color: #4b5563;
+                --secondary-text-color: #ffffff;
+                /* Status Colors */
                 --success-color: #059669;
                 --success-bg: #d1fae5;
                 --error-color: #dc2626;
@@ -26,25 +31,44 @@
                 --info-bg: #cffafe;
                 --note-color: #92400e;
                 --note-bg: #fefce8;
-                --section-header-bg: #f3f4f6;
-                --bg-color: #f9fafb;
+                --warning-color: #9a3412;
+                --warning-bg: #ffedd5;
+                /* UI Elements */
+                --section-header-bg: #f8fafc;
+                --bg-color: #f1f5f9;
                 --container-bg: #ffffff;
                 --text-color: #1f2937;
                 --border-color: #e5e7eb;
-                --input-bg: #ffffff;
-                --input-focus-shadow: rgba(245, 158, 11, 0.25);
+                --input-bg: #f8fafc;
+                --input-focus-shadow: rgba(79, 70, 229, 0.25);
                 --button-disabled-bg: #d1d5db;
-                --button-danger-bg: #b91c1c;
-                --button-danger-hover-bg: #ef4444;
+                --button-disabled-text-color: #9ca3af;
                 --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
                 --toast-bg: #1f2937;
                 --toast-color: #f9fafb;
+                --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
+                --tooltip-bg: #1f2937;
+                --tooltip-color: #f9fafb;
+                /* 設計規範變數 */
+                --border-radius-sm: 5px;
+                --border-radius-md: 12px;
+                --border-radius-full: 50%;
+                --transition-duration-fast: 0.2s;
+                --transition-duration-normal: 0.3s;
+                --transition-duration-slow: 0.4s;
+                --z-index-content: 10;
+                --z-index-dropdown: 20;
+                --z-index-fixed: 1000;
+                --z-index-modal: 1010;
+                --z-index-toast: 1020;
             }
             :root[data-theme="dark"] {
-                --primary-color: #f59e0b;
-                --primary-hover-color: #fbbf24;
+                --primary-color: #6366f1;
+                --primary-hover-color: #818cf8;
+                --primary-text-color: #ffffff;
                 --secondary-color: #9ca3af;
                 --secondary-hover-color: #d1d5db;
+                --secondary-text-color: #1e293b;
                 --success-color: #6ee7b7;
                 --success-bg: #064e3b;
                 --error-color: #f87171;
@@ -53,18 +77,25 @@
                 --info-bg: #164e63;
                 --note-color: #fde047;
                 --note-bg: #451a03;
-                --section-header-bg: rgba(255, 255, 255, 0.05);
-                --bg-color: #111827;
-                --container-bg: #1f2937;
+                --warning-color: #fb923c;
+                --warning-bg: #7c2d12;
+                --section-header-bg: #293548;
+                --bg-color: #1e293b;
+                --container-bg: #334155;
                 --text-color: #d1d5db;
-                --border-color: #374151;
-                --input-bg: #374151;
-                --input-focus-shadow: rgba(245, 158, 11, 0.3);
-                --button-disabled-bg: #4b5563;
-                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                --border-color: #475569;
+                --input-bg: #293548;
+                --input-focus-shadow: rgba(99, 102, 241, 0.3);
+                --button-disabled-bg: #293548;
+                --button-disabled-text-color: #64748b;
+                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
                 --toast-bg: #fde68a;
                 --toast-color: #78350f;
+                --modal-backdrop-bg: rgba(0, 0, 0, 0.7);
+                --tooltip-bg: #fde68a;
+                --tooltip-color: #78350f;
             }
+            /* --- 基礎 & 佈局樣式 --- */
             *,
             *::before,
             *::after {
@@ -72,6 +103,7 @@
             }
             body {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                font-size: 1.0em;
                 margin: 0;
                 padding: 2rem;
                 background-color: var(--bg-color);
@@ -81,13 +113,9 @@
                 flex-direction: column;
                 align-items: center;
                 min-height: 100vh;
-                transition: background-color 0.3s, color 0.3s;
+                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal);
             }
             .container {
-                background-color: transparent;
-                padding: 0;
-                border: none;
-                box-shadow: none;
                 width: 100%;
                 max-width: 800px;
             }
@@ -100,20 +128,41 @@
                 display: block;
                 margin-bottom: 0.5rem;
             }
-            .form-group {
-                margin-bottom: 1.5rem;
+            section {
+                margin-bottom: 2.5rem;
             }
-            .card {
+            section.card {
                 border: 1px solid var(--border-color);
-                border-radius: 12px;
+                border-radius: var(--border-radius-md);
                 background-color: var(--container-bg);
                 box-shadow: var(--box-shadow);
-                transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
-                overflow: hidden;
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal);
+            }
+            section.card > h2 {
+                padding: 0.85rem 1.5rem;
+                margin: 0;
+                font-size: 1.5em;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                color: var(--primary-text-color);
+                background-color: var(--primary-color);
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), color var(--transition-duration-normal);
+                border-top-left-radius: var(--border-radius-md);
+                border-top-right-radius: var(--border-radius-md);
+            }
+            :root[data-theme="dark"] section.card > h2 {
+                border-bottom-color: rgba(255, 255, 255, 0.1);
             }
             .card-content {
                 padding: 1.5rem;
             }
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+            /* --- 組件：按鈕 --- */
             .button-group {
                 display: flex;
                 flex-wrap: wrap;
@@ -122,57 +171,67 @@
             }
             button,
             .button {
-                display: inline-block;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
                 padding: 0.75rem 1.5rem;
                 background-color: var(--primary-color);
-                color: #422006;
-                border: none;
-                border-radius: 5px;
+                color: var(--primary-text-color);
+                border: 1px solid transparent;
+                border-radius: var(--border-radius-sm);
                 cursor: pointer;
-                font-size: 1.2em;
+                font-size: 1.1em;
                 font-weight: 600;
                 text-decoration: none;
                 text-align: center;
-                transition: background-color 0.3s, transform 0.1s;
-                width: 100%;
+                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), transform var(--transition-duration-fast);
             }
-            button:hover:not(:disabled) {
+            button:hover:not(:disabled),
+            .button:hover:not(:disabled) {
                 background-color: var(--primary-hover-color);
                 transform: translateY(-1px);
             }
-            button.secondary {
-                background-color: var(--secondary-color);
-                color: var(--text-color);
+            button.secondary,
+            .button.secondary {
+                background-color: transparent;
+                border-color: var(--secondary-color);
+                color: var(--secondary-color);
             }
-            :root[data-theme="dark"] button.secondary {
-                color: var(--bg-color);
-            }
-            button.secondary:hover:not(:disabled) {
+            button.secondary:hover:not(:disabled),
+            .button.secondary:hover:not(:disabled) {
                 background-color: var(--secondary-hover-color);
+                border-color: var(--secondary-hover-color);
+                color: var(--secondary-text-color);
             }
-            button.danger {
-                background-color: var(--button-danger-bg);
-                color: white;
-            }
-            button.danger:hover:not(:disabled) {
-                background-color: var(--button-danger-hover-bg);
-            }
-            button:disabled {
+            button:disabled,
+            .button:disabled {
                 background-color: var(--button-disabled-bg);
+                color: var(--button-disabled-text-color);
+                border-color: transparent;
                 cursor: not-allowed;
                 opacity: 0.7;
             }
+            :root[data-theme="dark"] button:disabled,
+            :root[data-theme="dark"] .button:disabled {
+                border: 1px solid var(--border-color);
+            }
+
+            /* --- 表單元素 --- */
             input[type="text"],
             input[type="password"],
             textarea {
                 width: 100%;
                 padding: 0.75rem;
                 border: 1px solid var(--border-color);
-                border-radius: 5px;
-                font-size: 1.2em;
+                border-radius: var(--border-radius-sm);
+                font-family: inherit;
+                font-size: 1em;
                 background-color: var(--input-bg);
                 color: var(--text-color);
-                transition: border-color 0.3s, box-shadow 0.3s;
+                transition: border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal),
+                    background-color var(--transition-duration-normal);
             }
             input[type="text"]:focus,
             input[type="password"]:focus,
@@ -185,48 +244,64 @@
                 min-height: 120px;
                 resize: vertical;
             }
+            .password-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .toggle-password-icon {
+                position: absolute;
+                right: 12px;
+                cursor: pointer;
+                color: var(--secondary-color);
+                transition: color 0.2s;
+            }
+            .password-wrapper input {
+                padding-right: 40px;
+            }
             .option-group {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 0;
+                gap: 10px;
                 margin-bottom: 1.5rem;
-                border: 1px solid var(--border-color);
-                border-radius: 5px;
-                overflow: hidden;
             }
             .option {
-                font-size: 1.2em;
                 padding: 10px 15px;
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-sm);
                 cursor: pointer;
-                transition: background-color 0.3s, color 0.3s;
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), color var(--transition-duration-normal);
                 flex-grow: 1;
                 text-align: center;
-                border-right: 1px solid var(--border-color);
-            }
-            .option:last-child {
-                border-right: none;
             }
             .option.selected {
                 background-color: var(--primary-color);
-                color: #422006;
+                color: var(--primary-text-color);
+                border-color: var(--primary-color);
                 font-weight: bold;
             }
+            /* --- 訊息回饋 --- */
+            .message-block {
+                padding: 0.75rem 1rem;
+                border-radius: var(--border-radius-sm);
+                margin-top: 1rem;
+                border-left: 4px solid;
+            }
             .hint-note {
-                font-size: 1em;
+                font-size: 0.9em;
                 color: var(--note-color);
                 background-color: var(--note-bg);
-                padding: 0.75rem 1rem;
-                border-radius: 5px;
-                /* margin-top: 1rem; */
+                border-color: var(--note-color);
+                transition: all var(--transition-duration-normal) ease-in-out;
                 margin-bottom: 1rem;
-                border-left: 4px solid var(--note-color);
             }
             .output-box {
                 padding: 1rem;
-                border-radius: 5px;
+                border-radius: var(--border-radius-sm);
+                border-left-width: 5px;
                 white-space: pre-wrap;
                 word-break: break-all;
-                border-left: 5px solid;
                 margin-top: 1.5rem;
             }
             .output-box.success {
@@ -251,21 +326,6 @@
                 font-size: 0.9em;
                 color: var(--secondary-color);
             }
-            #themeToggleBtn {
-                background: none;
-                border: 1px solid var(--border-color);
-                color: var(--text-color);
-                padding: 5px 10px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 1.2em;
-                margin-left: 10px;
-                vertical-align: middle;
-                transition: 0.3s;
-            }
-            #themeToggleBtn:hover {
-                background-color: var(--border-color);
-            }
             #toast {
                 visibility: hidden;
                 opacity: 0;
@@ -273,34 +333,20 @@
                 background-color: var(--toast-bg);
                 color: var(--toast-color);
                 text-align: center;
-                border-radius: 5px;
+                border-radius: var(--border-radius-sm);
                 padding: 16px;
                 position: fixed;
-                z-index: 1001;
+                z-index: var(--z-index-toast);
                 left: 50%;
                 transform: translateX(-50%);
                 bottom: 30px;
-                font-size: 17px;
+                font-size: 1.1em;
+                box-shadow: var(--box-shadow);
                 transition: opacity 0.5s, visibility 0.5s, bottom 0.5s;
             }
             #toast.show {
                 visibility: visible;
                 opacity: 1;
-            }
-            .password-wrapper {
-                position: relative;
-                display: flex;
-                align-items: center;
-            }
-            .toggle-password-icon {
-                position: absolute;
-                right: 12px;
-                cursor: pointer;
-                color: var(--secondary-color);
-                transition: color 0.2s;
-            }
-            .password-wrapper input {
-                padding-right: 40px;
             }
             .results-area {
                 margin-top: 1.5rem;
@@ -313,15 +359,11 @@
                 display: block;
                 margin: 1rem auto;
             }
-            #jsonView,
-            #base64ResultView {
-                font-size: 1em;
-            }
             #jsonView {
                 background-color: var(--section-header-bg);
             }
             #params-display-area {
-                background-color: var(--container-bg);
+                background-color: var(--input-bg);
                 border: 1px solid var(--border-color);
                 border-radius: 5px;
                 padding: 1rem;
@@ -333,7 +375,7 @@
             }
             #params-display-area p > span {
                 font-weight: bold;
-                color: var(--primary-color);
+                color: var(--note-color);
             }
             .file-input-wrapper {
                 position: relative;
@@ -373,25 +415,119 @@
             [hidden] {
                 display: none !important;
             }
+
+            /* --- FAB & Scroll-to-top --- */
+            .fab {
+                position: fixed;
+                z-index: var(--z-index-fixed);
+                width: 50px;
+                height: 50px;
+                background-color: var(--container-bg);
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-full);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: var(--box-shadow);
+                transition: all var(--transition-duration-normal) ease;
+            }
+            .fab:hover {
+                transform: translateY(-2px) scale(1.05);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+            :root[data-theme="dark"] .fab:hover {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+            #themeToggleBtn {
+                top: 20px;
+                right: 20px;
+                color: var(--text-color);
+                font-size: 1.5em;
+            }
+            #scroll-to-top {
+                right: 25px;
+                bottom: 25px;
+                background-color: var(--primary-color);
+                border: none;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(20px);
+                transition: opacity var(--transition-duration-normal) ease,
+                    visibility var(--transition-duration-normal) ease, transform var(--transition-duration-normal) ease,
+                    background-color var(--transition-duration-normal) ease;
+            }
+            #scroll-to-top:hover {
+                background-color: var(--primary-hover-color);
+                transform: translateY(-2px);
+            }
+            #scroll-to-top.active {
+                opacity: 0.9;
+                visibility: visible;
+                transform: translateY(0);
+            }
+            #scroll-to-top::after {
+                content: "";
+                width: 0;
+                height: 0;
+                border-left: 12px solid transparent;
+                border-right: 12px solid transparent;
+                border-bottom: 15px solid var(--primary-text-color);
+                margin-bottom: 4px;
+            }
+            @media (max-width: 768px) {
+                body {
+                    padding: 1rem;
+                }
+                .container {
+                    padding: 0;
+                }
+                .button-group {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .card-content {
+                    padding: 1rem;
+                }
+                section.card > h2 {
+                    padding: 0.75rem 1rem;
+                }
+                .fab {
+                    width: 44px;
+                    height: 44px;
+                }
+                #themeToggleBtn {
+                    top: 15px;
+                    right: 15px;
+                    font-size: 1.3em;
+                }
+                #scroll-to-top {
+                    right: 15px;
+                    bottom: 15px;
+                }
+            }
         </style>
     </head>
     <body>
+        <button id="themeToggleBtn" class="fab" title="切換主題">🌙</button>
+
         <div class="container">
             <header>
                 <h1>進階加密、解密器</h1>
             </header>
             <main>
                 <section class="card">
+                    <h2>🔐 加解密工具</h2>
                     <div class="card-content">
                         <div id="appModeSelector" class="option-group">
-                            <div class="option selected" data-app-mode="text">純文字模式</div>
-                            <div class="option" data-app-mode="file">檔案模式</div>
+                            <div class="option selected" data-app-mode="text">📃 純文字模式</div>
+                            <div class="option" data-app-mode="file">💾 檔案模式</div>
                         </div>
 
                         <div id="text-mode-section">
                             <div id="modeSelector" class="option-group">
-                                <div class="option selected" data-mode="encrypt">加密模式</div>
-                                <div class="option" data-mode="decrypt">解密模式</div>
+                                <div class="option selected" data-mode="encrypt">🔒 加密模式</div>
+                                <div class="option" data-mode="decrypt">🔓 解密模式</div>
                             </div>
                             <div id="encrypt-section">
                                 <div class="form-group">
@@ -409,7 +545,9 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="passphrase-encrypt">密碼短語 (Passphrase)</label>
-                                    <div class="hint-note">ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。</div>
+                                    <div class="message-block hint-note">
+                                        ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。
+                                    </div>
                                     <div class="password-wrapper">
                                         <input id="passphrase-encrypt" type="password" placeholder="輸入密碼短語" />
                                         <span
@@ -419,7 +557,7 @@
                                         ></span>
                                     </div>
                                 </div>
-                                <div class="form-group"><button id="encryptBtn">執行加密</button></div>
+                                <div class="form-group"><button id="encryptBtn">🔒 執行加密</button></div>
                             </div>
                             <div id="decrypt-section" hidden>
                                 <div class="form-group">
@@ -431,12 +569,14 @@
                                     ></textarea>
                                 </div>
                                 <div class="form-group">
-                                    <button id="parseBtn" class="secondary">解析參數 (可選)</button>
+                                    <button id="parseBtn" class="secondary">🔍 解析參數 (可選)</button>
                                 </div>
                                 <div id="params-display-area" hidden></div>
                                 <div class="form-group">
                                     <label for="passphrase-decrypt">密碼短語 (Passphrase)</label>
-                                    <div class="hint-note">ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。</div>
+                                    <div class="message-block hint-note">
+                                        ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。
+                                    </div>
                                     <div class="password-wrapper">
                                         <input
                                             id="passphrase-decrypt"
@@ -450,12 +590,12 @@
                                         ></span>
                                     </div>
                                 </div>
-                                <div class="form-group"><button id="decryptBtn">開始解密</button></div>
+                                <div class="form-group"><button id="decryptBtn">🔓 開始解密</button></div>
                             </div>
                         </div>
 
                         <div id="file-mode-section" hidden>
-                            <div class="hint-note">
+                            <div class="message-block hint-note" style="margin-top: 0">
                                 ℹ️ 檔案加解密流程全程在您的瀏覽器本機完成，您的檔案不會被上傳到任何伺服器。
                             </div>
                             <div id="file-encrypt-section" class="form-group" style="margin-top: 1rem">
@@ -467,7 +607,9 @@
                                 <div id="file-encrypt-info" class="file-info" hidden></div>
                                 <div class="form-group" style="margin-top: 1rem">
                                     <label for="passphrase-file-encrypt">密碼短語 (Passphrase)</label>
-                                    <div class="hint-note">ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。</div>
+                                    <div class="message-block hint-note">
+                                        ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。
+                                    </div>
                                     <div class="password-wrapper">
                                         <input
                                             id="passphrase-file-encrypt"
@@ -481,10 +623,10 @@
                                         ></span>
                                     </div>
                                 </div>
-                                <div class="form-group"><button id="encryptFileBtn">加密並下載檔案</button></div>
+                                <div class="form-group"><button id="encryptFileBtn">🔒 加密並下載檔案</button></div>
                             </div>
+                            <hr style="margin: 2rem 0; border-color: var(--border-color); border-style: dashed" />
                             <div id="file-decrypt-section" class="form-group">
-                                <hr style="margin: 2rem 0; border-color: var(--border-color)" />
                                 <label>檔案解密</label>
                                 <div class="file-input-wrapper">
                                     <span>點擊選擇加密檔 (.enc)，或將檔案拖曳至此</span>
@@ -493,7 +635,9 @@
                                 <div id="file-decrypt-info" class="file-info" hidden></div>
                                 <div class="form-group" style="margin-top: 1rem">
                                     <label for="passphrase-file-decrypt">密碼短語 (Passphrase)</label>
-                                    <div class="hint-note">ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。</div>
+                                    <div class="message-block hint-note">
+                                        ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。
+                                    </div>
                                     <div class="password-wrapper">
                                         <input
                                             id="passphrase-file-decrypt"
@@ -507,62 +651,61 @@
                                         ></span>
                                     </div>
                                 </div>
-                                <div class="form-group"><button id="decryptFileBtn">解密並下載檔案</button></div>
+                                <div class="form-group"><button id="decryptFileBtn">🔓 解密並下載檔案</button></div>
                             </div>
                         </div>
 
-                        <div class="button-group" style="justify-content: center; margin-top: 1rem">
+                        <div class="button-group" style="justify-content: center; margin-top: 1.5rem">
                             <button id="pasteBtn" class="secondary" style="flex: 1; max-width: 200px" hidden>
-                                貼上密文
+                                📋 貼上密文
                             </button>
-                            <button id="resetBtn" class="danger" style="flex: 1; max-width: 200px">全部重設</button>
+                            <button id="resetBtn" class="secondary" style="flex: 1; max-width: 200px">
+                                🔄 全部重設
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card" id="results-area" hidden>
+                    <h2>執行結果</h2>
+                    <div class="card-content">
+                        <div id="output" class="output-box info">...</div>
+
+                        <div id="text-mode-results" hidden>
+                            <div class="form-group" style="margin-top: 1.5rem">
+                                <label for="base64ResultView">最終 Base64 密文 (可複製/分享)</label>
+                                <textarea id="base64ResultView" readonly rows="10"></textarea>
+                                <div class="button-group" style="margin-top: 1rem; justify-content: center">
+                                    <button id="copyBtn" class="secondary">📚 複製密文</button>
+                                    <button id="downloadBtn" class="secondary">⬇️ 下載為 .enc</button>
+                                </div>
+                            </div>
+                            <div class="form-group" style="text-align: center">
+                                <canvas id="qrCanvas" width="320" height="320"></canvas>
+                            </div>
+                            <div class="form-group">
+                                <label for="jsonView">內部 JSON 結構 (僅供檢視)</label>
+                                <textarea id="jsonView" readonly rows="15"></textarea>
+                            </div>
                         </div>
 
-                        <div id="results-area" class="results-area" hidden>
-                            <div id="output" class="output-box info">...</div>
-                            <div id="text-mode-results" hidden>
-                                <div class="form-group" style="margin-top: 1.5rem">
-                                    <label for="base64ResultView">最終 Base64 密文 (可複製/分享)</label>
-                                    <textarea id="base64ResultView" readonly rows="10"></textarea>
-                                    <div class="button-group" style="margin-top: 0.5rem; justify-content: center">
-                                        <button id="copyBtn" class="secondary" style="max-width: 180px">
-                                            複製密文
-                                        </button>
-                                        <button id="downloadBtn" class="secondary" style="max-width: 180px">
-                                            下載為 .enc
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="form-group" style="text-align: center">
-                                    <canvas id="qrCanvas" width="320" height="320"></canvas>
-                                </div>
-                                <div class="form-group">
-                                    <label for="jsonView">內部 JSON 結構 (僅供檢視)</label>
-                                    <textarea id="jsonView" readonly rows="20"></textarea>
-                                </div>
-                            </div>
-                            <div
-                                id="decryption-actions"
-                                class="button-group"
-                                style="margin-top: 1rem; justify-content: center"
-                                hidden
-                            >
-                                <button id="copyDecryptedBtn" class="secondary" style="max-width: 200px">
-                                    複製解密結果
-                                </button>
-                            </div>
+                        <div
+                            id="decryption-actions"
+                            class="button-group"
+                            style="margin-top: 1rem; justify-content: center"
+                            hidden
+                        >
+                            <button id="copyDecryptedBtn" class="secondary">📚 複製解密結果</button>
                         </div>
                     </div>
                 </section>
             </main>
         </div>
         <footer>
-            <p>
-                &copy; <span id="currentYear"></span> Zanta's Utilities
-                <button id="themeToggleBtn" title="切換主題">🌙</button>
-            </p>
+            <p>&copy; <span id="currentYear"></span> Zanta's Utilities</p>
         </footer>
         <div id="toast"></div>
+        <button id="scroll-to-top" class="fab" title="回到頂端"></button>
 
         <script type="module">
             import { chacha20poly1305 } from "https://cdn.jsdelivr.net/npm/@noble/ciphers/esm/chacha.js";
@@ -570,7 +713,7 @@
             document.addEventListener("DOMContentLoaded", () => {
                 const app = {
                     elements: {
-                        // ... (all other elements remain the same)
+                        // Main App
                         appModeSelector: document.getElementById("appModeSelector"),
                         textModeSection: document.getElementById("text-mode-section"),
                         fileModeSection: document.getElementById("file-mode-section"),
@@ -585,6 +728,7 @@
                         encryptBtn: document.getElementById("encryptBtn"),
                         decryptBtn: document.getElementById("decryptBtn"),
                         parseBtn: document.getElementById("parseBtn"),
+                        // File Handling
                         fileEncryptInput: document.getElementById("file-encrypt-input"),
                         fileEncryptInfo: document.getElementById("file-encrypt-info"),
                         passphraseFileEncrypt: document.getElementById("passphrase-file-encrypt"),
@@ -593,6 +737,7 @@
                         fileDecryptInfo: document.getElementById("file-decrypt-info"),
                         passphraseFileDecrypt: document.getElementById("passphrase-file-decrypt"),
                         decryptFileBtn: document.getElementById("decryptFileBtn"),
+                        // Controls & Results
                         pasteBtn: document.getElementById("pasteBtn"),
                         resetBtn: document.getElementById("resetBtn"),
                         resultsArea: document.getElementById("results-area"),
@@ -604,12 +749,14 @@
                         jsonView: document.getElementById("jsonView"),
                         base64ResultView: document.getElementById("base64ResultView"),
                         paramsDisplayArea: document.getElementById("params-display-area"),
-                        themeToggleBtn: document.getElementById("themeToggleBtn"),
-                        currentYear: document.getElementById("currentYear"),
-                        toast: document.getElementById("toast"),
                         passwordToggles: document.querySelectorAll(".toggle-password-icon"),
                         decryptionActions: document.getElementById("decryption-actions"),
                         copyDecryptedBtn: document.getElementById("copyDecryptedBtn"),
+                        // Template UI elements
+                        themeToggleBtn: document.getElementById("themeToggleBtn"),
+                        currentYear: document.getElementById("currentYear"),
+                        toast: document.getElementById("toast"),
+                        scrollTopBtn: document.getElementById("scroll-to-top"),
                     },
                     state: {
                         currentAppMode: "text",
@@ -617,7 +764,7 @@
                         selectedAlgorithm: "AES-GCM",
                         toastTimer: null,
                         lastEncryptedOutput: null,
-                        lastDecryptedText: null, // Add state for decrypted text
+                        lastDecryptedText: null,
                         fileToEncrypt: null,
                         fileToDecrypt: null,
                     },
@@ -639,11 +786,21 @@
                         this.theme.init();
                         this.setupEventListeners();
                         this.ui.setAppMode("text");
-                        this.pwa.register(); // Re-add PWA registration
                     },
 
                     setupEventListeners() {
                         this.elements.themeToggleBtn.addEventListener("click", () => this.theme.toggle());
+                        this.elements.scrollTopBtn.addEventListener("click", () =>
+                            window.scrollTo({ top: 0, behavior: "smooth" })
+                        );
+                        window.addEventListener("scroll", () => {
+                            if (window.scrollY > 300) {
+                                this.elements.scrollTopBtn.classList.add("active");
+                            } else {
+                                this.elements.scrollTopBtn.classList.remove("active");
+                            }
+                        });
+
                         this.elements.appModeSelector.addEventListener("click", (e) => {
                             const target = e.target.closest(".option");
                             if (target?.dataset.appMode) this.ui.setAppMode(target.dataset.appMode);
@@ -747,7 +904,6 @@
                             app.elements.resultsArea.hidden = false;
                             app.elements.output.className = `output-box ${type}`;
                             app.elements.output.innerHTML = message;
-                            // Hide specific result areas by default
                             app.elements.textModeResults.hidden = true;
                             app.elements.decryptionActions.hidden = true;
 
@@ -755,7 +911,6 @@
                                 if (app.state.currentMode === "encrypt") {
                                     app.elements.textModeResults.hidden = false;
                                 } else {
-                                    // decrypt
                                     app.elements.decryptionActions.hidden = false;
                                 }
                             }
@@ -785,9 +940,8 @@
                             app.state.lastEncryptedOutput = null;
                             app.state.lastDecryptedText = null;
                             if (app.elements.qrCanvas) {
-                                app.elements.qrCanvas
-                                    .getContext("2d")
-                                    .clearRect(0, 0, app.elements.qrCanvas.width, app.elements.qrCanvas.height);
+                                const ctx = app.elements.qrCanvas.getContext("2d");
+                                if (ctx) ctx.clearRect(0, 0, app.elements.qrCanvas.width, app.elements.qrCanvas.height);
                             }
                         },
                         togglePasswordVisibility(icon) {
@@ -1017,7 +1171,7 @@
                             try {
                                 const decryptedBytes = await this.decrypt(base64Cipher, passphrase);
                                 const decryptedText = new TextDecoder().decode(decryptedBytes);
-                                app.state.lastDecryptedText = decryptedText; // Store result for copying
+                                app.state.lastDecryptedText = decryptedText;
                                 app.ui.setOutput(
                                     "success",
                                     `✅ 解密成功<br><br><strong style="font-size: 1.1em; white-space: pre-wrap; word-break: break-word;">${decryptedText}</strong>`
@@ -1153,38 +1307,17 @@
                     },
                     theme: {
                         init() {
-                            const theme = localStorage.getItem("my-app-theme") || "dark";
-                            this.apply(theme);
+                            const t = localStorage.getItem("my-app-theme") || "dark";
+                            this.apply(t);
                         },
-                        apply(theme) {
-                            document.documentElement.setAttribute("data-theme", theme);
-                            app.elements.themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
-                            localStorage.setItem("my-app-theme", theme);
+                        apply(t) {
+                            document.documentElement.setAttribute("data-theme", t);
+                            app.elements.themeToggleBtn.textContent = t === "dark" ? "☀️" : "🌙";
+                            localStorage.setItem("my-app-theme", t);
                         },
                         toggle() {
-                            const newTheme =
-                                document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-                            this.apply(newTheme);
-                        },
-                    },
-                    // Add PWA registration logic
-                    pwa: {
-                        register() {
-                            if ("serviceWorker" in navigator) {
-                                window.addEventListener("load", () => {
-                                    navigator.serviceWorker.register("./sw.js").then(
-                                        (registration) => {
-                                            console.log(
-                                                "ServiceWorker registration successful with scope: ",
-                                                registration.scope
-                                            );
-                                        },
-                                        (err) => {
-                                            console.log("ServiceWorker registration failed: ", err);
-                                        }
-                                    );
-                                });
-                            }
+                            const t = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+                            this.apply(t);
                         },
                     },
                 };
