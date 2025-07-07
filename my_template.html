@@ -3,16 +3,17 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Zanta 的網頁風格樣板 (v2)</title>
+        <title>Zanta 的網頁風格樣板 (v6 - Highlighted Headers)</title>
         <style>
             /* --- CSS 變數定義 (淺色 & 深色主題) --- */
             :root {
-                /* Palette */
-                --primary-color: #f59e0b;
-                --primary-hover-color: #d97706;
+                /* Palette - 沉穩藍靛色系 */
+                --primary-color: #4f46e5;
+                --primary-hover-color: #6366f1;
+                --primary-text-color: #ffffff;
                 --secondary-color: #6b7280;
                 --secondary-hover-color: #4b5563;
-                --secondary-text-color: #ffffff; /* [新增] 淺色模式下次要按鈕 hover 時的文字顏色 */
+                --secondary-text-color: #ffffff;
                 /* Status Colors */
                 --success-color: #059669;
                 --success-bg: #d1fae5;
@@ -29,7 +30,7 @@
                 --text-color: #1f2937;
                 --border-color: #e5e7eb;
                 --input-bg: #ffffff;
-                --input-focus-shadow: rgba(245, 158, 11, 0.25);
+                --input-focus-shadow: rgba(79, 70, 229, 0.25);
                 --button-disabled-bg: #d1d5db;
                 --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
                 --toast-bg: #1f2937;
@@ -37,15 +38,27 @@
                 --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
                 --tooltip-bg: #1f2937;
                 --tooltip-color: #f9fafb;
+
+                /* 設計規範變數 */
+                --border-radius-sm: 5px;
+                --border-radius-md: 12px;
+                --border-radius-full: 50%;
+                --transition-duration-fast: 0.2s;
+                --transition-duration-normal: 0.3s;
+                --transition-duration-slow: 0.4s;
+                --z-index-content: 10;
+                --z-index-fixed: 1000;
+                --z-index-modal: 1010;
+                --z-index-toast: 1020;
             }
             :root[data-theme="dark"] {
-                /* Palette */
-                --primary-color: #facc15;
-                --primary-hover-color: #fde047;
+                /* ... Palette & Status Colors ... */
+                --primary-color: #6366f1;
+                --primary-hover-color: #818cf8;
+                --primary-text-color: #ffffff;
                 --secondary-color: #9ca3af;
                 --secondary-hover-color: #d1d5db;
-                --secondary-text-color: #1e293b; /* [新增] 深色模式下次要按鈕 hover 時的文字顏色 */
-                /* Status Colors */
+                --secondary-text-color: #1e293b;
                 --success-color: #6ee7b7;
                 --success-bg: #064e3b;
                 --error-color: #f87171;
@@ -61,13 +74,13 @@
                 --text-color: #d1d5db;
                 --border-color: #475569;
                 --input-bg: #374151;
-                --input-focus-shadow: rgba(250, 204, 21, 0.3);
-                --button-disabled-bg: #334155; /* [修正3] 調整禁用按鈕背景色，使其更明確 */
+                --input-focus-shadow: rgba(99, 102, 241, 0.3);
+                --button-disabled-bg: #334155;
                 --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-                --toast-bg: #fde68a; /* [修正1] 恢復為高對比的亮黃色背景 */
-                --toast-color: #78350f; /* [修正1] 恢復為高對比的深棕色文字 */
+                --toast-bg: #fde68a;
+                --toast-color: #78350f;
                 --modal-backdrop-bg: rgba(0, 0, 0, 0.7);
-                --tooltip-bg: #fde68a; /* Tooltip 也可沿用 Toast 的高對比配色 */
+                --tooltip-bg: #fde68a;
                 --tooltip-color: #78350f;
             }
 
@@ -88,13 +101,12 @@
                 flex-direction: column;
                 align-items: center;
                 min-height: 100vh;
-                transition: background-color 0.3s, color 0.3s;
+                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal);
+            }
+            body.modal-is-open {
+                overflow: hidden;
             }
             .container {
-                background-color: transparent;
-                padding: 0;
-                border: none;
-                box-shadow: none;
                 width: 100%;
                 max-width: 1024px;
             }
@@ -126,24 +138,48 @@
             }
             section.card {
                 border: 1px solid var(--border-color);
-                border-radius: 12px;
+                border-radius: var(--border-radius-md);
                 background-color: var(--container-bg);
                 box-shadow: var(--box-shadow);
-                transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal);
             }
             section.card > h2 {
                 padding: 0.85rem 1.5rem;
                 margin: 0;
                 font-size: 1.25em;
-                color: var(--text-color);
-                background-color: var(--section-header-bg);
-                border-bottom: 1px solid var(--border-color);
-                transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-                border-top-left-radius: 12px;
-                border-top-right-radius: 12px;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                color: var(--primary-text-color);
+                background-color: var(--primary-color);
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), color var(--transition-duration-normal);
+                border-top-left-radius: var(--border-radius-md);
+                border-top-right-radius: var(--border-radius-md);
+            }
+            :root[data-theme="dark"] section.card > h2 {
+                border-bottom-color: rgba(255, 255, 255, 0.1);
             }
             .card-content {
                 padding: 1.5rem;
+            }
+
+            /* --- 可訪問性：統一的視覺焦點 --- */
+            button:focus-visible,
+            .button:focus-visible,
+            .option:focus-visible,
+            .accordion-header:focus-visible,
+            .tab-btn:focus-visible,
+            .modal-close-btn:focus-visible,
+            .toggle-label:focus-visible {
+                outline: 2px solid var(--primary-color);
+                outline-offset: 2px;
+                box-shadow: 0 0 0 4px var(--input-focus-shadow);
+            }
+            input[type="text"]:focus,
+            textarea:focus {
+                outline: none;
             }
 
             /* --- 組件：按鈕 --- */
@@ -158,23 +194,22 @@
                 display: inline-block;
                 padding: 0.75rem 1.5rem;
                 background-color: var(--primary-color);
-                color: #422006;
-                border: 1px solid transparent; /* 為了描邊按鈕，先預留 1px 邊框位置 */
-                border-radius: 5px;
+                color: var(--primary-text-color);
+                border: 1px solid transparent;
+                border-radius: var(--border-radius-sm);
                 cursor: pointer;
                 font-size: 1em;
                 font-weight: 600;
                 text-decoration: none;
                 text-align: center;
-                transition: background-color 0.3s, color 0.3s, border-color 0.3s, transform 0.1s;
+                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), transform var(--transition-duration-fast);
             }
             button:hover:not(:disabled),
             .button:hover:not(:disabled) {
                 background-color: var(--primary-hover-color);
                 transform: translateY(-1px);
             }
-
-            /* [修正4] 次要按鈕改為描邊樣式 */
             button.secondary,
             .button.secondary {
                 background-color: transparent;
@@ -187,15 +222,13 @@
                 border-color: var(--secondary-hover-color);
                 color: var(--secondary-text-color);
             }
-
-            /* [修正3] 禁用按鈕樣式調整 */
             button:disabled,
             .button:disabled {
                 background-color: var(--button-disabled-bg);
                 border-color: transparent;
-                color: var(--secondary-color); /* 文字顏色也變淡 */
+                color: var(--secondary-color);
                 cursor: not-allowed;
-                opacity: 0.7; /* 可略微調高不透明度，靠顏色區分 */
+                opacity: 0.7;
             }
 
             /* --- 組件：工具提示 (Tooltip) --- */
@@ -212,14 +245,14 @@
                 background-color: var(--tooltip-bg);
                 color: var(--tooltip-color);
                 padding: 0.5rem 0.8rem;
-                border-radius: 5px;
+                border-radius: var(--border-radius-sm);
                 font-size: 0.9em;
                 white-space: nowrap;
                 pointer-events: none;
                 opacity: 0;
                 visibility: hidden;
-                transition: opacity 0.2s, visibility 0.2s;
-                z-index: 10; /* [修正2] 提升 z-index，解決 tooltip 被裁切問題 */
+                transition: opacity var(--transition-duration-fast), visibility var(--transition-duration-fast);
+                z-index: var(--z-index-content);
             }
             [data-tooltip]:hover::after {
                 opacity: 1;
@@ -232,15 +265,14 @@
                 width: 100%;
                 padding: 0.75rem;
                 border: 1px solid var(--border-color);
-                border-radius: 5px;
+                border-radius: var(--border-radius-sm);
                 font-size: 1em;
                 background-color: var(--input-bg);
                 color: var(--text-color);
-                transition: border-color 0.3s, box-shadow 0.3s;
+                transition: border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal);
             }
             input[type="text"]:focus,
             textarea:focus {
-                outline: none;
                 border-color: var(--primary-color);
                 box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
             }
@@ -259,34 +291,37 @@
             .option {
                 padding: 10px 15px;
                 border: 1px solid var(--border-color);
-                border-radius: 5px;
+                border-radius: var(--border-radius-sm);
                 cursor: pointer;
-                transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), color var(--transition-duration-normal);
             }
             .option.selected {
                 background-color: var(--primary-color);
-                color: #422006;
+                color: var(--primary-text-color);
                 border-color: var(--primary-color);
                 font-weight: bold;
             }
 
             /* --- 組件：提示與訊息框 --- */
+            .message-block {
+                padding: 0.75rem 1rem;
+                border-radius: var(--border-radius-sm);
+                margin-top: 1rem;
+                border-left: 4px solid;
+            }
             .hint-note {
                 font-size: 0.9em;
                 color: var(--note-color);
                 background-color: var(--note-bg);
-                padding: 0.75rem 1rem;
-                border-radius: 5px;
-                margin-top: 1rem;
-                transition: all 0.3s ease-in-out;
-                border-left: 4px solid var(--note-color);
+                border-color: var(--note-color);
+                transition: all var(--transition-duration-normal) ease-in-out;
             }
             .output-box {
                 padding: 1rem;
-                border-radius: 5px;
+                border-left-width: 5px;
                 white-space: pre-wrap;
                 word-break: break-all;
-                border-left: 5px solid;
             }
             .output-box + .output-box {
                 margin-top: 1rem;
@@ -320,8 +355,8 @@
                 align-items: center;
                 justify-content: center;
                 background-color: var(--modal-backdrop-bg);
-                z-index: 1000;
-                transition: visibility 0.3s, opacity 0.3s;
+                z-index: var(--z-index-modal);
+                transition: visibility var(--transition-duration-normal), opacity var(--transition-duration-normal);
             }
             .modal.active {
                 visibility: visible;
@@ -336,7 +371,7 @@
                 max-width: 500px;
                 position: relative;
                 transform: scale(0.9);
-                transition: transform 0.3s;
+                transition: transform var(--transition-duration-normal);
             }
             .modal.active .modal-content {
                 transform: scale(1);
@@ -350,11 +385,12 @@
                 font-size: 1.8rem;
                 cursor: pointer;
                 color: var(--secondary-color);
-                transition: color 0.3s;
+                transition: color var(--transition-duration-normal);
             }
             .modal-close-btn:hover {
                 color: var(--primary-color);
             }
+
             .accordion-item + .accordion-item {
                 border-top: 1px solid var(--border-color);
             }
@@ -371,20 +407,17 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                transition: background-color 0.3s, color 0.3s;
+                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal);
             }
-            .accordion-header:hover {
+            .accordion-header:hover,
+            .accordion-header.active {
                 background-color: var(--primary-color);
-                color: #422006;
+                color: var(--primary-text-color);
             }
             .accordion-header::after {
                 content: "▼";
                 font-size: 0.8em;
-                transition: transform 0.3s;
-            }
-            .accordion-header.active {
-                background-color: var(--primary-color);
-                color: #422006;
+                transition: transform var(--transition-duration-normal);
             }
             .accordion-header.active::after {
                 transform: rotate(180deg);
@@ -392,20 +425,26 @@
             .accordion-content {
                 max-height: 0;
                 overflow: hidden;
-                padding: 0 1rem;
-                transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+                padding-left: 1rem;
+                padding-right: 1rem;
+                transition: max-height var(--transition-duration-slow) ease-out,
+                    padding var(--transition-duration-slow) ease-out;
+            }
+            .accordion-header.active + .accordion-content {
+                max-height: 500px;
+                padding-bottom: 1rem;
             }
             .accordion-content p {
                 margin: 0;
-                padding-bottom: 1rem;
             }
+
             .progress-container {
                 margin-top: 1rem;
             }
             .progress-bar-wrapper {
                 width: 100%;
                 background-color: var(--border-color);
-                border-radius: 5px;
+                border-radius: var(--border-radius-sm);
                 overflow: hidden;
             }
             .progress-bar {
@@ -414,10 +453,11 @@
                 background-color: var(--primary-color);
                 text-align: center;
                 line-height: 20px;
-                color: #422006; /* 進度條文字顏色 */
+                color: var(--primary-text-color);
                 font-weight: bold;
                 transition: width 0.5s ease-in-out;
             }
+
             .tab-nav {
                 display: flex;
                 border-bottom: 2px solid var(--border-color);
@@ -432,11 +472,12 @@
                 color: var(--secondary-color);
                 border-bottom: 3px solid transparent;
                 border-radius: 5px 5px 0 0;
-                transition: color 0.3s, background-color 0.3s;
+                transition: color var(--transition-duration-normal), background-color var(--transition-duration-normal),
+                    color var(--transition-duration-normal);
             }
             .tab-btn.active {
                 background-color: var(--primary-color);
-                color: #422006;
+                color: var(--primary-text-color);
                 font-weight: 600;
                 border-bottom-color: var(--primary-color);
             }
@@ -450,6 +491,7 @@
             .tab-content.active {
                 display: block;
             }
+
             .toggle-container {
                 display: flex;
                 align-items: center;
@@ -475,7 +517,7 @@
                 bottom: 0;
                 background-color: var(--secondary-color);
                 border-radius: 34px;
-                transition: background-color 0.3s;
+                transition: background-color var(--transition-duration-normal);
             }
             .toggle-label::before {
                 position: absolute;
@@ -486,8 +528,8 @@
                 top: 50%;
                 transform: translateY(-50%);
                 background-color: white;
-                border-radius: 50%;
-                transition: transform 0.3s;
+                border-radius: var(--border-radius-full);
+                transition: transform var(--transition-duration-normal);
             }
             .toggle-checkbox:checked + .toggle-label {
                 background-color: var(--primary-color);
@@ -496,7 +538,7 @@
                 transform: translateX(22px) translateY(-50%);
             }
 
-            /* --- 組件：頁尾 & 主題切換 --- */
+            /* --- 組件：頁尾 --- */
             footer {
                 text-align: center;
                 margin-top: auto;
@@ -505,78 +547,47 @@
                 color: var(--secondary-color);
             }
 
-            /* [修正5] 主題切換按鈕的全新浮動樣式 */
-            #themeToggleBtn {
+            /* --- 組件：浮動操作按鈕 (FAB) --- */
+            .fab {
                 position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 1001; /* 確保在最上層 */
-                width: 48px;
-                height: 48px;
+                z-index: var(--z-index-fixed);
+                width: 50px;
+                height: 50px;
                 background-color: var(--container-bg);
-                color: var(--text-color);
                 border: 1px solid var(--border-color);
-                border-radius: 50%;
+                border-radius: var(--border-radius-full);
                 cursor: pointer;
-                font-size: 1.5em; /* 放大圖示 */
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 box-shadow: var(--box-shadow);
-                transition: all 0.3s ease;
+                transition: all var(--transition-duration-normal) ease;
             }
-            #themeToggleBtn:hover {
+            .fab:hover {
                 transform: translateY(-2px) scale(1.05);
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             }
-            :root[data-theme="dark"] #themeToggleBtn:hover {
+            :root[data-theme="dark"] .fab:hover {
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             }
 
-            /* --- 組件：Toast 浮動提示 --- */
-            #toast {
-                visibility: hidden;
-                opacity: 0;
-                min-width: 250px;
-                background-color: var(--toast-bg);
-                color: var(--toast-color);
-                text-align: center;
-                border-radius: 5px;
-                padding: 16px;
-                position: fixed;
-                z-index: 1002; /* 比主題按鈕更高 */
-                left: 50%;
-                transform: translateX(-50%);
-                bottom: 30px;
-                font-size: 17px;
-                box-shadow: var(--box-shadow);
-                transition: opacity 0.5s, visibility 0.5s, bottom 0.5s;
+            #themeToggleBtn {
+                top: 20px;
+                right: 20px;
+                color: var(--text-color);
+                font-size: 1.5em;
             }
-            #toast.show {
-                visibility: visible;
-                opacity: 1;
-            }
-
-            /* --- 回到頂端按鈕 (純 CSS 繪製) --- */
             #scroll-to-top {
-                position: fixed;
-                bottom: 25px;
                 right: 25px;
-                width: 50px;
-                height: 50px;
-                z-index: 1000;
+                bottom: 25px;
                 background-color: var(--primary-color);
                 border: none;
-                border-radius: 50%;
-                cursor: pointer;
-                box-shadow: var(--box-shadow);
-                display: flex;
-                align-items: center;
-                justify-content: center;
                 opacity: 0;
                 visibility: hidden;
                 transform: translateY(20px);
-                transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+                transition: opacity var(--transition-duration-normal) ease,
+                    visibility var(--transition-duration-normal) ease, transform var(--transition-duration-normal) ease,
+                    background-color var(--transition-duration-normal) ease;
             }
             #scroll-to-top:hover {
                 background-color: var(--primary-hover-color);
@@ -593,8 +604,32 @@
                 height: 0;
                 border-left: 12px solid transparent;
                 border-right: 12px solid transparent;
-                border-bottom: 15px solid rgba(255, 255, 255, 0.8);
+                border-bottom: 15px solid var(--primary-text-color);
                 margin-bottom: 4px;
+            }
+
+            /* --- 組件：Toast 浮動提示 --- */
+            #toast {
+                visibility: hidden;
+                opacity: 0;
+                min-width: 250px;
+                background-color: var(--toast-bg);
+                color: var(--toast-color);
+                text-align: center;
+                border-radius: var(--border-radius-sm);
+                padding: 16px;
+                position: fixed;
+                z-index: var(--z-index-toast);
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 30px;
+                font-size: 17px;
+                box-shadow: var(--box-shadow);
+                transition: opacity 0.5s, visibility 0.5s, bottom 0.5s;
+            }
+            #toast.show {
+                visibility: visible;
+                opacity: 1;
             }
 
             /* --- 響應式設計 --- */
@@ -616,12 +651,13 @@
                 section.card > h2 {
                     padding: 0.75rem 1rem;
                 }
-                /* 調整浮動按鈕在小螢幕的位置 */
+                .fab {
+                    width: 44px;
+                    height: 44px;
+                }
                 #themeToggleBtn {
                     top: 15px;
                     right: 15px;
-                    width: 44px;
-                    height: 44px;
                     font-size: 1.3em;
                 }
                 #scroll-to-top {
@@ -632,7 +668,7 @@
         </style>
     </head>
     <body>
-        <button id="themeToggleBtn" title="切換主題">🌙</button>
+        <button id="themeToggleBtn" class="fab" title="切換主題">🌙</button>
 
         <div class="container">
             <header>
@@ -669,7 +705,9 @@
                                 <div class="option" data-value="opt2">選項二</div>
                                 <div class="option" data-value="opt3">選項三</div>
                             </div>
-                            <div id="option1Hint" class="hint-note">當「選項一」被選中時顯示此提示。</div>
+                            <div id="option1Hint" class="message-block hint-note" style="display: block">
+                                當「選項一」被選中時顯示此提示。
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -701,7 +739,12 @@
                                             <input type="checkbox" id="emailToggle" class="toggle-checkbox" checked />
                                             <label for="emailToggle" class="toggle-label"></label>
                                         </div>
-                                        <span id="emailToggleStatus" class="hint-note" style="margin: 0">開啟</span>
+                                        <span
+                                            id="emailToggleStatus"
+                                            class="message-block hint-note"
+                                            style="margin: 0; display: inline-block"
+                                            >開啟</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -752,9 +795,9 @@
                     <div class="card-content">
                         <div class="form-group">
                             <label>訊息回饋提示</label>
-                            <div class="output-box info">💡 這是一般通知性的訊息。</div>
-                            <div class="output-box success">✅ 這是一條成功的訊息。</div>
-                            <div class="output-box error">❌ 這是一條錯誤的訊息。</div>
+                            <div class="message-block output-box info">💡 這是一般通知性的訊息。</div>
+                            <div class="message-block output-box success">✅ 這是一條成功的訊息。</div>
+                            <div class="message-block output-box error">❌ 這是一條錯誤的訊息。</div>
                         </div>
                     </div>
                 </section>
@@ -777,7 +820,7 @@
         </div>
         <div id="toast"></div>
 
-        <button id="scroll-to-top" title="回到頂端"></button>
+        <button id="scroll-to-top" class="fab" title="回到頂端"></button>
 
         <script>
             document.addEventListener("DOMContentLoaded", () => {
@@ -786,14 +829,12 @@
                         themeToggleBtn: document.getElementById("themeToggleBtn"),
                         currentYear: document.getElementById("currentYear"),
                         toast: document.getElementById("toast"),
-                        modalTriggers: document.querySelectorAll("[data-modal-target]"),
                         modals: document.querySelectorAll(".modal"),
-                        accordionHeaders: document.querySelectorAll(".accordion-header"),
+                        accordionContainer: document.querySelector(".accordion"),
                         progressBar: document.getElementById("demoProgressBar"),
                         progressBtn: document.getElementById("progressBtn"),
                         tabContainers: document.querySelectorAll(".tab-container"),
                         emailToggle: document.getElementById("emailToggle"),
-                        emailToggleStatus: document.getElementById("emailToggleStatus"),
                         optionGroup: document.getElementById("demoOptionGroup"),
                         option1Hint: document.getElementById("option1Hint"),
                         scrollTopBtn: document.getElementById("scroll-to-top"),
@@ -804,21 +845,18 @@
                         this.elements.currentYear.textContent = new Date().getFullYear();
                         this.theme.init();
                         this.setupEventListeners();
-                        this.updateToggleStatus();
                         this.updateOptionStatus();
                     },
 
                     setupEventListeners() {
                         this.elements.themeToggleBtn.addEventListener("click", () => this.theme.toggle());
                         document.body.addEventListener("click", (e) => {
-                            const t = e.target.closest("[data-toast-message]");
-                            if (t) this.toast.show(t.dataset.toastMessage);
+                            const toastTrigger = e.target.closest("[data-toast-message]");
+                            if (toastTrigger) this.toast.show(toastTrigger.dataset.toastMessage);
+
+                            const modalTrigger = e.target.closest("[data-modal-target]");
+                            if (modalTrigger) this.modal.open(document.querySelector(modalTrigger.dataset.modalTarget));
                         });
-                        this.elements.modalTriggers.forEach((btn) =>
-                            btn.addEventListener("click", () =>
-                                this.modal.open(document.querySelector(btn.dataset.modalTarget))
-                            )
-                        );
                         this.elements.modals.forEach((modal) =>
                             modal.addEventListener("click", (e) => {
                                 if (e.target === modal || e.target.closest(".modal-close-btn")) this.modal.close(modal);
@@ -826,13 +864,16 @@
                         );
                         document.addEventListener("keydown", (e) => {
                             if (e.key === "Escape") {
-                                const m = document.querySelector(".modal.active");
-                                if (m) this.modal.close(m);
+                                const activeModal = document.querySelector(".modal.active");
+                                if (activeModal) this.modal.close(activeModal);
                             }
                         });
-                        this.elements.accordionHeaders.forEach((header) =>
-                            header.addEventListener("click", () => this.accordion.toggle(header))
-                        );
+                        if (this.elements.accordionContainer) {
+                            this.elements.accordionContainer.addEventListener("click", (e) => {
+                                const header = e.target.closest(".accordion-header");
+                                if (header) this.accordion.toggle(header);
+                            });
+                        }
                         if (this.elements.progressBtn)
                             this.elements.progressBtn.addEventListener("click", () => this.progressBar.simulate());
                         this.elements.tabContainers.forEach((c) =>
@@ -842,7 +883,12 @@
                             })
                         );
                         if (this.elements.emailToggle)
-                            this.elements.emailToggle.addEventListener("change", () => this.updateToggleStatus());
+                            this.elements.emailToggle.addEventListener("change", (e) => {
+                                const statusEl = e.target
+                                    .closest(".toggle-container")
+                                    .querySelector("#emailToggleStatus");
+                                if (statusEl) statusEl.textContent = e.target.checked ? "開啟" : "關閉";
+                            });
 
                         if (this.elements.optionGroup) {
                             this.elements.optionGroup.addEventListener("click", (e) => {
@@ -900,27 +946,19 @@
                     modal: {
                         open(m) {
                             m.classList.add("active");
-                            document.body.style.overflow = "hidden";
+                            document.body.classList.add("modal-is-open");
                         },
                         close(m) {
                             m.classList.remove("active");
-                            document.body.style.overflow = "";
+                            document.body.classList.remove("modal-is-open");
                         },
                     },
                     accordion: {
                         toggle(h) {
-                            const c = h.nextElementSibling,
-                                i = h.classList.contains("active");
+                            const isOpen = h.classList.contains("active");
                             h.classList.toggle("active");
-                            h.setAttribute("aria-expanded", !i);
-                            c.setAttribute("aria-hidden", i);
-                            if (!i) {
-                                c.style.maxHeight = c.scrollHeight + "px";
-                                c.style.padding = "0 1rem 1rem";
-                            } else {
-                                c.style.maxHeight = null;
-                                c.style.padding = "0 1rem";
-                            }
+                            h.setAttribute("aria-expanded", !isOpen);
+                            h.nextElementSibling.setAttribute("aria-hidden", isOpen);
                         },
                     },
                     progressBar: {
@@ -949,17 +987,10 @@
                             c.querySelector(`#${i}`).classList.add("active");
                         },
                     },
-                    updateToggleStatus() {
-                        if (this.elements.emailToggle) {
-                            this.elements.emailToggleStatus.textContent = this.elements.emailToggle.checked
-                                ? "開啟"
-                                : "關閉";
-                        }
-                    },
                     updateOptionStatus() {
                         if (this.elements.optionGroup) {
                             const selected = this.elements.optionGroup.querySelector(".option.selected");
-                            if (selected) {
+                            if (selected && this.elements.option1Hint) {
                                 this.elements.option1Hint.style.display =
                                     selected.dataset.value === "opt1" ? "block" : "none";
                             }
