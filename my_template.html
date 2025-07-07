@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Zanta 的網頁風格樣板 (v6 - Highlighted Headers)</title>
+        <title>Zanta 的網頁風格樣板</title>
         <style>
             /* --- CSS 變數定義 (淺色 & 深色主題) --- */
             :root {
@@ -23,22 +23,24 @@
                 --info-bg: #cffafe;
                 --note-color: #92400e;
                 --note-bg: #fefce8;
+                --warning-color: #9a3412;
+                --warning-bg: #ffedd5;
                 /* UI Elements */
                 --section-header-bg: #f8fafc;
                 --bg-color: #f1f5f9;
                 --container-bg: #ffffff;
                 --text-color: #1f2937;
                 --border-color: #e5e7eb;
-                --input-bg: #ffffff;
+                --input-bg: #f8fafc;
                 --input-focus-shadow: rgba(79, 70, 229, 0.25);
                 --button-disabled-bg: #d1d5db;
+                --button-disabled-text-color: #9ca3af;
                 --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
                 --toast-bg: #1f2937;
                 --toast-color: #f9fafb;
                 --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
                 --tooltip-bg: #1f2937;
                 --tooltip-color: #f9fafb;
-
                 /* 設計規範變數 */
                 --border-radius-sm: 5px;
                 --border-radius-md: 12px;
@@ -47,6 +49,7 @@
                 --transition-duration-normal: 0.3s;
                 --transition-duration-slow: 0.4s;
                 --z-index-content: 10;
+                --z-index-dropdown: 20;
                 --z-index-fixed: 1000;
                 --z-index-modal: 1010;
                 --z-index-toast: 1020;
@@ -67,15 +70,18 @@
                 --info-bg: #164e63;
                 --note-color: #fde047;
                 --note-bg: #451a03;
+                --warning-color: #fb923c;
+                --warning-bg: #7c2d12;
                 /* UI Elements */
-                --section-header-bg: #334155;
+                --section-header-bg: #293548;
                 --bg-color: #1e293b;
-                --container-bg: #293548;
+                --container-bg: #334155;
                 --text-color: #d1d5db;
                 --border-color: #475569;
-                --input-bg: #374151;
+                --input-bg: #293548;
                 --input-focus-shadow: rgba(99, 102, 241, 0.3);
-                --button-disabled-bg: #334155;
+                --button-disabled-bg: #293548;
+                --button-disabled-text-color: #64748b;
                 --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
                 --toast-bg: #fde68a;
                 --toast-color: #78350f;
@@ -83,7 +89,6 @@
                 --tooltip-bg: #fde68a;
                 --tooltip-color: #78350f;
             }
-
             /* --- 基礎 & 佈局樣式 --- */
             *,
             *::before,
@@ -114,26 +119,15 @@
                 text-align: center;
                 margin-bottom: 2.5rem;
             }
-            h3 {
-                margin-top: 2.5rem;
-                margin-bottom: 1rem;
-                color: var(--secondary-color);
+            h4 {
+                margin-top: 2rem;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
             }
             section {
                 margin-bottom: 2.5rem;
             }
             section:last-child {
-                margin-bottom: 0;
-            }
-            label {
-                font-weight: 600;
-                display: block;
-                margin-bottom: 0.5rem;
-            }
-            .form-group {
-                margin-bottom: 1.5rem;
-            }
-            .form-group:last-child {
                 margin-bottom: 0;
             }
             section.card {
@@ -164,15 +158,42 @@
             .card-content {
                 padding: 1.5rem;
             }
+            .card-content > h3 {
+                color: var(--secondary-color);
+                margin-top: 2rem;
+                margin-bottom: 1rem;
+                padding-bottom: 0;
+                border-bottom: none;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                transition: color var(--transition-duration-normal);
+            }
+            .card-content > h3::before {
+                content: "";
+                display: block;
+                width: 10px;
+                height: 10px;
+                background-color: var(--primary-color);
+                border-radius: 3px;
+                transform: rotate(45deg);
+                transition: background-color var(--transition-duration-normal);
+            }
+            .card-content > h3:first-child {
+                margin-top: 0;
+            }
 
             /* --- 可訪問性：統一的視覺焦點 --- */
+            a:focus-visible,
             button:focus-visible,
             .button:focus-visible,
             .option:focus-visible,
             .accordion-header:focus-visible,
             .tab-btn:focus-visible,
             .modal-close-btn:focus-visible,
-            .toggle-label:focus-visible {
+            .toggle-label:focus-visible,
+            .dropdown-toggle:focus-visible,
+            .dropdown-item:focus-visible {
                 outline: 2px solid var(--primary-color);
                 outline-offset: 2px;
                 box-shadow: 0 0 0 4px var(--input-focus-shadow);
@@ -181,7 +202,6 @@
             textarea:focus {
                 outline: none;
             }
-
             /* --- 組件：按鈕 --- */
             .button-group {
                 display: flex;
@@ -191,7 +211,10 @@
             }
             button,
             .button {
-                display: inline-block;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
                 padding: 0.75rem 1.5rem;
                 background-color: var(--primary-color);
                 color: var(--primary-text-color);
@@ -225,13 +248,160 @@
             button:disabled,
             .button:disabled {
                 background-color: var(--button-disabled-bg);
+                color: var(--button-disabled-text-color);
                 border-color: transparent;
-                color: var(--secondary-color);
                 cursor: not-allowed;
                 opacity: 0.7;
             }
+            /* [修正2] 深色模式禁用按鈕樣式 */
+            :root[data-theme="dark"] button:disabled,
+            :root[data-theme="dark"] .button:disabled {
+                border: 1px solid var(--border-color);
+            }
 
-            /* --- 組件：工具提示 (Tooltip) --- */
+            /* --- 組件：載入指示器 (Spinner) --- */
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+            .spinner {
+                display: inline-block;
+                width: 1.5em;
+                height: 1.5em;
+                border-radius: var(--border-radius-full);
+                border: 3px solid var(--border-color);
+                border-top-color: var(--primary-color);
+                animation: spin 1s linear infinite;
+            }
+            .spinner--sm {
+                width: 1em;
+                height: 1em;
+                border-width: 2px;
+            }
+            .spinner--lg {
+                width: 3em;
+                height: 3em;
+                border-width: 4px;
+            }
+            button .spinner {
+                display: none;
+            }
+            button.is-loading .spinner {
+                display: inline-block;
+            }
+            button.is-loading .btn-text {
+                display: none;
+            }
+
+            /* --- 組件：警告提示框 (Alert) --- */
+            .alert {
+                display: flex;
+                align-items: flex-start;
+                gap: 1rem;
+                padding: 1rem;
+                border-radius: var(--border-radius-sm);
+                border: 1px solid;
+                margin-top: 1rem;
+            }
+            .alert.is-hidden {
+                display: none;
+            }
+            .alert-icon {
+                font-size: 1.25em;
+                flex-shrink: 0;
+                margin-top: 0.1em;
+            }
+            .alert-message {
+                flex-grow: 1;
+                margin: 0;
+                padding: 0;
+            }
+            .alert-close-btn {
+                background: none;
+                border: none;
+                color: inherit;
+                opacity: 0.7;
+                padding: 0;
+                cursor: pointer;
+                font-size: 1.5em;
+                line-height: 1;
+                transition: opacity var(--transition-duration-fast);
+            }
+            .alert-close-btn:hover {
+                opacity: 1;
+            }
+            .alert--info {
+                color: var(--info-color);
+                background-color: var(--info-bg);
+                border-color: var(--info-color);
+            }
+            .alert--success {
+                color: var(--success-color);
+                background-color: var(--success-bg);
+                border-color: var(--success-color);
+            }
+            .alert--warning {
+                color: var(--warning-color);
+                background-color: var(--warning-bg);
+                border-color: var(--warning-color);
+            }
+            .alert--danger {
+                color: var(--error-color);
+                background-color: var(--error-bg);
+                border-color: var(--error-color);
+            }
+
+            /* --- 組件：下拉式選單 (Dropdown) --- */
+            .dropdown {
+                position: relative;
+                display: inline-block;
+            }
+            .dropdown-menu {
+                position: absolute;
+                top: calc(100% + 5px);
+                left: 0;
+                z-index: var(--z-index-dropdown);
+                min-width: 180px;
+                background-color: var(--container-bg);
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-sm);
+                box-shadow: var(--box-shadow);
+                padding: 0.5rem 0;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(10px);
+                transition: opacity var(--transition-duration-fast), transform var(--transition-duration-fast),
+                    visibility var(--transition-duration-fast);
+            }
+            .dropdown.is-active .dropdown-menu {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+            .dropdown-menu--right {
+                left: auto;
+                right: 0;
+            }
+            .dropdown-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.5rem 1rem;
+                color: var(--text-color);
+                text-decoration: none;
+                white-space: nowrap;
+            }
+            .dropdown-item:hover,
+            .dropdown-item:focus {
+                background-color: var(--section-header-bg);
+                color: var(--text-color);
+            }
+            .dropdown-divider {
+                height: 1px;
+                background-color: var(--border-color);
+                margin: 0.5rem 0;
+            }
             [data-tooltip] {
                 position: relative;
             }
@@ -258,18 +428,19 @@
                 opacity: 1;
                 visibility: visible;
             }
-
-            /* --- 組件：表單輸入 --- */
+            /* [修正4] 輸入框樣式 */
             input[type="text"],
             textarea {
                 width: 100%;
                 padding: 0.75rem;
                 border: 1px solid var(--border-color);
                 border-radius: var(--border-radius-sm);
-                font-size: 1em;
+                font-family: inherit; /* 與頁面字體一致 */
+                font-size: 1em; /* 與頁面字體大小一致 */
                 background-color: var(--input-bg);
                 color: var(--text-color);
-                transition: border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal);
+                transition: border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal),
+                    background-color var(--transition-duration-normal);
             }
             input[type="text"]:focus,
             textarea:focus {
@@ -280,13 +451,10 @@
                 min-height: 120px;
                 resize: vertical;
             }
-
-            /* --- 組件：選項/頁籤組件 --- */
             .option-group {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 10px;
-                margin-bottom: 15px;
             }
             .option {
                 padding: 10px 15px;
@@ -302,8 +470,6 @@
                 border-color: var(--primary-color);
                 font-weight: bold;
             }
-
-            /* --- 組件：提示與訊息框 --- */
             .message-block {
                 padding: 0.75rem 1rem;
                 border-radius: var(--border-radius-sm);
@@ -341,8 +507,6 @@
                 border-color: var(--info-color);
                 background-color: var(--info-bg);
             }
-
-            /* --- 其他組件樣式 (Modal, Accordion, Progress, Tabs, Toggle) --- */
             .modal {
                 visibility: hidden;
                 opacity: 0;
@@ -390,7 +554,6 @@
             .modal-close-btn:hover {
                 color: var(--primary-color);
             }
-
             .accordion-item + .accordion-item {
                 border-top: 1px solid var(--border-color);
             }
@@ -437,7 +600,6 @@
             .accordion-content p {
                 margin: 0;
             }
-
             .progress-container {
                 margin-top: 1rem;
             }
@@ -457,33 +619,50 @@
                 font-weight: bold;
                 transition: width 0.5s ease-in-out;
             }
-
+            /* --- 頁籤 (Tabs) 樣式 --- */
+            .tabs-wrapper {
+                background-color: var(--section-header-bg);
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-md);
+                margin-top: 1rem;
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal);
+            }
             .tab-nav {
                 display: flex;
-                border-bottom: 2px solid var(--border-color);
-                margin-bottom: 1rem;
+                border-bottom: 1px solid var(--border-color);
+                margin-bottom: 0;
             }
             .tab-btn {
                 background: none;
                 border: none;
+                border-bottom: 2px solid transparent;
                 padding: 0.8rem 1.2rem;
+                margin-bottom: -1px;
                 cursor: pointer;
                 font-size: 1em;
                 color: var(--secondary-color);
-                border-bottom: 3px solid transparent;
-                border-radius: 5px 5px 0 0;
                 transition: color var(--transition-duration-normal), background-color var(--transition-duration-normal),
-                    color var(--transition-duration-normal);
+                    border-color var(--transition-duration-normal);
             }
             .tab-btn.active {
-                background-color: var(--primary-color);
-                color: var(--primary-text-color);
-                font-weight: 600;
+                background-color: var(--container-bg);
+                color: var(--text-color);
                 border-bottom-color: var(--primary-color);
+                border-top-left-radius: var(--border-radius-sm);
+                border-top-right-radius: var(--border-radius-sm);
+                font-weight: 600;
             }
             .tab-btn:not(.active):hover {
-                background-color: var(--section-header-bg);
                 color: var(--text-color);
+                border-bottom-color: var(--border-color);
+            }
+            .tab-content-container {
+                background-color: var(--container-bg);
+                padding: 1.5rem;
+                border-bottom-left-radius: var(--border-radius-md);
+                border-bottom-right-radius: var(--border-radius-md);
+                transition: background-color var(--transition-duration-normal);
             }
             .tab-content {
                 display: none;
@@ -537,8 +716,6 @@
             .toggle-checkbox:checked + .toggle-label::before {
                 transform: translateX(22px) translateY(-50%);
             }
-
-            /* --- 組件：頁尾 --- */
             footer {
                 text-align: center;
                 margin-top: auto;
@@ -546,8 +723,6 @@
                 font-size: 0.9em;
                 color: var(--secondary-color);
             }
-
-            /* --- 組件：浮動操作按鈕 (FAB) --- */
             .fab {
                 position: fixed;
                 z-index: var(--z-index-fixed);
@@ -570,7 +745,6 @@
             :root[data-theme="dark"] .fab:hover {
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             }
-
             #themeToggleBtn {
                 top: 20px;
                 right: 20px;
@@ -607,8 +781,6 @@
                 border-bottom: 15px solid var(--primary-text-color);
                 margin-bottom: 4px;
             }
-
-            /* --- 組件：Toast 浮動提示 --- */
             #toast {
                 visibility: hidden;
                 opacity: 0;
@@ -631,8 +803,6 @@
                 visibility: visible;
                 opacity: 1;
             }
-
-            /* --- 響應式設計 --- */
             @media (max-width: 768px) {
                 body {
                     padding: 1rem;
@@ -679,34 +849,53 @@
                 <section class="card">
                     <h2>基礎控制項</h2>
                     <div class="card-content">
-                        <div class="form-group">
-                            <label>按鈕</label>
-                            <div class="button-group">
-                                <button
-                                    data-tooltip="點我開啟 Toast 提示訊息"
-                                    data-toast-message="這是一個 Toast 提示！"
-                                >
-                                    主要按鈕
-                                </button>
-                                <button
-                                    class="secondary"
-                                    data-modal-target="#infoModal"
-                                    data-tooltip="點我開啟互動視窗"
-                                >
-                                    次要按鈕
-                                </button>
-                                <button disabled>禁用按鈕</button>
-                            </div>
+                        <h3>按鈕 (Buttons)</h3>
+                        <div class="button-group">
+                            <button data-tooltip="點我開啟 Toast 提示訊息" data-toast-message="這是一個 Toast 提示！">
+                                主要按鈕
+                            </button>
+                            <button class="secondary" data-modal-target="#infoModal" data-tooltip="點我開啟互動視窗">
+                                次要按鈕
+                            </button>
+                            <button disabled>禁用按鈕</button>
                         </div>
-                        <div class="form-group">
-                            <label>選項</label>
-                            <div id="demoOptionGroup" class="option-group">
-                                <div class="option selected" data-value="opt1">選項一</div>
-                                <div class="option" data-value="opt2">選項二</div>
-                                <div class="option" data-value="opt3">選項三</div>
+
+                        <h3>選項 (Options)</h3>
+                        <div id="demoOptionGroup" class="option-group">
+                            <div class="option selected" data-value="opt1">選項一</div>
+                            <div class="option" data-value="opt2">選項二</div>
+                            <div class="option" data-value="opt3">選項三</div>
+                        </div>
+                        <div id="option1Hint" class="message-block hint-note">當「選項一」被選中時顯示此提示。</div>
+
+                        <h3>下拉式選單 (Dropdowns)</h3>
+                        <div class="button-group">
+                            <div class="dropdown">
+                                <button class="button dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+                                    <span>操作選單</span>
+                                    <span style="font-size: 0.8em">▼</span>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a href="#" class="dropdown-item">編輯</a>
+                                    <a href="#" class="dropdown-item">分享</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a href="#" class="dropdown-item" style="color: var(--error-color)">刪除</a>
+                                </div>
                             </div>
-                            <div id="option1Hint" class="message-block hint-note" style="display: block">
-                                當「選項一」被選中時顯示此提示。
+                            <div class="dropdown">
+                                <button
+                                    class="button secondary dropdown-toggle"
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                >
+                                    <span>使用者</span>
+                                    <span style="font-size: 0.8em">▼</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu--right">
+                                    <a href="#" class="dropdown-item">個人檔案</a>
+                                    <a href="#" class="dropdown-item">帳戶設定</a>
+                                    <a href="#" class="dropdown-item">登出</a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -716,35 +905,46 @@
                     <h2>進階控制項</h2>
                     <div class="card-content">
                         <h3>頁籤 (Tabs)</h3>
-                        <div class="tab-container">
-                            <div class="tab-nav" role="tablist">
-                                <button class="tab-btn active" role="tab" aria-selected="true" data-tab="tab1">
-                                    分頁 1
-                                </button>
-                                <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab2">分頁 2</button>
-                                <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab3">分頁 3</button>
-                            </div>
-                            <div class="tab-content-container">
-                                <div id="tab1" class="tab-content active" role="tabpanel">
-                                    <p>這裡是<strong>個人資料</strong>的內容。</p>
+                        <div class="tabs-wrapper">
+                            <div class="tab-container">
+                                <div class="tab-nav" role="tablist">
+                                    <button class="tab-btn active" role="tab" aria-selected="true" data-tab="tab1">
+                                        分頁 1
+                                    </button>
+                                    <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab2">
+                                        分頁 2
+                                    </button>
+                                    <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab3">
+                                        分頁 3
+                                    </button>
                                 </div>
-                                <div id="tab2" class="tab-content" role="tabpanel">
-                                    <p>這裡是<strong>帳戶設定</strong>的內容。</p>
-                                </div>
-                                <div id="tab3" class="tab-content" role="tabpanel">
-                                    <p>這裡是<strong>通知</strong>設定。</p>
-                                    <div class="toggle-container">
-                                        <label for="emailToggle">接收郵件通知：</label>
-                                        <div class="toggle-switch">
-                                            <input type="checkbox" id="emailToggle" class="toggle-checkbox" checked />
-                                            <label for="emailToggle" class="toggle-label"></label>
+                                <div class="tab-content-container">
+                                    <div id="tab1" class="tab-content active" role="tabpanel">
+                                        <p>這裡是<strong>個人資料</strong>的內容。</p>
+                                    </div>
+                                    <div id="tab2" class="tab-content" role="tabpanel">
+                                        <p>這裡是<strong>帳戶設定</strong>的內容。</p>
+                                    </div>
+                                    <div id="tab3" class="tab-content" role="tabpanel">
+                                        <p>這裡是<strong>通知</strong>設定。</p>
+                                        <div class="toggle-container">
+                                            <label for="emailToggle" style="margin-bottom: 0">接收郵件通知：</label>
+                                            <div class="toggle-switch">
+                                                <input
+                                                    type="checkbox"
+                                                    id="emailToggle"
+                                                    class="toggle-checkbox"
+                                                    checked
+                                                />
+                                                <label for="emailToggle" class="toggle-label"></label>
+                                            </div>
+                                            <span
+                                                id="emailToggleStatus"
+                                                class="message-block hint-note"
+                                                style="margin: 0; display: inline-block"
+                                                >開啟</span
+                                            >
                                         </div>
-                                        <span
-                                            id="emailToggleStatus"
-                                            class="message-block hint-note"
-                                            style="margin: 0; display: inline-block"
-                                            >開啟</span
-                                        >
                                     </div>
                                 </div>
                             </div>
@@ -773,31 +973,54 @@
                             </div>
                             <button id="progressBtn" style="margin-top: 1rem">模擬進度</button>
                         </div>
+
+                        <h3>載入指示器 (Spinners)</h3>
+                        <div class="button-group">
+                            <div class="spinner spinner--sm"></div>
+                            <div class="spinner"></div>
+                            <div class="spinner spinner--lg"></div>
+                            <button id="loadingBtnExample">
+                                <span class="btn-text">點我載入</span>
+                                <span class="spinner spinner--sm"></span>
+                            </button>
+                        </div>
                     </div>
                 </section>
 
                 <section class="card">
                     <h2>表單輸入</h2>
                     <div class="card-content">
-                        <div class="form-group">
-                            <label for="sampleInput">文字輸入框</label>
-                            <input type="text" id="sampleInput" placeholder="請在此輸入文字..." />
-                        </div>
-                        <div class="form-group">
-                            <label for="sampleTextarea">文字方塊</label>
-                            <textarea id="sampleTextarea" placeholder="支援多行輸入..."></textarea>
-                        </div>
+                        <h3>文字輸入框 (Text Input)</h3>
+                        <input type="text" id="sampleInput" placeholder="請在此輸入文字..." style="margin-top: 1rem" />
+
+                        <h3>文字方塊 (Textarea)</h3>
+                        <textarea id="sampleTextarea" placeholder="支援多行輸入..." style="margin-top: 1rem"></textarea>
                     </div>
                 </section>
 
                 <section class="card">
                     <h2>訊息回饋</h2>
                     <div class="card-content">
-                        <div class="form-group">
-                            <label>訊息回饋提示</label>
-                            <div class="message-block output-box info">💡 這是一般通知性的訊息。</div>
-                            <div class="message-block output-box success">✅ 這是一條成功的訊息。</div>
-                            <div class="message-block output-box error">❌ 這是一條錯誤的訊息。</div>
+                        <h3>輸出樣式 (Output Box)</h3>
+                        <div class="message-block output-box info">💡 這是一般通知性的訊息。</div>
+                        <div class="message-block output-box success">✅ 這是一條成功的訊息。</div>
+                        <div class="message-block output-box error">❌ 這是一條錯誤的訊息。</div>
+
+                        <h3>警告提示框 (Alerts)</h3>
+                        <div class="alert alert--info" role="alert">
+                            <span class="alert-icon">💡</span>
+                            <p class="alert-message">這是一條一般資訊的提示框，用於補充說明。</p>
+                            <button class="alert-close-btn" aria-label="關閉提示">&times;</button>
+                        </div>
+                        <div class="alert alert--warning" role="alert">
+                            <span class="alert-icon">⚠️</span>
+                            <p class="alert-message">請注意！您的密碼將在 5 天後過期。</p>
+                            <button class="alert-close-btn" aria-label="關閉提示">&times;</button>
+                        </div>
+                        <div class="alert alert--danger" role="alert">
+                            <span class="alert-icon">❌</span>
+                            <p class="alert-message">存檔失敗！無法連接到伺服器。</p>
+                            <button class="alert-close-btn" aria-label="關閉提示">&times;</button>
                         </div>
                     </div>
                 </section>
@@ -838,25 +1061,55 @@
                         optionGroup: document.getElementById("demoOptionGroup"),
                         option1Hint: document.getElementById("option1Hint"),
                         scrollTopBtn: document.getElementById("scroll-to-top"),
+                        loadingBtnExample: document.getElementById("loadingBtnExample"),
                     },
-                    state: { toastimer: null, progress: 0 },
+                    state: {
+                        toastimer: null,
+                        progress: 0,
+                    },
 
                     init() {
                         this.elements.currentYear.textContent = new Date().getFullYear();
                         this.theme.init();
                         this.setupEventListeners();
-                        this.updateOptionStatus();
+                        this.updateOptionStatus(); // 確保頁面載入時執行一次
                     },
 
                     setupEventListeners() {
                         this.elements.themeToggleBtn.addEventListener("click", () => this.theme.toggle());
+
+                        // --- 全域點擊事件委派 ---
                         document.body.addEventListener("click", (e) => {
-                            const toastTrigger = e.target.closest("[data-toast-message]");
+                            const target = e.target;
+
+                            // Toast 觸發
+                            const toastTrigger = target.closest("[data-toast-message]");
                             if (toastTrigger) this.toast.show(toastTrigger.dataset.toastMessage);
 
-                            const modalTrigger = e.target.closest("[data-modal-target]");
+                            // Modal 觸發
+                            const modalTrigger = target.closest("[data-modal-target]");
                             if (modalTrigger) this.modal.open(document.querySelector(modalTrigger.dataset.modalTarget));
+
+                            // Alert 關閉按鈕
+                            const alertCloseBtn = target.closest(".alert-close-btn");
+                            if (alertCloseBtn) {
+                                alertCloseBtn.parentElement.classList.add("is-hidden");
+                            }
+
+                            // Dropdown 點擊邏輯
+                            const dropdownToggle = target.closest(".dropdown-toggle");
+                            if (dropdownToggle) {
+                                const dropdown = dropdownToggle.closest(".dropdown");
+                                this.dropdown.toggle(dropdown);
+                            } else {
+                                const activeDropdown = document.querySelector(".dropdown.is-active");
+                                if (activeDropdown && !activeDropdown.contains(target)) {
+                                    this.dropdown.close(activeDropdown);
+                                }
+                            }
                         });
+
+                        // --- 特定元素事件監聽 ---
                         this.elements.modals.forEach((modal) =>
                             modal.addEventListener("click", (e) => {
                                 if (e.target === modal || e.target.closest(".modal-close-btn")) this.modal.close(modal);
@@ -866,6 +1119,8 @@
                             if (e.key === "Escape") {
                                 const activeModal = document.querySelector(".modal.active");
                                 if (activeModal) this.modal.close(activeModal);
+                                const activeDropdown = document.querySelector(".dropdown.is-active");
+                                if (activeDropdown) this.dropdown.close(activeDropdown);
                             }
                         });
                         if (this.elements.accordionContainer) {
@@ -876,6 +1131,7 @@
                         }
                         if (this.elements.progressBtn)
                             this.elements.progressBtn.addEventListener("click", () => this.progressBar.simulate());
+
                         this.elements.tabContainers.forEach((c) =>
                             c.addEventListener("click", (e) => {
                                 const t = e.target.closest(".tab-btn");
@@ -890,6 +1146,7 @@
                                 if (statusEl) statusEl.textContent = e.target.checked ? "開啟" : "關閉";
                             });
 
+                        // [修正3] 選項 (Options) 事件監聽
                         if (this.elements.optionGroup) {
                             this.elements.optionGroup.addEventListener("click", (e) => {
                                 const option = e.target.closest(".option");
@@ -912,11 +1169,24 @@
                                 }
                             });
                             this.elements.scrollTopBtn.addEventListener("click", () => {
-                                window.scrollTo({ top: 0, behavior: "smooth" });
+                                window.scrollTo({
+                                    top: 0,
+                                    behavior: "smooth",
+                                });
+                            });
+                        }
+                        if (this.elements.loadingBtnExample) {
+                            this.elements.loadingBtnExample.addEventListener("click", (e) => {
+                                const btn = e.currentTarget;
+                                btn.classList.add("is-loading");
+                                btn.disabled = true;
+                                setTimeout(() => {
+                                    btn.classList.remove("is-loading");
+                                    btn.disabled = false;
+                                }, 2000);
                             });
                         }
                     },
-
                     theme: {
                         init() {
                             const t = localStorage.getItem("my-app-theme") || "dark";
@@ -939,7 +1209,7 @@
                             app.elements.toast.className = "show";
                             app.state.toastTimer = setTimeout(() => {
                                 app.elements.toast.className = "";
-                                app.state.toastTimer = null;
+                                app.state.toastimer = null;
                             }, 3000);
                         },
                     },
@@ -977,24 +1247,47 @@
                     tabs: {
                         activate(c, t) {
                             const i = t.dataset.tab;
+                            const contentContainer = c.querySelector(".tab-content-container");
                             c.querySelectorAll(".tab-btn").forEach((b) => {
                                 b.classList.remove("active");
                                 b.setAttribute("aria-selected", "false");
                             });
-                            c.querySelectorAll(".tab-content").forEach((p) => p.classList.remove("active"));
+                            if (contentContainer) {
+                                contentContainer
+                                    .querySelectorAll(".tab-content")
+                                    .forEach((p) => p.classList.remove("active"));
+                                const newActiveContent = contentContainer.querySelector(`#${i}`);
+                                if (newActiveContent) newActiveContent.classList.add("active");
+                            }
                             t.classList.add("active");
                             t.setAttribute("aria-selected", "true");
-                            c.querySelector(`#${i}`).classList.add("active");
                         },
                     },
                     updateOptionStatus() {
-                        if (this.elements.optionGroup) {
+                        if (this.elements.optionGroup && this.elements.option1Hint) {
                             const selected = this.elements.optionGroup.querySelector(".option.selected");
-                            if (selected && this.elements.option1Hint) {
+                            if (selected) {
                                 this.elements.option1Hint.style.display =
                                     selected.dataset.value === "opt1" ? "block" : "none";
                             }
                         }
+                    },
+                    dropdown: {
+                        toggle(dropdown) {
+                            const isActive = dropdown.classList.contains("is-active");
+                            document.querySelectorAll(".dropdown.is-active").forEach((d) => this.close(d));
+                            if (!isActive) {
+                                this.open(dropdown);
+                            }
+                        },
+                        open(dropdown) {
+                            dropdown.classList.add("is-active");
+                            dropdown.querySelector(".dropdown-toggle").setAttribute("aria-expanded", "true");
+                        },
+                        close(dropdown) {
+                            dropdown.classList.remove("is-active");
+                            dropdown.querySelector(".dropdown-toggle").setAttribute("aria-expanded", "false");
+                        },
                     },
                 };
 

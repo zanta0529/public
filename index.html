@@ -6,39 +6,76 @@
         <title>Zanta's Toolbox</title>
         <style>
             :root {
-                /* Palette */
-                --primary-color: #f59e0b;
-                --primary-hover-color: #d97706;
+                /* Palette - 沉穩藍靛色系 */
+                --primary-color: #4f46e5;
+                --primary-hover-color: #6366f1;
+                --primary-text-color: #ffffff;
                 --secondary-color: #6b7280;
                 --secondary-hover-color: #4b5563;
+                --secondary-text-color: #ffffff;
+                /* Status Colors */
+                --success-color: #059669;
+                --success-bg: #d1fae5;
+                --error-color: #dc2626;
+                --error-bg: #fee2e2;
+                --info-color: #0891b2;
+                --info-bg: #cffafe;
+                --note-color: #92400e;
+                --note-bg: #fefce8;
+                --warning-color: #9a3412;
+                --warning-bg: #ffedd5;
                 /* UI Elements */
-                --section-header-bg: #f3f4f6;
-                --bg-color: #f9fafb;
+                --section-header-bg: #f8fafc;
+                --bg-color: #f1f5f9;
                 --container-bg: #ffffff;
                 --text-color: #1f2937;
                 --border-color: #e5e7eb;
-                --input-bg: #ffffff;
-                --input-focus-shadow: rgba(245, 158, 11, 0.25);
+                --input-bg: #f8fafc;
+                --input-focus-shadow: rgba(79, 70, 229, 0.25);
+                --button-disabled-bg: #d1d5db;
+                --button-disabled-text-color: #9ca3af;
                 --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                /* 設計規範變數 */
+                --border-radius-sm: 5px;
+                --border-radius-md: 12px;
+                --border-radius-full: 50%;
+                --transition-duration-fast: 0.2s;
+                --transition-duration-normal: 0.3s;
+                --transition-duration-slow: 0.4s;
+                --z-index-content: 10;
+                --z-index-dropdown: 20;
+                --z-index-fixed: 1000;
+                --z-index-modal: 1010;
+                --z-index-toast: 1020;
             }
             :root[data-theme="dark"] {
-                /* Palette */
-                --primary-color: #f59e0b;
-                --primary-hover-color: #fbbf24;
+                /* Palette & Status Colors */
+                --primary-color: #6366f1;
+                --primary-hover-color: #818cf8;
+                --primary-text-color: #ffffff;
                 --secondary-color: #9ca3af;
                 --secondary-hover-color: #d1d5db;
+                --secondary-text-color: #1e293b;
+                --warning-color: #fb923c;
+                --warning-bg: #7c2d12;
                 /* UI Elements */
-                --section-header-bg: rgba(255, 255, 255, 0.05);
-                --bg-color: #111827;
-                --container-bg: #1f2937;
+                --section-header-bg: #293548;
+                --bg-color: #1e293b;
+                --container-bg: #334155;
                 --text-color: #d1d5db;
-                --border-color: #374151;
-                --input-bg: #374151;
-                --input-focus-shadow: rgba(245, 158, 11, 0.3);
-                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                --border-color: #475569;
+                --input-bg: #293548;
+                --input-focus-shadow: rgba(99, 102, 241, 0.3);
+                --button-disabled-bg: #293548;
+                --button-disabled-text-color: #64748b;
+                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
             }
-
             /* --- 基礎 & 佈局樣式 --- */
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+            }
             body {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                 margin: 0;
@@ -50,21 +87,30 @@
                 flex-direction: column;
                 align-items: center;
                 min-height: 100vh;
-                box-sizing: border-box;
-                transition: background-color 0.3s, color 0.3s;
+                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal);
             }
-
             .container {
                 width: 100%;
                 max-width: 900px;
                 margin-bottom: 2rem;
             }
-
             h1 {
                 text-align: center;
                 margin-top: 0;
                 margin-bottom: 1.5rem;
                 color: var(--text-color);
+            }
+
+            /* --- 可訪問性：統一的視覺焦點 --- */
+            a:focus-visible,
+            button:focus-visible,
+            .option:focus-visible {
+                outline: 2px solid var(--primary-color);
+                outline-offset: 2px;
+                box-shadow: 0 0 0 4px var(--input-focus-shadow);
+            }
+            input[type="text"]:focus {
+                outline: none;
             }
 
             /* --- 搜尋區塊樣式 --- */
@@ -75,15 +121,14 @@
                 width: 100%;
                 padding: 0.85rem 1.2rem;
                 font-size: 1.1em;
-                border-radius: 8px;
+                border-radius: var(--border-radius-md);
                 border: 1px solid var(--border-color);
                 background-color: var(--input-bg);
                 color: var(--text-color);
-                transition: border-color 0.3s, box-shadow 0.3s;
-                box-sizing: border-box;
+                transition: border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal),
+                    background-color var(--transition-duration-normal);
             }
             #searchInput:focus {
-                outline: none;
                 border-color: var(--primary-color);
                 box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
             }
@@ -94,49 +139,53 @@
                 font-size: 1.2em;
                 background-color: var(--container-bg);
                 border: 1px solid var(--border-color);
-                border-radius: 12px;
+                border-radius: var(--border-radius-md);
             }
 
             /* --- 卡片式分類樣式 --- */
             .card {
                 margin-bottom: 2rem;
                 border: 1px solid var(--border-color);
-                border-radius: 12px;
+                border-radius: var(--border-radius-md);
                 background-color: var(--container-bg);
                 box-shadow: var(--box-shadow);
-                transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s, opacity 0.4s ease;
-                overflow: hidden; /* 確保子元素的圓角裁切正確 */
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal),
+                    opacity 0.4s ease;
+                overflow: hidden;
             }
-
-            /* --- 更新：卡片標題樣式，使其更突出 --- */
             .card > h2 {
                 padding: 0.85rem 1.5rem;
                 margin: 0;
-                font-size: 1.3em; /* 略微增大字體 */
-                font-weight: 700; /* 加粗字體 */
-                color: #422006; /* 深色文字以搭配亮色背景 */
-                background-color: var(--primary-color); /* 使用主題主色 */
-                border-bottom: 1px solid var(--primary-hover-color); /* 使用較深的主題色作為邊框 */
-                letter-spacing: 0.5px; /* 增加字元間距 */
-                transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+                font-size: 1.25em;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                color: var(--primary-text-color);
+                background-color: var(--primary-color);
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), color var(--transition-duration-normal);
             }
-
+            :root[data-theme="dark"] .card > h2 {
+                border-bottom-color: rgba(255, 255, 255, 0.1);
+            }
             .card-content {
                 padding: 1.5rem;
             }
-
-            /* --- 選項列表樣式 --- */
             .option-group {
                 display: flex;
                 flex-direction: column;
                 gap: 1rem;
             }
             .option {
+                display: block;
                 padding: 1rem 1.5rem;
                 border: 1px solid var(--border-color);
-                border-radius: 8px;
+                border-radius: var(--border-radius-sm);
                 cursor: pointer;
-                transition: background-color 0.3s, border-color 0.3s, color 0.3s, transform 0.2s, display 0.4s ease;
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), color var(--transition-duration-normal),
+                    transform var(--transition-duration-fast);
                 text-align: left;
                 font-size: 1.1em;
                 font-weight: 500;
@@ -145,16 +194,14 @@
             }
             .option:hover {
                 border-color: var(--primary-color);
-                background-color: var(--section-header-bg);
+                background-color: rgba(79, 70, 229, 0.1);
                 transform: scale(1.02);
             }
-            /* 當深色模式時，選項懸停時使用不同的顏色組合 */
             :root[data-theme="dark"] .option:hover {
-                background-color: var(--primary-color);
-                color: #422006;
+                background-color: rgba(99, 102, 241, 0.5);
             }
 
-            /* --- 頁尾 & 主題切換按鈕 --- */
+            /* --- 頁尾 & 浮動按鈕 --- */
             footer {
                 text-align: center;
                 margin-top: auto;
@@ -162,20 +209,65 @@
                 font-size: 0.9em;
                 color: var(--secondary-color);
             }
-            #themeToggleBtn {
-                background: none;
+            .fab {
+                position: fixed;
+                z-index: var(--z-index-fixed);
+                width: 50px;
+                height: 50px;
+                background-color: var(--container-bg);
                 border: 1px solid var(--border-color);
-                color: var(--text-color);
-                padding: 5px 10px;
-                border-radius: 5px;
+                border-radius: var(--border-radius-full);
                 cursor: pointer;
-                font-size: 1.2em;
-                margin-left: 10px;
-                vertical-align: middle;
-                transition: 0.3s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: var(--box-shadow);
+                transition: all var(--transition-duration-normal) ease;
             }
-            #themeToggleBtn:hover {
-                background-color: var(--border-color);
+            .fab:hover {
+                transform: translateY(-2px) scale(1.05);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+            :root[data-theme="dark"] .fab:hover {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+            #themeToggleBtn {
+                top: 20px;
+                right: 20px;
+                color: var(--text-color);
+                font-size: 1.5em;
+            }
+
+            /* [新增] 回到頂端按鈕樣式 */
+            #scroll-to-top {
+                right: 20px;
+                bottom: 20px;
+                background-color: var(--primary-color);
+                border: none;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(20px);
+                transition: opacity var(--transition-duration-normal) ease,
+                    visibility var(--transition-duration-normal) ease, transform var(--transition-duration-normal) ease,
+                    background-color var(--transition-duration-normal) ease;
+            }
+            #scroll-to-top:hover {
+                background-color: var(--primary-hover-color);
+                transform: translateY(-2px) scale(1.05);
+            }
+            #scroll-to-top.active {
+                opacity: 0.9;
+                visibility: visible;
+                transform: translateY(0);
+            }
+            #scroll-to-top::after {
+                content: "";
+                width: 0;
+                height: 0;
+                border-left: 10px solid transparent;
+                border-right: 10px solid transparent;
+                border-bottom: 12px solid var(--primary-text-color);
+                margin-bottom: 4px;
             }
 
             /* --- 響應式設計 --- */
@@ -192,6 +284,19 @@
                 .card > h2 {
                     padding: 0.75rem 1rem;
                 }
+                .fab {
+                    width: 44px;
+                    height: 44px;
+                }
+                #themeToggleBtn {
+                    top: 15px;
+                    right: 15px;
+                    font-size: 1.3em;
+                }
+                #scroll-to-top {
+                    right: 15px;
+                    bottom: 15px;
+                }
             }
         </style>
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-4KG6DFWZEM"></script>
@@ -205,6 +310,8 @@
         </script>
     </head>
     <body>
+        <button id="themeToggleBtn" class="fab" title="切換主題">🌙</button>
+
         <div class="container">
             <header>
                 <h1>Zanta's Toolbox</h1>
@@ -224,11 +331,10 @@
         </div>
 
         <footer>
-            <p>
-                &copy; <span id="currentYear"></span> Zanta's Utilities
-                <button id="themeToggleBtn" title="切換主題">🌙</button>
-            </p>
+            <p>&copy; <span id="currentYear"></span> Zanta's Utilities</p>
         </footer>
+
+        <button id="scroll-to-top" class="fab" title="回到頂端"></button>
 
         <script>
             const categorizedTools = [
@@ -254,9 +360,7 @@
                 },
                 {
                     category: "綜合應用",
-                    tools: [
-                        { uri: "travel/index.html", display: "旅遊小幫手" },
-                    ],
+                    tools: [{ uri: "travel/index.html", display: "旅遊小幫手" }],
                 },
                 {
                     category: "觀念說明",
@@ -268,27 +372,22 @@
             ];
 
             document.addEventListener("DOMContentLoaded", () => {
-                // --- DOM 元素 ---
                 const themeToggleBtn = document.getElementById("themeToggleBtn");
                 const currentYear = document.getElementById("currentYear");
                 const toolboxContainer = document.getElementById("toolboxContainer");
                 const searchInput = document.getElementById("searchInput");
                 const noResultsMessage = document.getElementById("noResultsMessage");
+                const scrollTopBtn = document.getElementById("scroll-to-top"); // [新增]
 
-                // --- 核心功能 ---
-
-                // 應用主題
                 function applyTheme(theme) {
                     document.documentElement.setAttribute("data-theme", theme);
                     themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
                     localStorage.setItem("my-toolbox-theme", theme);
                 }
 
-                // 新增：渲染整個工具箱
                 function renderToolbox(data) {
-                    toolboxContainer.innerHTML = ""; // 清空容器
+                    toolboxContainer.innerHTML = "";
                     data.forEach((categoryData) => {
-                        // 創建卡片結構
                         const card = document.createElement("section");
                         card.className = "card";
 
@@ -302,7 +401,6 @@
                         const optionGroup = document.createElement("div");
                         optionGroup.className = "option-group";
 
-                        // 創建工具選項
                         categoryData.tools.forEach((tool) => {
                             const optionElement = document.createElement("div");
                             optionElement.className = "option";
@@ -317,44 +415,47 @@
                     });
                 }
 
-                // 新增：處理搜尋過濾
                 function handleSearch() {
                     const searchTerm = searchInput.value.toLowerCase().trim();
-                    let totalResults = 0;
+                    let foundInCategory = false;
 
-                    const cards = toolboxContainer.querySelectorAll(".card");
+                    categorizedTools.forEach((categoryData, categoryIndex) => {
+                        const card = toolboxContainer.children[categoryIndex];
+                        if (!card) return;
 
-                    cards.forEach((card) => {
+                        let visibleTools = 0;
                         const options = card.querySelectorAll(".option");
-                        let categoryHasVisibleTools = false;
 
-                        options.forEach((option) => {
-                            const optionText = option.textContent.toLowerCase();
-                            const matches = optionText.includes(searchTerm);
-                            option.style.display = matches ? "block" : "none";
-                            if (matches) {
-                                categoryHasVisibleTools = true;
+                        categoryData.tools.forEach((tool, toolIndex) => {
+                            const optionElement = options[toolIndex];
+                            const toolText = tool.display.toLowerCase();
+                            const match = toolText.includes(searchTerm);
+
+                            if (optionElement) {
+                                optionElement.style.display = match ? "block" : "none";
+                                if (match) {
+                                    visibleTools++;
+                                }
                             }
                         });
 
-                        card.style.display = categoryHasVisibleTools ? "block" : "none";
-                        if (categoryHasVisibleTools) {
-                            totalResults++;
+                        if (visibleTools > 0) {
+                            card.style.display = "block";
+                            foundInCategory = true;
+                        } else {
+                            card.style.display = "none";
                         }
                     });
 
-                    noResultsMessage.style.display = totalResults === 0 && searchTerm !== "" ? "block" : "none";
+                    noResultsMessage.style.display = !foundInCategory && searchTerm !== "" ? "block" : "none";
                 }
 
-                // --- 事件監聽器 ---
-
-                // 主題切換按鈕
+                // --- 事件監聽 ---
                 themeToggleBtn.addEventListener("click", () => {
                     const newTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
                     applyTheme(newTheme);
                 });
 
-                // 工具選項點擊事件 (事件委派)
                 toolboxContainer.addEventListener("click", (e) => {
                     const selectedOption = e.target.closest(".option");
                     if (selectedOption && selectedOption.dataset.link) {
@@ -362,13 +463,27 @@
                     }
                 });
 
-                // 搜尋框輸入事件
                 searchInput.addEventListener("input", handleSearch);
+
+                // [新增] 回到頂端按鈕功能
+                if (scrollTopBtn) {
+                    window.addEventListener("scroll", () => {
+                        if (window.scrollY > 300) {
+                            scrollTopBtn.classList.add("active");
+                        } else {
+                            scrollTopBtn.classList.remove("active");
+                        }
+                    });
+
+                    scrollTopBtn.addEventListener("click", () => {
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                    });
+                }
 
                 // --- 初始化 ---
                 currentYear.textContent = new Date().getFullYear();
                 applyTheme(localStorage.getItem("my-toolbox-theme") || "dark");
-                renderToolbox(categorizedTools); // 產生卡片式工具列表
+                renderToolbox(categorizedTools);
             });
         </script>
     </body>
