@@ -103,7 +103,7 @@
             }
             body {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                font-size: 1.1em;
+                font-size: 1em;
                 margin: 0;
                 padding: 2rem;
                 background-color: var(--bg-color);
@@ -272,8 +272,15 @@
                 cursor: pointer;
                 transition: background-color var(--transition-duration-normal),
                     border-color var(--transition-duration-normal), color var(--transition-duration-normal);
-                flex-grow: 1;
                 text-align: center;
+                /* MODIFICATION: Make options equal width */
+                flex-grow: 1;
+                flex-basis: calc(50% - 5px); /* 10px gap / 2 = 5px */
+                max-width: calc(50% - 5px); /* Ensure it doesn't grow past 50% */
+                /* MODIFICATION: Vertically center text */
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }
             .option.selected {
                 background-color: var(--primary-color);
@@ -475,6 +482,7 @@
                 border-bottom: 15px solid var(--primary-text-color);
                 margin-bottom: 4px;
             }
+            /* --- MODIFICATION: Mobile Enhancements --- */
             @media (max-width: 768px) {
                 body {
                     padding: 1rem;
@@ -485,6 +493,10 @@
                 .button-group {
                     flex-direction: column;
                     align-items: stretch;
+                }
+                /* Make secondary buttons full-width for consistency */
+                .button-group button.secondary {
+                    max-width: none;
                 }
                 .card-content {
                     padding: 1rem;
@@ -501,9 +513,10 @@
                     right: 15px;
                     font-size: 1.3em;
                 }
+                /* Adjust FAB position for better UX on mobile */
                 #scroll-to-top {
-                    right: 15px;
-                    bottom: 15px;
+                    right: 20px;
+                    bottom: 20px;
                 }
             }
         </style>
