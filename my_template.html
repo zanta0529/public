@@ -858,6 +858,13 @@
                     flex-direction: column;
                     align-items: stretch;
                 }
+                /* 針對行動裝置上，按鈕群組中的下拉選單進行優化 */
+                .button-group .dropdown {
+                    flex-grow: 1; /* 讓 dropdown 的容器自動填滿剩餘空間 */
+                }
+                .button-group .dropdown .dropdown-toggle {
+                    width: 100%; /* 讓下拉選單的按鈕填滿其父層容器 */
+                }
                 .card-content {
                     padding: 1rem;
                 }
