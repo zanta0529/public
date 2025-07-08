@@ -17,8 +17,10 @@
                 /* Status Colors */
                 --success-color: #059669;
                 --success-bg: #d1fae5;
+                --success-color-rgb: 5, 150, 105;
                 --error-color: #dc2626;
                 --error-bg: #fee2e2;
+                --error-color-rgb: 220, 38, 38;
                 --info-color: #0891b2;
                 --info-bg: #cffafe;
                 --note-color: #92400e;
@@ -64,8 +66,10 @@
                 --secondary-text-color: #1e293b;
                 --success-color: #6ee7b7;
                 --success-bg: #064e3b;
+                --success-color-rgb: 110, 231, 183;
                 --error-color: #f87171;
                 --error-bg: #7f1d1d;
+                --error-color-rgb: 248, 113, 113;
                 --info-color: #67e8f9;
                 --info-bg: #164e63;
                 --note-color: #fde047;
@@ -124,6 +128,12 @@
                 margin-top: 2rem;
                 margin-bottom: 0.5rem;
                 font-weight: 600;
+            }
+            h1,
+            h2,
+            h3,
+            h4 {
+                word-break: break-word;
             }
             section {
                 margin-bottom: 2.5rem;
@@ -199,8 +209,8 @@
                 outline-offset: 2px;
                 box-shadow: 0 0 0 4px var(--input-focus-shadow);
             }
-            input[type="text"]:focus,
-            textarea:focus {
+            input:focus-visible,
+            textarea:focus-visible {
                 outline: none;
             }
             /* --- 組件：按鈕 --- */
@@ -437,7 +447,7 @@
                 border: 1px solid var(--border-color);
                 border-radius: var(--border-radius-sm);
                 font-family: inherit; /* 與頁面字體一致 */
-                font-size: 1em; /* 與頁面字體大小一致 */
+                font-size: inherit; /* 與頁面字體大小一致 */
                 background-color: var(--input-bg);
                 color: var(--text-color);
                 transition: border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal),
@@ -452,6 +462,37 @@
                 min-height: 120px;
                 resize: vertical;
             }
+            /* [新增] 輸入框禁用狀態 */
+            input:disabled,
+            textarea:disabled {
+                background-color: var(--border-color);
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+            :root[data-theme="dark"] input:disabled,
+            :root[data-theme="dark"] textarea:disabled {
+                background-color: var(--input-bg);
+            }
+            /* [新增] 輸入框驗證狀態 */
+            input.is-success,
+            textarea.is-success {
+                border-color: var(--success-color);
+            }
+            input.is-success:focus,
+            textarea.is-success:focus {
+                border-color: var(--success-color);
+                box-shadow: 0 0 0 0.2rem rgba(var(--success-color-rgb), 0.25);
+            }
+            input.is-error,
+            textarea.is-error {
+                border-color: var(--error-color);
+            }
+            input.is-error:focus,
+            textarea.is-error:focus {
+                border-color: var(--error-color);
+                box-shadow: 0 0 0 0.2rem rgba(var(--error-color-rgb), 0.25);
+            }
+
             .option-group {
                 display: flex;
                 flex-wrap: wrap;
@@ -806,6 +847,7 @@
             }
             @media (max-width: 768px) {
                 body {
+                    font-size: 1em;
                     padding: 1rem;
                 }
                 .container {
@@ -996,6 +1038,12 @@
 
                         <h3>文字方塊 (Textarea)</h3>
                         <textarea id="sampleTextarea" placeholder="支援多行輸入..." style="margin-top: 1rem"></textarea>
+
+                        <h3 style="margin-top: 2rem">輸入框狀態 (Input States)</h3>
+                        <input type="text" class="is-success" value="成功狀態" style="margin-top: 1rem" />
+                        <input type="text" class="is-error" value="錯誤狀態" style="margin-top: 1rem" />
+                        <input type="text" value="禁用狀態" disabled style="margin-top: 1rem" />
+                        <textarea disabled style="margin-top: 1rem">這是禁用的文字方塊...</textarea>
                     </div>
                 </section>
 
