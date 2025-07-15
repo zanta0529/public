@@ -1,5 +1,5 @@
 @echo off
-rem setlocal
+setlocal
 node update-git.js
-rem endlocal
+endlocal
 pause
