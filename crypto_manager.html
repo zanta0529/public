@@ -12,6 +12,16 @@
 
         <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.7/base64.min.js"></script>
+        <script
+            src="https://cdn.jsdelivr.net/npm/argon2-browser@1.18.0/dist/argon2-bundled.min.js"
+            onerror="this.remove(); document.getElementById('backup-argon2-script').style.display='block';"
+        ></script>
+        <script
+            id="backup-argon2-script"
+            style="display: none"
+            src="https://unpkg.com/argon2-browser@1.18.0/dist/argon2-bundled.min.js"
+        ></script>
+
         <style>
             /* --- CSS 變數定義 (淺色 & 深色主題) --- */
             :root {
@@ -221,6 +231,7 @@
             /* --- 表單元素 --- */
             input[type="text"],
             input[type="password"],
+            input[type="number"],
             textarea {
                 width: 100%;
                 padding: 0.75rem;
@@ -235,6 +246,7 @@
             }
             input[type="text"]:focus,
             input[type="password"]:focus,
+            input[type="number"]:focus,
             textarea:focus {
                 outline: none;
                 border-color: var(--primary-color);
@@ -273,11 +285,9 @@
                 transition: background-color var(--transition-duration-normal),
                     border-color var(--transition-duration-normal), color var(--transition-duration-normal);
                 text-align: center;
-                /* MODIFICATION: Make options equal width */
                 flex-grow: 1;
                 flex-basis: calc(50% - 5px); /* 10px gap / 2 = 5px */
-                max-width: calc(50% - 5px); /* Ensure it doesn't grow past 50% */
-                /* MODIFICATION: Vertically center text */
+                max-width: calc(50% - 5px);
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -482,7 +492,31 @@
                 border-bottom: 15px solid var(--primary-text-color);
                 margin-bottom: 4px;
             }
-            /* --- MODIFICATION: Mobile Enhancements --- */
+
+            /* Argon2 參數區塊 */
+            #argon2-params-section {
+                padding: 1.25rem;
+                background-color: var(--section-header-bg);
+                border-radius: var(--border-radius-sm);
+                margin-top: -0.5rem; /* 微調與上方選項的間距 */
+                margin-bottom: 1.5rem;
+                border: 1px solid var(--border-color);
+            }
+            #argon2-params-section .form-group {
+                margin-bottom: 1rem;
+            }
+            #argon2-params-section .form-group:last-child {
+                margin-bottom: 0;
+            }
+            #argon2-params-section label {
+                font-size: 0.9em;
+            }
+            #argon2-params-section .param-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+
             @media (max-width: 768px) {
                 body {
                     padding: 1rem;
@@ -494,7 +528,6 @@
                     flex-direction: column;
                     align-items: stretch;
                 }
-                /* Make secondary buttons full-width for consistency */
                 .button-group button.secondary {
                     max-width: none;
                 }
@@ -513,7 +546,6 @@
                     right: 15px;
                     font-size: 1.3em;
                 }
-                /* Adjust FAB position for better UX on mobile */
                 #scroll-to-top {
                     right: 20px;
                     bottom: 20px;
@@ -557,10 +589,34 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="passphrase-encrypt">密碼短語 (Passphrase)</label>
-                                    <div class="message-block hint-note">
-                                        ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。
+                                    <label>密鑰衍生演算法 (KDF)</label>
+                                    <div id="kdfSelectionGroup" class="option-group">
+                                        <div class="option selected" data-value="Argon2id">Argon2id</div>
+                                        <div class="option" data-value="PBKDF2">PBKDF2</div>
                                     </div>
+                                </div>
+                                <div id="argon2-params-section" hidden>
+                                    <div class="message-block hint-note" style="margin-top: 0; margin-bottom: 1rem">
+                                        ℹ️ Argon2
+                                        參數會影響效能與安全性。記憶體越大、迭代次數越多，安全性越高但速度越慢。
+                                    </div>
+                                    <div class="param-grid">
+                                        <div class="form-group">
+                                            <label for="argon2-memory">記憶體 (MB)</label>
+                                            <input type="number" id="argon2-memory" value="128" min="32" step="16" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="argon2-iterations">迭代次數</label>
+                                            <input type="number" id="argon2-iterations" value="4" min="2" step="1" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="argon2-parallelism">平行度</label>
+                                            <input type="number" id="argon2-parallelism" value="4" min="4" step="1" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="passphrase-encrypt">密碼短語 (Passphrase)</label>
                                     <div class="password-wrapper">
                                         <input id="passphrase-encrypt" type="password" placeholder="輸入密碼短語" />
                                         <span
@@ -587,9 +643,6 @@
                                 <div id="params-display-area" hidden></div>
                                 <div class="form-group">
                                     <label for="passphrase-decrypt">密碼短語 (Passphrase)</label>
-                                    <div class="message-block hint-note">
-                                        ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。
-                                    </div>
                                     <div class="password-wrapper">
                                         <input
                                             id="passphrase-decrypt"
@@ -620,9 +673,6 @@
                                 <div id="file-encrypt-info" class="file-info" hidden></div>
                                 <div class="form-group" style="margin-top: 1rem">
                                     <label for="passphrase-file-encrypt">密碼短語 (Passphrase)</label>
-                                    <div class="message-block hint-note">
-                                        ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。
-                                    </div>
                                     <div class="password-wrapper">
                                         <input
                                             id="passphrase-file-encrypt"
@@ -648,9 +698,6 @@
                                 <div id="file-decrypt-info" class="file-info" hidden></div>
                                 <div class="form-group" style="margin-top: 1rem">
                                     <label for="passphrase-file-decrypt">密碼短語 (Passphrase)</label>
-                                    <div class="message-block hint-note">
-                                        ℹ️ 用來衍生複雜密碼，非直接用來加密或解密。
-                                    </div>
                                     <div class="password-wrapper">
                                         <input
                                             id="passphrase-file-decrypt"
@@ -738,6 +785,11 @@
                         passphraseEncrypt: document.getElementById("passphrase-encrypt"),
                         passphraseDecrypt: document.getElementById("passphrase-decrypt"),
                         algoSelectionGroup: document.getElementById("algoSelectionGroup"),
+                        kdfSelectionGroup: document.getElementById("kdfSelectionGroup"), // New
+                        argon2ParamsSection: document.getElementById("argon2-params-section"), // New
+                        argon2Memory: document.getElementById("argon2-memory"), // New
+                        argon2Iterations: document.getElementById("argon2-iterations"), // New
+                        argon2Parallelism: document.getElementById("argon2-parallelism"), // New
                         encryptBtn: document.getElementById("encryptBtn"),
                         decryptBtn: document.getElementById("decryptBtn"),
                         parseBtn: document.getElementById("parseBtn"),
@@ -775,6 +827,7 @@
                         currentAppMode: "text",
                         currentMode: "encrypt",
                         selectedAlgorithm: "AES-GCM",
+                        selectedKDF: "Argon2id", // New state
                         toastTimer: null,
                         lastEncryptedOutput: null,
                         lastDecryptedText: null,
@@ -787,7 +840,7 @@
                         TAG_LENGTH_BITS: 128,
                         NONCE_BYTES: 12,
                         KEY_LENGTH_BITS: 256,
-                        DEFAULT_ITERATIONS: 2000000,
+                        PBKDF2_ITERATIONS: 2000000,
                         QR_CODE_MAX_BYTES: 2953,
                         FILE_SIZE_LIMIT_BYTES: 10 * 1024 * 1024,
                         SVG_EYE_OPEN: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`,
@@ -798,8 +851,9 @@
                         this.elements.currentYear.textContent = new Date().getFullYear();
                         this.theme.init();
                         this.setupEventListeners();
-                        this.ui.setAppMode("text");
+                        this.ui.setAppMode("text"); // This will call reset and set initial modes
                         this.pwa.register();
+                        this.utils.checkArgon2Ready();
                     },
 
                     setupEventListeners() {
@@ -807,32 +861,30 @@
                         this.elements.scrollTopBtn.addEventListener("click", () =>
                             window.scrollTo({ top: 0, behavior: "smooth" })
                         );
-                        window.addEventListener("scroll", () => {
-                            if (window.scrollY > 300) {
-                                this.elements.scrollTopBtn.classList.add("active");
-                            } else {
-                                this.elements.scrollTopBtn.classList.remove("active");
-                            }
-                        });
+                        window.addEventListener("scroll", () =>
+                            this.elements.scrollTopBtn.classList.toggle("active", window.scrollY > 300)
+                        );
 
                         this.elements.appModeSelector.addEventListener("click", (e) => {
                             const target = e.target.closest(".option");
                             if (target?.dataset.appMode) this.ui.setAppMode(target.dataset.appMode);
                         });
+
                         this.elements.modeSelector.addEventListener("click", (e) => {
                             const target = e.target.closest(".option");
                             if (target?.dataset.mode) this.ui.setMode(target.dataset.mode);
                         });
+
                         this.elements.algoSelectionGroup.addEventListener("click", (e) => {
-                            const target = e.target.closest(".option");
-                            if (target && !target.classList.contains("selected")) {
-                                this.elements.algoSelectionGroup
-                                    .querySelector(".selected")
-                                    .classList.remove("selected");
-                                target.classList.add("selected");
-                                this.state.selectedAlgorithm = target.dataset.value;
-                            }
+                            this.ui.handleOptionSelection(e, "selectedAlgorithm");
                         });
+
+                        // New Listener for KDF
+                        this.elements.kdfSelectionGroup.addEventListener("click", (e) => {
+                            const changed = this.ui.handleOptionSelection(e, "selectedKDF");
+                            if (changed) this.ui.toggleArgon2Params(app.state.selectedKDF === "Argon2id");
+                        });
+
                         this.elements.encryptBtn.addEventListener("click", () => this.crypto.encryptText());
                         this.elements.decryptBtn.addEventListener("click", () => this.crypto.decryptText());
                         this.elements.parseBtn.addEventListener("click", () => this.crypto.parseParameters());
@@ -868,12 +920,12 @@
                                     e.stopPropagation();
                                 });
                             });
-                            ["dragenter", "dragover"].forEach((eventName) => {
-                                wrapper.addEventListener(eventName, () => wrapper.classList.add("drag-over"));
-                            });
-                            ["dragleave", "drop"].forEach((eventName) => {
-                                wrapper.addEventListener(eventName, () => wrapper.classList.remove("drag-over"));
-                            });
+                            ["dragenter", "dragover"].forEach((eventName) =>
+                                wrapper.addEventListener(eventName, () => wrapper.classList.add("drag-over"))
+                            );
+                            ["dragleave", "drop"].forEach((eventName) =>
+                                wrapper.addEventListener(eventName, () => wrapper.classList.remove("drag-over"))
+                            );
                             wrapper.addEventListener("drop", (e) => {
                                 if (e.dataTransfer.files.length > 0) {
                                     input.files = e.dataTransfer.files;
@@ -893,26 +945,41 @@
 
                     ui: {
                         setAppMode(appMode) {
-                            this.resetAll();
                             app.state.currentAppMode = appMode;
                             const isTextMode = appMode === "text";
-                            app.elements.appModeSelector.querySelector(".selected").classList.remove("selected");
-                            app.elements.appModeSelector
-                                .querySelector(`[data-app-mode="${appMode}"]`)
-                                .classList.add("selected");
+                            this.handleOptionSelection(
+                                { target: app.elements.appModeSelector.querySelector(`[data-app-mode="${appMode}"]`) },
+                                null
+                            );
                             app.elements.textModeSection.hidden = !isTextMode;
                             app.elements.fileModeSection.hidden = isTextMode;
-                            this.setMode("encrypt");
+                            this.setMode("encrypt"); // Also resets
                         },
                         setMode(mode) {
                             this.resetAll();
                             app.state.currentMode = mode;
                             const isEncrypt = mode === "encrypt";
-                            app.elements.modeSelector.querySelector(".selected").classList.remove("selected");
-                            app.elements.modeSelector.querySelector(`[data-mode="${mode}"]`).classList.add("selected");
+                            this.handleOptionSelection(
+                                { target: app.elements.modeSelector.querySelector(`[data-mode="${mode}"]`) },
+                                null
+                            );
                             app.elements.encryptSection.hidden = !isEncrypt;
                             app.elements.decryptSection.hidden = isEncrypt;
                             app.elements.pasteBtn.hidden = isEncrypt;
+                        },
+                        handleOptionSelection(e, stateKey) {
+                            const target = e.target.closest(".option");
+                            if (target && !target.classList.contains("selected")) {
+                                const group = target.parentElement;
+                                group.querySelector(".selected")?.classList.remove("selected");
+                                target.classList.add("selected");
+                                if (stateKey) app.state[stateKey] = target.dataset.value;
+                                return true; // changed
+                            }
+                            return false; // not changed
+                        },
+                        toggleArgon2Params(show) {
+                            app.elements.argon2ParamsSection.hidden = !show;
                         },
                         setOutput(type, message) {
                             app.elements.resultsArea.hidden = false;
@@ -922,11 +989,8 @@
                             app.elements.decryptionActions.hidden = true;
 
                             if (type === "success" && app.state.currentAppMode === "text") {
-                                if (app.state.currentMode === "encrypt") {
-                                    app.elements.textModeResults.hidden = false;
-                                } else {
-                                    app.elements.decryptionActions.hidden = false;
-                                }
+                                if (app.state.currentMode === "encrypt") app.elements.textModeResults.hidden = false;
+                                else app.elements.decryptionActions.hidden = false;
                             }
                         },
                         resetAll() {
@@ -938,9 +1002,7 @@
                                 "passphraseFileEncrypt",
                                 "passphraseFileDecrypt",
                             ];
-                            fields.forEach((id) => {
-                                if (app.elements[id]) app.elements[id].value = "";
-                            });
+                            fields.forEach((id) => (app.elements[id] ? (app.elements[id].value = "") : null));
                             app.elements.fileEncryptInput.value = "";
                             app.elements.fileDecryptInput.value = "";
                             app.state.fileToEncrypt = null;
@@ -953,14 +1015,20 @@
                             app.elements.paramsDisplayArea.hidden = true;
                             app.state.lastEncryptedOutput = null;
                             app.state.lastDecryptedText = null;
+                            // Reset KDF to default and hide params
+                            app.state.selectedKDF = "Argon2id";
+                            this.handleOptionSelection(
+                                { target: app.elements.kdfSelectionGroup.querySelector(`[data-value="Argon2id"]`) },
+                                "selectedKDF"
+                            );
+                            this.toggleArgon2Params(true);
                             if (app.elements.qrCanvas) {
                                 const ctx = app.elements.qrCanvas.getContext("2d");
                                 if (ctx) ctx.clearRect(0, 0, app.elements.qrCanvas.width, app.elements.qrCanvas.height);
                             }
                         },
                         togglePasswordVisibility(icon) {
-                            const targetId = icon.dataset.for;
-                            const input = document.getElementById(targetId);
+                            const input = document.getElementById(icon.dataset.for);
                             if (input.type === "password") {
                                 input.type = "text";
                                 icon.innerHTML = app.constants.SVG_EYE_SLASH;
@@ -997,54 +1065,149 @@
                     },
 
                     crypto: {
-                        async importPassphraseKey(passphrase) {
-                            return crypto.subtle.importKey(
-                                "raw",
-                                new TextEncoder().encode(passphrase),
-                                { name: "PBKDF2" },
-                                false,
-                                ["deriveKey", "deriveBits"]
+                        _isAuthError(e) {
+                            return (
+                                e instanceof DOMException ||
+                                (e.message &&
+                                    (e.message.includes("Cannot decrypt") ||
+                                        e.message.includes("tag") ||
+                                        e.message.includes("Invalid password") ||
+                                        e.message.includes("key.usages")))
                             );
                         },
 
-                        async getDerivedKey(keyMaterial, salt, iterations, algo, usages) {
-                            if (algo === "AES-GCM") {
-                                return await crypto.subtle.deriveKey(
-                                    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
-                                    keyMaterial,
-                                    { name: "AES-GCM", length: app.constants.KEY_LENGTH_BITS },
-                                    false,
-                                    usages
-                                );
-                            } else {
-                                // ChaCha20
-                                return new Uint8Array(
-                                    await crypto.subtle.deriveBits(
-                                        { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
-                                        keyMaterial,
-                                        app.constants.KEY_LENGTH_BITS
-                                    )
-                                );
-                            }
+                        _buildAad(json) {
+                            const kd = json.keyDerivation;
+                            const metaDataForAad = {
+                                version: json.version,
+                                keyDerivation: {
+                                    name: kd.name,
+                                    iterations: kd.iterations,
+                                    memory: kd.memory,
+                                    parallelism: kd.parallelism,
+                                    hash: kd.hash,
+                                },
+                                encryptionName: json.encryption.name,
+                            };
+                            Object.keys(metaDataForAad).forEach(
+                                (key) => metaDataForAad[key] === undefined && delete metaDataForAad[key]
+                            );
+                            Object.keys(metaDataForAad.keyDerivation).forEach(
+                                (key) =>
+                                    metaDataForAad.keyDerivation[key] === undefined &&
+                                    delete metaDataForAad.keyDerivation[key]
+                            );
+                            return new TextEncoder().encode(JSON.stringify(metaDataForAad));
                         },
 
-                        async encrypt(dataToEncrypt, passphrase, selectedAlgorithm) {
-                            const salt = crypto.getRandomValues(new Uint8Array(app.constants.SALT_BYTES));
-                            const iterations = app.constants.DEFAULT_ITERATIONS;
-                            const keyMaterial = await this.importPassphraseKey(passphrase);
-                            let jsonOutput;
+                        async deriveKey(passphrase, kdfParams) {
+                            const salt = Base64.toUint8Array(kdfParams.salt);
 
-                            if (selectedAlgorithm === "AES-GCM") {
-                                const iv = crypto.getRandomValues(new Uint8Array(app.constants.IV_BYTES));
-                                const aesKey = await this.getDerivedKey(
-                                    keyMaterial,
-                                    salt,
-                                    iterations,
-                                    selectedAlgorithm,
-                                    ["encrypt"]
+                            if (kdfParams.name === "Argon2id") {
+                                if (!(await app.utils.checkArgon2Ready())) {
+                                    throw new Error(
+                                        "Argon2 函式庫未成功載入，無法執行。請檢查網路連線或瀏覽器控制台。"
+                                    );
+                                }
+                                const hash = await argon2.hash({
+                                    pass: passphrase,
+                                    salt: salt,
+                                    time: kdfParams.iterations,
+                                    mem: kdfParams.memory, // KiB
+                                    parallelism: kdfParams.parallelism,
+                                    hashLen: 32,
+                                    type: argon2.ArgonType.Argon2id,
+                                });
+                                return hash.hash; // Uint8Array
+                            }
+
+                            if (kdfParams.name === "PBKDF2") {
+                                const keyMaterial = await crypto.subtle.importKey(
+                                    "raw",
+                                    new TextEncoder().encode(passphrase),
+                                    { name: "PBKDF2" },
+                                    false,
+                                    ["deriveKey", "deriveBits"]
                                 );
+                                const usages = kdfParams.purpose === "encrypt" ? ["encrypt"] : ["decrypt"];
+                                const cipherName = kdfParams.cipher;
+
+                                // ✅ FIX: This now ONLY depends on the cipher name from the file/parameters, not the UI state.
+                                if (cipherName === "AES-GCM") {
+                                    return await crypto.subtle.deriveKey(
+                                        { name: "PBKDF2", salt, iterations: kdfParams.iterations, hash: "SHA-256" },
+                                        keyMaterial,
+                                        { name: "AES-GCM", length: app.constants.KEY_LENGTH_BITS },
+                                        false,
+                                        usages
+                                    );
+                                } else {
+                                    const derivedBits = await crypto.subtle.deriveBits(
+                                        { name: "PBKDF2", salt, iterations: kdfParams.iterations, hash: "SHA-256" },
+                                        keyMaterial,
+                                        app.constants.KEY_LENGTH_BITS
+                                    );
+                                    return new Uint8Array(derivedBits);
+                                }
+                            }
+
+                            throw new Error("不支援的密鑰衍生演算法。");
+                        },
+
+                        async encrypt(dataToEncrypt, passphrase, selectedCipher, selectedKDF) {
+                            const salt = crypto.getRandomValues(new Uint8Array(app.constants.SALT_BYTES));
+                            let kdfParams, derivedKey, keyDerivationJson;
+
+                            if (selectedKDF === "Argon2id") {
+                                kdfParams = {
+                                    name: "Argon2id",
+                                    salt: Base64.fromUint8Array(salt, true),
+                                    iterations: parseInt(app.elements.argon2Iterations.value, 10),
+                                    memory: parseInt(app.elements.argon2Memory.value, 10) * 1024,
+                                    parallelism: parseInt(app.elements.argon2Parallelism.value, 10),
+                                };
+                                derivedKey = await this.deriveKey(passphrase, kdfParams);
+                                const { salt: _, ...argonParamsToSave } = kdfParams;
+                                keyDerivationJson = { name: "Argon2id", ...argonParamsToSave };
+                            } else {
+                                kdfParams = {
+                                    name: "PBKDF2",
+                                    salt: Base64.fromUint8Array(salt, true),
+                                    iterations: app.constants.PBKDF2_ITERATIONS,
+                                    purpose: "encrypt",
+                                    cipher: selectedCipher,
+                                };
+                                derivedKey = await this.deriveKey(passphrase, kdfParams);
+                                keyDerivationJson = {
+                                    name: "PBKDF2",
+                                    iterations: kdfParams.iterations,
+                                    hash: "SHA-256",
+                                };
+                            }
+
+                            const tempJsonForAad = {
+                                version: 2,
+                                keyDerivation: { ...keyDerivationJson },
+                                encryption: { name: selectedCipher },
+                            };
+                            const aad = this._buildAad(tempJsonForAad);
+
+                            let encryptionOutput;
+                            if (selectedCipher === "AES-GCM") {
+                                const iv = crypto.getRandomValues(new Uint8Array(app.constants.IV_BYTES));
+                                const aesKey =
+                                    derivedKey instanceof CryptoKey
+                                        ? derivedKey
+                                        : await crypto.subtle.importKey("raw", derivedKey, { name: "AES-GCM" }, false, [
+                                              "encrypt",
+                                          ]);
                                 const encryptedBuffer = await crypto.subtle.encrypt(
-                                    { name: "AES-GCM", iv, tagLength: app.constants.TAG_LENGTH_BITS },
+                                    {
+                                        name: "AES-GCM",
+                                        iv,
+                                        tagLength: app.constants.TAG_LENGTH_BITS,
+                                        additionalData: aad,
+                                    },
                                     aesKey,
                                     dataToEncrypt
                                 );
@@ -1054,93 +1217,138 @@
                                     encryptedBuffer.byteLength - tagLengthBytes
                                 );
                                 const tag = encryptedBuffer.slice(encryptedBuffer.byteLength - tagLengthBytes);
-                                jsonOutput = {
-                                    keyDerivation: {
-                                        name: "PBKDF2",
-                                        salt: Base64.fromUint8Array(salt),
-                                        iterations,
-                                        hash: "SHA-256",
-                                    },
-                                    encryption: {
-                                        name: "AES-GCM",
-                                        iv: Base64.fromUint8Array(iv),
-                                        ciphertext: Base64.fromUint8Array(new Uint8Array(ciphertext)),
-                                        tag: Base64.fromUint8Array(new Uint8Array(tag)),
-                                        tagLength: app.constants.TAG_LENGTH_BITS,
-                                    },
+                                encryptionOutput = {
+                                    name: "AES-GCM",
+                                    iv: Base64.fromUint8Array(iv, true),
+                                    ciphertext: Base64.fromUint8Array(new Uint8Array(ciphertext), true),
+                                    tag: Base64.fromUint8Array(new Uint8Array(tag), true),
+                                    tagLength: app.constants.TAG_LENGTH_BITS,
                                 };
                             } else {
+                                // ChaCha20-Poly1305
                                 const nonce = crypto.getRandomValues(new Uint8Array(app.constants.NONCE_BYTES));
-                                const chachaKeyBytes = await this.getDerivedKey(
-                                    keyMaterial,
-                                    salt,
-                                    iterations,
-                                    selectedAlgorithm,
-                                    []
-                                );
-                                const ciphertextWithTag = chacha20poly1305(chachaKeyBytes, nonce).encrypt(
+                                // ✅ FIX: The 'derivedKey' for ChaCha20 is always a Uint8Array. Direct assignment is correct.
+                                const chachaKeyBytes = derivedKey;
+                                const ciphertextWithTag = chacha20poly1305(chachaKeyBytes, nonce, aad).encrypt(
                                     new Uint8Array(dataToEncrypt)
                                 );
-                                jsonOutput = {
-                                    keyDerivation: {
-                                        name: "PBKDF2",
-                                        salt: Base64.fromUint8Array(salt),
-                                        iterations,
-                                        hash: "SHA-256",
-                                    },
-                                    encryption: {
-                                        name: "ChaCha20-Poly1305",
-                                        nonce: Base64.fromUint8Array(nonce),
-                                        ciphertext: Base64.fromUint8Array(ciphertextWithTag),
-                                    },
+                                encryptionOutput = {
+                                    name: "ChaCha20-Poly1305",
+                                    nonce: Base64.fromUint8Array(nonce, true),
+                                    ciphertext: Base64.fromUint8Array(ciphertextWithTag, true),
                                 };
                             }
 
-                            const finalBase64 = Base64.encode(JSON.stringify(jsonOutput), true);
-                            return { finalBase64, jsonOutput };
+                            const finalJson = {
+                                version: 2,
+                                keyDerivation: { ...keyDerivationJson, salt: Base64.fromUint8Array(salt, true) },
+                                encryption: encryptionOutput,
+                            };
+                            const finalBase64 = Base64.encode(JSON.stringify(finalJson), true);
+                            return { finalBase64, jsonOutput: finalJson };
                         },
 
-                        async decrypt(base64Cipher, passphrase) {
-                            const jsonStr = Base64.decode(base64Cipher);
-                            const json = JSON.parse(jsonStr);
-                            if (!json.keyDerivation || !json.encryption) throw new Error("無效或不支援的密文格式。");
-
-                            const salt = Base64.toUint8Array(json.keyDerivation.salt);
-                            const iterations = json.keyDerivation.iterations;
-                            const keyMaterial = await this.importPassphraseKey(passphrase);
-                            const encryptionName = json.encryption.name;
-                            let decryptedBytes;
-
-                            if (encryptionName === "AES-GCM") {
-                                const iv = Base64.toUint8Array(json.encryption.iv);
-                                const ciphertext = Base64.toUint8Array(json.encryption.ciphertext);
-                                const tag = Base64.toUint8Array(json.encryption.tag);
-                                const aesKey = await this.getDerivedKey(keyMaterial, salt, iterations, encryptionName, [
-                                    "decrypt",
-                                ]);
+                        async _decryptWithAAD(json, key) {
+                            const enc = json.encryption;
+                            const aad = this._buildAad(json);
+                            if (enc.name === "AES-GCM") {
+                                const iv = Base64.toUint8Array(enc.iv);
+                                const ciphertext = Base64.toUint8Array(enc.ciphertext);
+                                const tag = Base64.toUint8Array(enc.tag);
+                                const aesKey =
+                                    key instanceof CryptoKey
+                                        ? key
+                                        : await crypto.subtle.importKey("raw", key, { name: "AES-GCM" }, false, [
+                                              "decrypt",
+                                          ]);
                                 const combinedBuffer = new Uint8Array(ciphertext.length + tag.length);
                                 combinedBuffer.set(ciphertext, 0);
                                 combinedBuffer.set(tag, ciphertext.length);
-                                decryptedBytes = await crypto.subtle.decrypt(
+                                return await crypto.subtle.decrypt(
+                                    {
+                                        name: "AES-GCM",
+                                        iv,
+                                        tagLength: app.constants.TAG_LENGTH_BITS,
+                                        additionalData: aad,
+                                    },
+                                    aesKey,
+                                    combinedBuffer
+                                );
+                            } else if (enc.name === "ChaCha20-Poly1305") {
+                                const nonce = Base64.toUint8Array(enc.nonce);
+                                const ciphertext = Base64.toUint8Array(enc.ciphertext);
+                                const chachaKeyBytes =
+                                    key instanceof Uint8Array ? key : await crypto.subtle.exportKey("raw", key);
+                                return chacha20poly1305(chachaKeyBytes, nonce, aad).decrypt(ciphertext);
+                            }
+                            throw new Error("不支援的解密演算法。");
+                        },
+
+                        async _decryptLegacy(json, key) {
+                            const enc = json.encryption;
+                            if (enc.name === "AES-GCM") {
+                                const iv = Base64.toUint8Array(enc.iv);
+                                const ciphertext = Base64.toUint8Array(enc.ciphertext);
+                                const tag = Base64.toUint8Array(enc.tag);
+                                const aesKey =
+                                    key instanceof CryptoKey
+                                        ? key
+                                        : await crypto.subtle.importKey("raw", key, { name: "AES-GCM" }, false, [
+                                              "decrypt",
+                                          ]);
+                                const combinedBuffer = new Uint8Array(ciphertext.length + tag.length);
+                                combinedBuffer.set(ciphertext, 0);
+                                combinedBuffer.set(tag, ciphertext.length);
+                                return await crypto.subtle.decrypt(
                                     { name: "AES-GCM", iv, tagLength: app.constants.TAG_LENGTH_BITS },
                                     aesKey,
                                     combinedBuffer
                                 );
-                            } else if (encryptionName === "ChaCha20-Poly1305") {
-                                const nonce = Base64.toUint8Array(json.encryption.nonce);
-                                const ciphertext = Base64.toUint8Array(json.encryption.ciphertext);
-                                const chachaKeyBytes = await this.getDerivedKey(
-                                    keyMaterial,
-                                    salt,
-                                    iterations,
-                                    encryptionName,
-                                    []
-                                );
-                                decryptedBytes = chacha20poly1305(chachaKeyBytes, nonce).decrypt(ciphertext);
-                            } else {
-                                throw new Error("不支援的解密演算法。");
+                            } else if (enc.name === "ChaCha20-Poly1305") {
+                                const nonce = Base64.toUint8Array(enc.nonce);
+                                const ciphertext = Base64.toUint8Array(enc.ciphertext);
+                                const chachaKeyBytes =
+                                    key instanceof Uint8Array ? key : await crypto.subtle.exportKey("raw", key);
+                                return chacha20poly1305(chachaKeyBytes, nonce).decrypt(ciphertext);
                             }
-                            return decryptedBytes;
+                            throw new Error("不支援的解密演算法。");
+                        },
+
+                        async decryptUnified(base64Cipher, passphrase) {
+                            const jsonStr = Base64.decode(base64Cipher);
+                            const json = JSON.parse(jsonStr);
+                            if (!json.keyDerivation || !json.encryption) {
+                                throw new Error("無效或不支援的密文格式。");
+                            }
+
+                            const legacyCandidate = !Number.isInteger(json.version);
+
+                            const kdfParams = {
+                                name: json.keyDerivation.name,
+                                salt: json.keyDerivation.salt,
+                                iterations: json.keyDerivation.iterations,
+                                memory: json.keyDerivation.memory,
+                                parallelism: json.keyDerivation.parallelism,
+                                purpose: "decrypt",
+                                cipher: json.encryption.name,
+                            };
+                            const key = await this.deriveKey(passphrase, kdfParams);
+
+                            try {
+                                const decryptedBytes = await this._decryptWithAAD(json, key);
+                                return { decryptedBytes, usedLegacyFallback: false };
+                            } catch (e) {
+                                if (this._isAuthError(e) && legacyCandidate) {
+                                    console.log("AAD decryption failed, attempting legacy fallback...");
+                                    try {
+                                        const decryptedBytes = await this._decryptLegacy(json, key);
+                                        return { decryptedBytes, usedLegacyFallback: true };
+                                    } catch (legacyError) {
+                                        throw new Error("密碼短語不正確，或密文已被竄改。");
+                                    }
+                                }
+                                throw new Error("密碼短語不正確，或密文已被竄改。");
+                            }
                         },
 
                         async encryptText() {
@@ -1155,20 +1363,19 @@
                                 const { finalBase64, jsonOutput } = await this.encrypt(
                                     new TextEncoder().encode(mnemonic),
                                     passphrase,
-                                    app.state.selectedAlgorithm
+                                    app.state.selectedAlgorithm,
+                                    app.state.selectedKDF
                                 );
                                 app.state.lastEncryptedOutput = finalBase64;
                                 app.ui.setOutput("success", `✅ 加密成功！`);
                                 app.elements.base64ResultView.value = finalBase64;
                                 app.elements.jsonView.value = JSON.stringify(jsonOutput, null, 2);
-                                if (finalBase64.length < app.constants.QR_CODE_MAX_BYTES) {
-                                    app.elements.qrCanvas.hidden = false;
+                                app.elements.qrCanvas.hidden = finalBase64.length >= app.constants.QR_CODE_MAX_BYTES;
+                                if (!app.elements.qrCanvas.hidden) {
                                     QRCode.toCanvas(app.elements.qrCanvas, finalBase64, {
                                         errorCorrectionLevel: "L",
                                         width: 320,
                                     });
-                                } else {
-                                    app.elements.qrCanvas.hidden = true;
                                 }
                             } catch (e) {
                                 app.ui.setOutput("error", `❌ 加密失敗：${e.message}`);
@@ -1183,21 +1390,21 @@
                             app.ui.setOutput("info", "⏳ 正在解密，請稍候...");
                             await new Promise((r) => setTimeout(r, 50));
                             try {
-                                const decryptedBytes = await this.decrypt(base64Cipher, passphrase);
+                                const { decryptedBytes, usedLegacyFallback } = await this.decryptUnified(
+                                    base64Cipher,
+                                    passphrase
+                                );
                                 const decryptedText = new TextDecoder().decode(decryptedBytes);
                                 app.state.lastDecryptedText = decryptedText;
-                                app.ui.setOutput(
-                                    "success",
-                                    `✅ 解密成功<br><br><strong style="font-size: 1.1em; white-space: pre-wrap; word-break: break-word;">${decryptedText}</strong>`
-                                );
+
+                                let successMessage = `✅ 解密成功<br><br><strong style="font-size: 1.1em; white-space: pre-wrap; word-break: break-word;">${decryptedText}</strong>`;
+                                if (usedLegacyFallback) {
+                                    successMessage += `<br><br><small style="color: var(--note-color); font-style: italic;">ℹ️ 已自動相容舊版格式的密文。</small>`;
+                                }
+                                app.ui.setOutput("success", successMessage);
                             } catch (e) {
                                 console.error("Decrypt failed:", e);
-                                const msg =
-                                    e.message.includes("Cannot decrypt") ||
-                                    e.message.includes("tag") ||
-                                    e instanceof DOMException
-                                        ? "密碼短語不正確，或密文已被竄改。"
-                                        : e.message;
+                                const msg = this._isAuthError(e) ? "密碼短語不正確，或密文已被竄改。" : e.message;
                                 app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
                             }
                         },
@@ -1206,14 +1413,16 @@
                             const file = app.state.fileToEncrypt;
                             const passphrase = app.elements.passphraseFileEncrypt.value;
                             if (!file || !passphrase) return app.utils.showToast("❌ 請選擇檔案並輸入密碼短語。");
-                            app.ui.setOutput("info", `⏳ 正在加密檔案 ${file.name}，請稍候...`);
+                            const fileKDF = "Argon2id";
+                            app.ui.setOutput("info", `⏳ 正在使用 ${fileKDF} 加密檔案 ${file.name}，請稍候...`);
                             await new Promise((r) => setTimeout(r, 50));
                             try {
                                 const fileBuffer = await app.fileHandler.readFileAsArrayBuffer(file);
                                 const { finalBase64 } = await this.encrypt(
                                     fileBuffer,
                                     passphrase,
-                                    app.state.selectedAlgorithm
+                                    app.state.selectedAlgorithm,
+                                    fileKDF
                                 );
                                 app.utils.downloadAsFile(finalBase64, file.name + ".enc");
                                 app.ui.setOutput("success", `✅ 檔案加密成功！已開始下載 ${file.name + ".enc"}`);
@@ -1231,20 +1440,23 @@
                             await new Promise((r) => setTimeout(r, 50));
                             try {
                                 const base64Cipher = await app.fileHandler.readFileAsText(file);
-                                const decryptedBytes = await this.decrypt(base64Cipher, passphrase);
+                                const { decryptedBytes, usedLegacyFallback } = await this.decryptUnified(
+                                    base64Cipher,
+                                    passphrase
+                                );
                                 const originalFilename = file.name.endsWith(".enc")
                                     ? file.name.slice(0, -4)
                                     : `decrypted-${file.name}`;
                                 app.utils.downloadAsFile(new Blob([decryptedBytes]), originalFilename);
-                                app.ui.setOutput("success", `✅ 檔案解密成功！已開始下載 ${originalFilename}`);
+
+                                let successMessage = `✅ 檔案解密成功！已開始下載 ${originalFilename}`;
+                                if (usedLegacyFallback) {
+                                    successMessage += ` (已自動相容舊版格式)`;
+                                }
+                                app.ui.setOutput("success", successMessage);
                             } catch (e) {
                                 console.error("File Decrypt failed:", e);
-                                const msg =
-                                    e.message.includes("Cannot decrypt") ||
-                                    e.message.includes("tag") ||
-                                    e instanceof DOMException
-                                        ? "密碼短語不正確，或密文已被竄改。"
-                                        : e.message;
+                                const msg = this._isAuthError(e) ? "密碼短語不正確，或密文已被竄改。" : e.message;
                                 app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
                             }
                         },
@@ -1257,11 +1469,24 @@
                                 const kd = json.keyDerivation;
                                 const enc = json.encryption;
                                 if (!kd || !enc) throw new Error("JSON 結構不符");
-                                app.elements.paramsDisplayArea.innerHTML = `<p>金鑰衍生：<span>${kd.name} (${
-                                    kd.hash
-                                }, ${kd.iterations.toLocaleString("en-US")} 迭代)</span></p><p>加密演算法：<span>${
-                                    enc.name
-                                }</span></p><p style="color: var(--success-color);">狀態：<span>參數已載入 ✅</span></p>`;
+
+                                let kdfDetails = `${kd.name}`;
+                                if (kd.name === "PBKDF2") {
+                                    kdfDetails += ` (${kd.hash}, ${kd.iterations.toLocaleString("en-US")} 迭代)`;
+                                } else if (kd.name === "Argon2id") {
+                                    kdfDetails += ` (mem: ${kd.memory / 1024}MB, iter: ${kd.iterations}, parallel: ${
+                                        kd.parallelism
+                                    })`;
+                                }
+
+                                const versionInfo = Number.isInteger(json.version)
+                                    ? `V${json.version} (新版)`
+                                    : "V1 (舊版)";
+
+                                app.elements.paramsDisplayArea.innerHTML = `<p>格式版本：<span>${versionInfo}</span></p>
+                                 <p>金鑰衍生：<span>${kdfDetails}</span></p>
+                                 <p>加密演算法：<span>${enc.name}</span></p>
+                                 <p style="color: var(--success-color);">狀態：<span>參數已載入 ✅</span></p>`;
                                 app.elements.paramsDisplayArea.hidden = false;
                             } catch (e) {
                                 app.elements.paramsDisplayArea.innerHTML = `<p style="color: var(--error-color);">❌ 解析失敗：無效的密文格式。</p>`;
@@ -1318,6 +1543,23 @@
                                 app.state.toastTimer = null;
                             }, 3000);
                         },
+                        async checkArgon2Ready() {
+                            if (typeof argon2 !== "undefined") return true;
+                            // Wait a bit for the backup script to potentially load
+                            return new Promise((resolve) => {
+                                setTimeout(() => {
+                                    if (typeof argon2 !== "undefined") {
+                                        console.log("Argon2 loaded after a delay (likely from backup).");
+                                        resolve(true);
+                                    } else {
+                                        console.error(
+                                            "Argon2 library failed to load from both primary and backup sources."
+                                        );
+                                        resolve(false);
+                                    }
+                                }, 1000);
+                            });
+                        },
                     },
                     theme: {
                         init() {
@@ -1334,21 +1576,13 @@
                             this.apply(t);
                         },
                     },
-                    // Add PWA registration logic
                     pwa: {
                         register() {
                             if ("serviceWorker" in navigator) {
                                 window.addEventListener("load", () => {
                                     navigator.serviceWorker.register("./sw.js").then(
-                                        (registration) => {
-                                            console.log(
-                                                "ServiceWorker registration successful with scope: ",
-                                                registration.scope
-                                            );
-                                        },
-                                        (err) => {
-                                            console.log("ServiceWorker registration failed: ", err);
-                                        }
+                                        (reg) => console.log("ServiceWorker registration successful:", reg.scope),
+                                        (err) => console.log("ServiceWorker registration failed:", err)
                                     );
                                 });
                             }
