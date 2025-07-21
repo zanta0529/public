@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>JWE 標準加解密器</title>
+
+        <meta name="theme-color" content="#4f46e5" />
+
+        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+        <script
+            src="https://cdn.jsdelivr.net/npm/argon2-browser@1.18.0/dist/argon2-bundled.min.js"
+            onerror="this.remove(); document.getElementById('backup-argon2-script').style.display='block';"
+        ></script>
+        <script
+            id="backup-argon2-script"
+            style="display: none"
+            src="https://unpkg.com/argon2-browser@1.18.0/dist/argon2-bundled.min.js"
+        ></script>
+
+        <style>
+            /* --- CSS 樣式 ... (內容不變) --- */
+            :root {
+                --primary-color: #4f46e5;
+                --primary-hover-color: #6366f1;
+                --primary-text-color: #ffffff;
+                --secondary-color: #6b7280;
+                --secondary-hover-color: #4b5563;
+                --secondary-text-color: #ffffff;
+                --success-color: #059669;
+                --success-bg: #d1fae5;
+                --error-color: #dc2626;
+                --error-bg: #fee2e2;
+                --info-color: #0891b2;
+                --info-bg: #cffafe;
+                --note-color: #92400e;
+                --note-bg: #fefce8;
+                --warning-color: #9a3412;
+                --warning-bg: #ffedd5;
+                --section-header-bg: #f8fafc;
+                --bg-color: #f1f5f9;
+                --container-bg: #ffffff;
+                --text-color: #1f2937;
+                --border-color: #e5e7eb;
+                --input-bg: #f8fafc;
+                --input-focus-shadow: rgba(79, 70, 229, 0.25);
+                --button-disabled-bg: #d1d5db;
+                --button-disabled-text-color: #9ca3af;
+                --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                --toast-bg: #1f2937;
+                --toast-color: #f9fafb;
+                --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
+                --tooltip-bg: #1f2937;
+                --tooltip-color: #f9fafb;
+                --border-radius-sm: 5px;
+                --border-radius-md: 12px;
+                --border-radius-full: 50%;
+                --transition-duration-fast: 0.2s;
+                --transition-duration-normal: 0.3s;
+                --transition-duration-slow: 0.4s;
+                --z-index-content: 10;
+                --z-index-dropdown: 20;
+                --z-index-fixed: 1000;
+                --z-index-modal: 1010;
+                --z-index-toast: 1020;
+            }
+            :root[data-theme="dark"] {
+                --primary-color: #6366f1;
+                --primary-hover-color: #818cf8;
+                --primary-text-color: #ffffff;
+                --secondary-color: #9ca3af;
+                --secondary-hover-color: #d1d5db;
+                --secondary-text-color: #1e293b;
+                --success-color: #6ee7b7;
+                --success-bg: #064e3b;
+                --error-color: #f87171;
+                --error-bg: #7f1d1d;
+                --info-color: #67e8f9;
+                --info-bg: #164e63;
+                --note-color: #fde047;
+                --note-bg: #451a03;
+                --warning-color: #fb923c;
+                --warning-bg: #7c2d12;
+                --section-header-bg: #293548;
+                --bg-color: #1e293b;
+                --container-bg: #334155;
+                --text-color: #d1d5db;
+                --border-color: #475569;
+                --input-bg: #293548;
+                --input-focus-shadow: rgba(99, 102, 241, 0.3);
+                --button-disabled-bg: #293548;
+                --button-disabled-text-color: #64748b;
+                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+                --toast-bg: #fde68a;
+                --toast-color: #78350f;
+                --modal-backdrop-bg: rgba(0, 0, 0, 0.7);
+                --tooltip-bg: #fde68a;
+                --tooltip-color: #78350f;
+            }
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+            }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                font-size: 1em;
+                margin: 0;
+                padding: 2rem;
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                line-height: 1.6;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-height: 100vh;
+                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal);
+            }
+            .container {
+                width: 100%;
+                max-width: 800px;
+            }
+            h1,
+            h2 {
+                letter-spacing: 0.5px;
+            }
+            h1 {
+                text-align: center;
+                margin-bottom: 1.5rem;
+            }
+            label {
+                font-weight: 600;
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+            section {
+                margin-bottom: 2.5rem;
+            }
+            section.card {
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-md);
+                background-color: var(--container-bg);
+                box-shadow: var(--box-shadow);
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal);
+            }
+            section.card > h2 {
+                padding: 0.85rem 1.5rem;
+                margin: 0;
+                font-size: 1.5em;
+                font-weight: 600;
+                color: var(--primary-text-color);
+                background-color: var(--primary-color);
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), color var(--transition-duration-normal);
+                border-top-left-radius: var(--border-radius-md);
+                border-top-right-radius: var(--border-radius-md);
+            }
+            :root[data-theme="dark"] section.card > h2 {
+                border-bottom-color: rgba(255, 255, 255, 0.1);
+            }
+            .card-content {
+                padding: 1.5rem;
+            }
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+            .button-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1rem;
+                align-items: center;
+            }
+            button,
+            .button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                background-color: var(--primary-color);
+                color: var(--primary-text-color);
+                border: 1px solid transparent;
+                border-radius: var(--border-radius-sm);
+                cursor: pointer;
+                font-size: 1.1em;
+                font-weight: 600;
+                text-decoration: none;
+                text-align: center;
+                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), transform var(--transition-duration-fast);
+            }
+            button:hover:not(:disabled),
+            .button:hover:not(:disabled) {
+                background-color: var(--primary-hover-color);
+                transform: translateY(-1px);
+            }
+            button.secondary,
+            .button.secondary {
+                background-color: transparent;
+                border-color: var(--secondary-color);
+                color: var(--secondary-color);
+            }
+            button.secondary:hover:not(:disabled),
+            .button.secondary:hover:not(:disabled) {
+                background-color: var(--secondary-hover-color);
+                border-color: var(--secondary-hover-color);
+                color: var(--secondary-text-color);
+            }
+            button:disabled,
+            .button:disabled {
+                background-color: var(--button-disabled-bg);
+                color: var(--button-disabled-text-color);
+                border-color: transparent;
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+            :root[data-theme="dark"] button:disabled,
+            :root[data-theme="dark"] .button:disabled {
+                border: 1px solid var(--border-color);
+            }
+            input[type="text"],
+            input[type="password"],
+            input[type="number"],
+            textarea {
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-sm);
+                font-family: inherit;
+                font-size: 1em;
+                background-color: var(--input-bg);
+                color: var(--text-color);
+                transition: border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal),
+                    background-color var(--transition-duration-normal);
+            }
+            input[type="text"]:focus,
+            input[type="password"]:focus,
+            input[type="number"]:focus,
+            textarea:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
+            }
+            textarea {
+                min-height: 120px;
+                resize: vertical;
+            }
+            .password-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .toggle-password-icon {
+                position: absolute;
+                right: 12px;
+                cursor: pointer;
+                color: var(--secondary-color);
+                transition: color 0.2s;
+            }
+            .password-wrapper input {
+                padding-right: 40px;
+            }
+            .option-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 1.5rem;
+            }
+            .option {
+                padding: 10px 15px;
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-sm);
+                cursor: pointer;
+                transition: background-color var(--transition-duration-normal),
+                    border-color var(--transition-duration-normal), color var(--transition-duration-normal);
+                text-align: center;
+                flex-grow: 1;
+                flex-basis: calc(50% - 5px);
+                max-width: calc(50% - 5px);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 0.95em;
+            }
+            .option.selected {
+                background-color: var(--primary-color);
+                color: var(--primary-text-color);
+                border-color: var(--primary-color);
+                font-weight: bold;
+            }
+            .message-block {
+                padding: 0.75rem 1rem;
+                border-radius: var(--border-radius-sm);
+                margin-top: 1rem;
+                border-left: 4px solid;
+            }
+            .hint-note {
+                font-size: 0.9em;
+                color: var(--note-color);
+                background-color: var(--note-bg);
+                border-color: var(--note-color);
+                transition: all var(--transition-duration-normal) ease-in-out;
+            }
+            .warning-note {
+                font-size: 0.9em;
+                color: var(--warning-color);
+                background-color: var(--warning-bg);
+                border-color: var(--warning-color);
+                transition: all var(--transition-duration-normal) ease-in-out;
+            }
+            details {
+                margin-bottom: 2rem;
+            }
+            details > summary {
+                cursor: pointer;
+                font-weight: 600;
+                color: var(--secondary-color);
+                transition: color var(--transition-duration-normal);
+            }
+            details > summary:hover {
+                color: var(--primary-color);
+            }
+            details .message-block {
+                margin-top: 0.75rem;
+            }
+            details pre {
+                white-space: pre-wrap;
+                word-break: break-all;
+                background-color: var(--bg-color);
+                padding: 0.75rem;
+                border-radius: var(--border-radius-sm);
+                border: 1px solid var(--border-color);
+                font-size: 0.85em;
+                color: var(--note-color);
+            }
+            .output-box {
+                padding: 1rem;
+                border-radius: var(--border-radius-sm);
+                border-left-width: 5px;
+                white-space: pre-wrap;
+                word-break: break-all;
+                margin-top: 1.5rem;
+            }
+            .output-box.success {
+                color: var(--success-color);
+                border-color: var(--success-color);
+                background-color: var(--success-bg);
+            }
+            .output-box.error {
+                color: var(--error-color);
+                border-color: var(--error-color);
+                background-color: var(--error-bg);
+            }
+            .output-box.info {
+                color: var(--info-color);
+                border-color: var(--info-color);
+                background-color: var(--info-bg);
+            }
+            footer {
+                text-align: center;
+                margin-top: auto;
+                padding-top: 2rem;
+                font-size: 0.9em;
+                color: var(--secondary-color);
+            }
+            #toast {
+                visibility: hidden;
+                opacity: 0;
+                min-width: 250px;
+                background-color: var(--toast-bg);
+                color: var(--toast-color);
+                text-align: center;
+                border-radius: var(--border-radius-sm);
+                padding: 16px;
+                position: fixed;
+                z-index: var(--z-index-toast);
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 30px;
+                font-size: 1.1em;
+                box-shadow: var(--box-shadow);
+                transition: opacity 0.5s, visibility 0.5s, bottom 0.5s;
+            }
+            #toast.show {
+                visibility: visible;
+                opacity: 1;
+            }
+            .results-area {
+                margin-top: 1.5rem;
+            }
+            #qrCanvas {
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin: 1rem auto;
+            }
+            #params-display-area {
+                background-color: var(--input-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                padding: 1rem;
+                margin-top: 1rem;
+                margin-bottom: 1rem;
+            }
+            #params-display-area p {
+                margin: 0.5rem 0;
+            }
+            #params-display-area p > span {
+                font-weight: bold;
+                color: var(--note-color);
+            }
+            .file-input-wrapper {
+                position: relative;
+                overflow: hidden;
+                display: inline-block;
+                width: 100%;
+                border: 2px dashed var(--border-color);
+                border-radius: 8px;
+                padding: 2rem;
+                text-align: center;
+                cursor: pointer;
+                transition: border-color 0.3s, background-color 0.3s;
+            }
+            .file-input-wrapper:hover,
+            .file-input-wrapper.drag-over {
+                border-color: var(--primary-color);
+                background-color: var(--section-header-bg);
+            }
+            .file-input-wrapper input[type="file"] {
+                position: absolute;
+                left: 0;
+                top: 0;
+                opacity: 0;
+                width: 100%;
+                height: 100%;
+                cursor: pointer;
+            }
+            .file-info {
+                margin-top: 1rem;
+                font-size: 0.9em;
+                color: var(--secondary-color);
+            }
+            .file-info span {
+                font-weight: bold;
+                color: var(--text-color);
+            }
+            [hidden] {
+                display: none !important;
+            }
+            .fab {
+                position: fixed;
+                z-index: var(--z-index-fixed);
+                width: 50px;
+                height: 50px;
+                background-color: var(--container-bg);
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-full);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: var(--box-shadow);
+                transition: all var(--transition-duration-normal) ease;
+            }
+            .fab:hover {
+                transform: translateY(-2px) scale(1.05);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
+            :root[data-theme="dark"] .fab:hover {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+            #themeToggleBtn {
+                top: 20px;
+                right: 20px;
+                color: var(--text-color);
+                font-size: 1.5em;
+            }
+            #scroll-to-top {
+                right: 25px;
+                bottom: 25px;
+                background-color: var(--primary-color);
+                border: none;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(20px);
+                transition: opacity var(--transition-duration-normal) ease,
+                    visibility var(--transition-duration-normal) ease, transform var(--transition-duration-normal) ease,
+                    background-color var(--transition-duration-normal) ease;
+            }
+            #scroll-to-top:hover {
+                background-color: var(--primary-hover-color);
+                transform: translateY(-2px);
+            }
+            #scroll-to-top.active {
+                opacity: 0.9;
+                visibility: visible;
+                transform: translateY(0);
+            }
+            #scroll-to-top::after {
+                content: "";
+                width: 0;
+                height: 0;
+                border-left: 12px solid transparent;
+                border-right: 12px solid transparent;
+                border-bottom: 15px solid var(--primary-text-color);
+                margin-bottom: 4px;
+            }
+            #argon2-params-section {
+                padding: 1.25rem;
+                background-color: var(--section-header-bg);
+                border-radius: var(--border-radius-sm);
+                margin-top: -0.5rem;
+                margin-bottom: 1.5rem;
+                border: 1px solid var(--border-color);
+            }
+            #argon2-params-section .form-group {
+                margin-bottom: 1rem;
+            }
+            #argon2-params-section .form-group:last-child {
+                margin-bottom: 0;
+            }
+            #argon2-params-section label {
+                font-size: 0.9em;
+            }
+            #argon2-params-section .param-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+            @media (max-width: 768px) {
+                body {
+                    padding: 1rem;
+                }
+                .container {
+                    padding: 0;
+                }
+                .button-group {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .button-group button.secondary {
+                    max-width: none;
+                }
+                .card-content {
+                    padding: 1rem;
+                }
+                section.card > h2 {
+                    padding: 0.75rem 1rem;
+                }
+                .fab {
+                    width: 44px;
+                    height: 44px;
+                }
+                #themeToggleBtn {
+                    top: 15px;
+                    right: 15px;
+                    font-size: 1.3em;
+                }
+                #scroll-to-top {
+                    right: 20px;
+                    bottom: 20px;
+                }
+                .option {
+                    font-size: 0.85em;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <button id="themeToggleBtn" class="fab" title="切換主題">🌙</button>
+
+        <div class="container">
+            <header>
+                <h1>JWE 標準加解密器</h1>
+                <details>
+                    <summary>ℹ️ 關於 JWE (JSON Web Encryption) 標準</summary>
+                    <div class="message-block hint-note">
+                        <p>
+                            本工具採用 IETF 的 <b>JWE (RFC 7516)</b> 標準來封裝加密後的資料。這表示任何相容的 JWE
+                            工具或函式庫都可以解析此處產生的密文。我們使用基於密碼的金鑰管理演算法 (PBES2)
+                            來保護內容加密金鑰。
+                        </p>
+                        <hr style="border-color: var(--note-color); opacity: 0.3" />
+                        <h4 style="margin-bottom: 0.5rem">給開發者的 Argon2 解密指引</h4>
+                        <p>
+                            如果您需要用其他語言或函式庫解密由本工具
+                            <code>PBES2-Argon2id+A128KW</code> 演算法加密的密文，請遵循以下步驟：
+                        </p>
+                        <pre>
+1. 解析 JWE 保護標頭，讀取 `alg`、`enc` 及 Argon2 參數 (`p2m`, `p2t`, `p2p`, `p2s`)。
+2. 使用 Argon2id 函式庫，以前述參數、Salt 和使用者輸入的密碼短語，重新計算出一個 128-bit (16-byte) 的「金鑰加密金鑰 (KEK)」。
+3. 使用標準的 AES Key Wrap (RFC 3394) 解密演算法 (A128KW) 和上一步的 KEK，解開 JWE 中的 `encrypted_key`，得到「內容加密金鑰 (CEK)」。
+4. 使用 CEK 和 `enc`, `iv`, `tag` 等標準 JWE 欄位，即可使用對應的對稱加密演算法 (如 A256GCM) 解密 `ciphertext`，還原明文。</pre
+                        >
+                    </div>
+                </details>
+            </header>
+            <main>
+                <section class="card">
+                    <h2>🔐 加解密工具</h2>
+                    <div class="card-content">
+                        <div id="appModeSelector" class="option-group">
+                            <div class="option selected" data-app-mode="text">📃 純文字模式</div>
+                            <div class="option" data-app-mode="file">💾 檔案模式</div>
+                        </div>
+
+                        <div id="text-mode-section">
+                            <div id="modeSelector" class="option-group">
+                                <div class="option selected" data-mode="encrypt">🔒 加密模式</div>
+                                <div class="option" data-mode="decrypt">🔓 解密模式</div>
+                            </div>
+                            <div id="encrypt-section">
+                                <div class="form-group">
+                                    <label for="plaintext">明文 (Plain-Text)</label>
+                                    <textarea id="plaintext" rows="4" placeholder="在此輸入要加密的文字"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>金鑰管理演算法 (alg)</label>
+                                    <div id="algSelectionGroup" class="option-group">
+                                        <div class="option selected" data-value="PBES2-HS256+A128KW">PBKDF2</div>
+                                        <div class="option" data-value="A128KW"> 
+                                            Argon2id (非標準擴充)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="argon2-params-section" hidden>
+                                    <div
+                                        id="argon2-warning"
+                                        class="message-block warning-note"
+                                        style="margin-top: 0; margin-bottom: 1rem"
+                                    >
+                                        ⚠️ <b>警告：非標準演算法</b><br />
+                                        Argon2id
+                                        是一個比PBKDF2更現代化的密鑰衍生函式，但它並非JWE的官方標準。使用此選項產生的密文<b>可能無法被其他標準的JWE工具直接解密</b>。
+                                    </div>
+                                    <div class="param-grid">
+                                        <div class="form-group">
+                                            <label for="argon2-memory">記憶體 (KiB)</label>
+                                            <input
+                                                type="number"
+                                                id="argon2-memory"
+                                                value="65536"
+                                                min="32768"
+                                                step="16384"
+                                            />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="argon2-iterations">迭代次數</label>
+                                            <input type="number" id="argon2-iterations" value="3" min="2" step="1" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="argon2-parallelism">平行度</label>
+                                            <input type="number" id="argon2-parallelism" value="4" min="1" step="1" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>內容加密演算法 (enc)</label>
+                                    <div id="encSelectionGroup" class="option-group">
+                                        <div class="option selected" data-value="A256GCM">A256GCM (AES-GCM)</div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="passphrase-encrypt">密碼短語 (Passphrase)</label>
+                                    <div class="password-wrapper">
+                                        <input id="passphrase-encrypt" type="password" placeholder="輸入密碼短語" />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-encrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
+                                </div>
+                                <div class="form-group"><button id="encryptBtn">🔒 執行加密</button></div>
+                            </div>
+                            <div id="decrypt-section" hidden>
+                                <div class="form-group">
+                                    <label for="ciphertext-input">JWE 密文 (JSON 或 Compact 格式)</label>
+                                    <textarea id="ciphertext-input" rows="6" placeholder="在此貼上 JWE 密文"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <button id="parseBtn" class="secondary">🔍 解析 JWE 標頭 (可選)</button>
+                                </div>
+                                <div id="params-display-area" hidden></div>
+                                <div class="form-group">
+                                    <label for="passphrase-decrypt">密碼短語 (Passphrase)</label>
+                                    <div class="password-wrapper">
+                                        <input
+                                            id="passphrase-decrypt"
+                                            type="password"
+                                            placeholder="輸入解密用的密碼短語"
+                                        />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-decrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
+                                </div>
+                                <div class="form-group"><button id="decryptBtn">🔓 開始解密</button></div>
+                            </div>
+                        </div>
+
+                        <div id="file-mode-section" hidden>
+                            <div class="message-block hint-note" style="margin-top: 0">
+                                ℹ️
+                                檔案加解密流程全程在您的瀏覽器本機完成，您的檔案不會被上傳到任何伺服器。檔案將使用預設的
+                                <b>PBES2-HS256+A128KW (PBKDF2)</b> 與 <b>A256GCM</b> 演算法進行加密。
+                            </div>
+                            <div id="file-encrypt-section" class="form-group" style="margin-top: 1rem">
+                                <label>檔案加密</label>
+                                <div class="file-input-wrapper">
+                                    <span>點擊此處選擇檔案，或將檔案拖曳至此</span>
+                                    <input type="file" id="file-encrypt-input" />
+                                </div>
+                                <div id="file-encrypt-info" class="file-info" hidden></div>
+                                <div class="form-group" style="margin-top: 1rem">
+                                    <label for="passphrase-file-encrypt">密碼短語 (Passphrase)</label>
+                                    <div class="password-wrapper">
+                                        <input
+                                            id="passphrase-file-encrypt"
+                                            type="password"
+                                            placeholder="輸入加密用的密碼短語"
+                                        />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-file-encrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
+                                </div>
+                                <div class="form-group"><button id="encryptFileBtn">🔒 加密並下載檔案</button></div>
+                            </div>
+                            <hr style="margin: 2rem 0; border-color: var(--border-color); border-style: dashed" />
+                            <div id="file-decrypt-section" class="form-group">
+                                <label>檔案解密</label>
+                                <div class="file-input-wrapper">
+                                    <span>點擊選擇加密檔 (.jwe)，或將檔案拖曳至此</span>
+                                    <input type="file" id="file-decrypt-input" accept=".jwe" />
+                                </div>
+                                <div id="file-decrypt-info" class="file-info" hidden></div>
+                                <div class="form-group" style="margin-top: 1rem">
+                                    <label for="passphrase-file-decrypt">密碼短語 (Passphrase)</label>
+                                    <div class="password-wrapper">
+                                        <input
+                                            id="passphrase-file-decrypt"
+                                            type="password"
+                                            placeholder="輸入解密用的密碼短語"
+                                        />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-file-decrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
+                                </div>
+                                <div class="form-group"><button id="decryptFileBtn">🔓 解密並下載檔案</button></div>
+                            </div>
+                        </div>
+
+                        <div class="button-group" style="justify-content: center; margin-top: 1.5rem">
+                            <button id="pasteBtn" class="secondary" style="flex: 1; max-width: 200px" hidden>
+                                📋 貼上密文
+                            </button>
+                            <button id="resetBtn" class="secondary" style="flex: 1; max-width: 200px">
+                                🔄 全部重設
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card" id="results-area" hidden>
+                    <h2>執行結果</h2>
+                    <div class="card-content">
+                        <div id="output" class="output-box info">...</div>
+
+                        <div id="text-mode-results" hidden>
+                            <div class="form-group" style="margin-top: 1.5rem">
+                                <label for="jsonResultView">JWE 密文 (JSON 格式)</label>
+                                <textarea id="jsonResultView" readonly rows="10"></textarea>
+                                <div class="button-group" style="margin-top: 0.5rem; justify-content: flex-start">
+                                    <button id="copyJsonBtn" class="secondary">複製 JSON</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 1.5rem">
+                                <label for="compactResultView">JWE 密文 (Compact 格式)</label>
+                                <textarea id="compactResultView" readonly rows="5"></textarea>
+                                <div class="button-group" style="margin-top: 0.5rem; justify-content: flex-start">
+                                    <button id="copyCompactBtn" class="secondary">複製 Compact</button>
+                                    <button id="downloadBtn" class="secondary">下載為 .jwe</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="text-align: center">
+                                <canvas id="qrCanvas" width="320" height="320"></canvas>
+                                <p style="font-size: 0.8em; color: var(--secondary-color)">(使用 Compact 格式生成)</p>
+                            </div>
+                        </div>
+
+                        <div
+                            id="decryption-actions"
+                            class="button-group"
+                            style="margin-top: 1rem; justify-content: center"
+                            hidden
+                        >
+                            <button id="copyDecryptedBtn" class="secondary">📚 複製解密結果</button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+        <footer>
+             <p>&copy; <span id="currentYear"></span> JWE Crypto Tool</p>
+        </footer>
+        <div id="toast"></div>
+        <button id="scroll-to-top" class="fab" title="回到頂端"></button>
+
+        <script type="module">
+            import * as jose from 'https://cdn.jsdelivr.net/npm/jose@5.4.1/dist/browser/index.js';
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const app = {
+                    elements: {
+                        appModeSelector: document.getElementById("appModeSelector"),
+                        textModeSection: document.getElementById("text-mode-section"),
+                        fileModeSection: document.getElementById("file-mode-section"),
+                        modeSelector: document.getElementById("modeSelector"),
+                        encryptSection: document.getElementById("encrypt-section"),
+                        decryptSection: document.getElementById("decrypt-section"),
+                        plaintext: document.getElementById("plaintext"),
+                        ciphertextInput: document.getElementById("ciphertext-input"),
+                        passphraseEncrypt: document.getElementById("passphrase-encrypt"),
+                        passphraseDecrypt: document.getElementById("passphrase-decrypt"),
+                        algSelectionGroup: document.getElementById("algSelectionGroup"),
+                        encSelectionGroup: document.getElementById("encSelectionGroup"),
+                        argon2ParamsSection: document.getElementById("argon2-params-section"),
+                        argon2Memory: document.getElementById("argon2-memory"),
+                        argon2Iterations: document.getElementById("argon2-iterations"),
+                        argon2Parallelism: document.getElementById("argon2-parallelism"),
+                        encryptBtn: document.getElementById("encryptBtn"),
+                        decryptBtn: document.getElementById("decryptBtn"),
+                        parseBtn: document.getElementById("parseBtn"),
+                        fileEncryptInput: document.getElementById("file-encrypt-input"),
+                        fileEncryptInfo: document.getElementById("file-encrypt-info"),
+                        passphraseFileEncrypt: document.getElementById("passphrase-file-encrypt"),
+                        encryptFileBtn: document.getElementById("encryptFileBtn"),
+                        fileDecryptInput: document.getElementById("file-decrypt-input"),
+                        fileDecryptInfo: document.getElementById("file-decrypt-info"),
+                        passphraseFileDecrypt: document.getElementById("passphrase-file-decrypt"),
+                        decryptFileBtn: document.getElementById("decryptFileBtn"),
+                        pasteBtn: document.getElementById("pasteBtn"),
+                        resetBtn: document.getElementById("resetBtn"),
+                        resultsArea: document.getElementById("results-area"),
+                        textModeResults: document.getElementById("text-mode-results"),
+                        output: document.getElementById("output"),
+                        copyJsonBtn: document.getElementById("copyJsonBtn"),
+                        copyCompactBtn: document.getElementById("copyCompactBtn"),
+                        downloadBtn: document.getElementById("downloadBtn"),
+                        qrCanvas: document.getElementById("qrCanvas"),
+                        jsonResultView: document.getElementById("jsonResultView"),
+                        compactResultView: document.getElementById("compactResultView"),
+                        paramsDisplayArea: document.getElementById("params-display-area"),
+                        passwordToggles: document.querySelectorAll(".toggle-password-icon"),
+                        decryptionActions: document.getElementById("decryption-actions"),
+                        copyDecryptedBtn: document.getElementById("copyDecryptedBtn"),
+                        themeToggleBtn: document.getElementById("themeToggleBtn"),
+                        currentYear: document.getElementById("currentYear"),
+                        toast: document.getElementById("toast"),
+                        scrollTopBtn: document.getElementById("scroll-to-top"),
+                    },
+                    state: {
+                        currentAppMode: "text",
+                        currentMode: "encrypt",
+                        selectedAlg: "PBES2-HS256+A128KW",
+                        selectedEnc: "A256GCM",
+                        toastTimer: null,
+                        lastEncryptedJson: null,
+                        lastEncryptedCompact: null,
+                        lastDecryptedText: null,
+                        fileToEncrypt: null,
+                        fileToDecrypt: null,
+                    },
+                    constants: {
+                        PBKDF2_ITERATIONS: 2000000,
+                        QR_CODE_MAX_BYTES: 2953,
+                        FILE_SIZE_LIMIT_BYTES: 50 * 1024 * 1024,
+                        SVG_EYE_OPEN: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`,
+                        SVG_EYE_SLASH: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`,
+                    },
+
+                    init() {
+                        this.elements.currentYear.textContent = new Date().getFullYear();
+                        this.theme.init();
+                        this.setupEventListeners();
+                        this.ui.setAppMode("text");
+                    },
+
+                    setupEventListeners() {
+                        this.elements.themeToggleBtn.addEventListener("click", () => this.theme.toggle());
+                        this.elements.scrollTopBtn.addEventListener("click", () =>
+                            window.scrollTo({ top: 0, behavior: "smooth" })
+                        );
+                        window.addEventListener("scroll", () =>
+                            this.elements.scrollTopBtn.classList.toggle("active", window.scrollY > 300)
+                        );
+                        
+                        this.elements.appModeSelector.addEventListener("click", (e) => {
+                            const target = e.target.closest(".option");
+                            if (target?.dataset.appMode) this.ui.setAppMode(target.dataset.appMode);
+                        });
+                        this.elements.modeSelector.addEventListener("click", (e) => {
+                            const target = e.target.closest(".option");
+                            if (target?.dataset.mode) this.ui.setMode(target.dataset.mode);
+                        });
+                        
+                        const setupOptionListener = (groupId, stateKey, callback) => {
+                            this.elements[groupId].addEventListener("click", (e) => {
+                                const changed = this.ui.handleOptionSelection(e, stateKey, groupId);
+                                if (changed && callback) callback();
+                            });
+                        };
+
+                        setupOptionListener("algSelectionGroup", "selectedAlg", () => {
+                            const isArgon = app.state.selectedAlg === 'A128KW';
+                            this.ui.toggleArgon2Params(isArgon);
+                        });
+                        setupOptionListener("encSelectionGroup", "selectedEnc");
+                        
+                        this.elements.encryptBtn.addEventListener("click", () => this.crypto.encryptText());
+                        this.elements.decryptBtn.addEventListener("click", () => this.crypto.decryptText());
+                        this.elements.parseBtn.addEventListener("click", () => this.crypto.parseParameters());
+                        
+                        this.elements.fileEncryptInput.addEventListener("change", (e) =>
+                            this.fileHandler.handleFileSelect(e, "encrypt")
+                        );
+                        this.elements.fileDecryptInput.addEventListener("change", (e) =>
+                            this.fileHandler.handleFileSelect(e, "decrypt")
+                        );
+                        
+                        this.elements.encryptFileBtn.addEventListener("click", () => this.crypto.encryptFile());
+                        this.elements.decryptFileBtn.addEventListener("click", () => this.crypto.decryptFile());
+                        
+                        this.elements.resetBtn.addEventListener("click", () => this.ui.resetAll());
+                        this.elements.pasteBtn.addEventListener("click", () => this.utils.pasteTo("ciphertextInput"));
+                        this.elements.copyJsonBtn.addEventListener("click", () =>
+                            this.utils.copyToClipboard(app.state.lastEncryptedJson, "JWE JSON")
+                        );
+                        this.elements.copyCompactBtn.addEventListener("click", () =>
+                            this.utils.copyToClipboard(app.state.lastEncryptedCompact, "JWE Compact")
+                        );
+                        this.elements.copyDecryptedBtn.addEventListener("click", () =>
+                            this.utils.copyToClipboard(app.state.lastDecryptedText, "解密結果")
+                        );
+                        this.elements.downloadBtn.addEventListener("click", () => {
+                            if (app.state.lastEncryptedJson) {
+                                this.utils.downloadAsFile(
+                                    JSON.stringify(app.state.lastEncryptedJson, null, 2),
+                                    `encrypted-${Date.now()}.jwe`
+                                );
+                            }
+                        });
+                        
+                        this.elements.passwordToggles.forEach((el) => {
+                            el.innerHTML = this.constants.SVG_EYE_OPEN;
+                            el.addEventListener("click", (e) => this.ui.togglePasswordVisibility(e.currentTarget));
+                        });
+                        
+                        const setupDragDrop = (wrapper, input) => {
+                            if (!wrapper) return;
+                            ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+                                wrapper.addEventListener(eventName, (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                });
+                            });
+                            ["dragenter", "dragover"].forEach((eventName) =>
+                                wrapper.addEventListener(eventName, () => wrapper.classList.add("drag-over"))
+                            );
+                            ["dragleave", "drop"].forEach((eventName) =>
+                                wrapper.addEventListener(eventName, () => wrapper.classList.remove("drag-over"))
+                            );
+                            wrapper.addEventListener("drop", (e) => {
+                                if (e.dataTransfer.files.length > 0) {
+                                    input.files = e.dataTransfer.files;
+                                    input.dispatchEvent(new Event("change", { bubbles: true }));
+                                }
+                            });
+                        };
+                        
+                        setupDragDrop(
+                            this.elements.fileEncryptInput.closest(".file-input-wrapper"),
+                            this.elements.fileEncryptInput
+                        );
+                        setupDragDrop(
+                            this.elements.fileDecryptInput.closest(".file-input-wrapper"),
+                            this.elements.fileDecryptInput
+                        );
+                    },
+
+                    ui: {
+                        setAppMode(appMode) {
+                            app.state.currentAppMode = appMode;
+                            const isTextMode = appMode === "text";
+                            this.handleOptionSelection(
+                                { target: app.elements.appModeSelector.querySelector(`[data-app-mode="${appMode}"]`) },
+                                null,
+                                "appModeSelector"
+                            );
+                            app.elements.textModeSection.hidden = !isTextMode;
+                            app.elements.fileModeSection.hidden = isTextMode;
+                            this.setMode("encrypt");
+                        },
+                        setMode(mode) {
+                            this.resetAll();
+                            app.state.currentMode = mode;
+                            const isEncrypt = mode === "encrypt";
+                            this.handleOptionSelection(
+                                { target: app.elements.modeSelector.querySelector(`[data-mode="${mode}"]`) },
+                                null,
+                                "modeSelector"
+                            );
+                            app.elements.encryptSection.hidden = !isEncrypt;
+                            app.elements.decryptSection.hidden = isEncrypt;
+                            app.elements.pasteBtn.hidden = isEncrypt;
+                        },
+                        handleOptionSelection(e, stateKey, groupId) {
+                            const target = e.target.closest(".option");
+                            if (!target) return false;
+                            
+                            const group = app.elements[groupId];
+                            if (target.classList.contains("selected")) return false;
+                            
+                            group.querySelector(".selected")?.classList.remove("selected");
+                            target.classList.add("selected");
+                            if (stateKey) app.state[stateKey] = target.dataset.value;
+                            return true;
+                        },
+                        toggleArgon2Params(show) {
+                            app.elements.argon2ParamsSection.hidden = !show;
+                        },
+                        setOutput(type, message) {
+                            app.elements.resultsArea.hidden = false;
+                            app.elements.output.className = `output-box ${type}`;
+                            app.elements.output.innerHTML = message;
+                            app.elements.textModeResults.hidden = true;
+                            app.elements.decryptionActions.hidden = true;
+
+                            if (type === "success" && app.state.currentAppMode === "text") {
+                                if (app.state.currentMode === "encrypt") {
+                                    app.elements.textModeResults.hidden = false;
+                                } else {
+                                    app.elements.decryptionActions.hidden = false;
+                                }
+                            }
+                        },
+                        resetAll() {
+                            const fields = [
+                                "plaintext",
+                                "ciphertextInput",
+                                "passphraseEncrypt",
+                                "passphraseDecrypt",
+                                "passphraseFileEncrypt",
+                                "passphraseFileDecrypt",
+                            ];
+                            fields.forEach((id) => (app.elements[id] ? (app.elements[id].value = "") : null));
+
+                            app.elements.fileEncryptInput.value = "";
+                            app.elements.fileDecryptInput.value = "";
+                            app.state.fileToEncrypt = null;
+                            app.state.fileToDecrypt = null;
+                            app.elements.fileEncryptInfo.hidden = true;
+                            app.elements.fileDecryptInfo.hidden = true;
+
+                            app.elements.resultsArea.hidden = true;
+                            app.elements.textModeResults.hidden = true;
+                            app.elements.decryptionActions.hidden = true;
+                            app.elements.paramsDisplayArea.hidden = true;
+
+                            app.state.lastEncryptedJson = null;
+                            app.state.lastEncryptedCompact = null;
+                            app.state.lastDecryptedText = null;
+
+                            app.state.selectedAlg = "PBES2-HS256+A128KW";
+                            this.handleOptionSelection(
+                                { target: app.elements.algSelectionGroup.querySelector(`[data-value="PBES2-HS256+A128KW"]`)},
+                                "selectedAlg", "algSelectionGroup"
+                            );
+                            app.state.selectedEnc = "A256GCM";
+                             this.handleOptionSelection(
+                                { target: app.elements.encSelectionGroup.querySelector(`[data-value="A256GCM"]`)},
+                                "selectedEnc", "encSelectionGroup"
+                            );
+                            this.toggleArgon2Params(false);
+
+                            if (app.elements.qrCanvas) {
+                                const ctx = app.elements.qrCanvas.getContext("2d");
+                                if (ctx) ctx.clearRect(0, 0, app.elements.qrCanvas.width, app.elements.qrCanvas.height);
+                            }
+                        },
+                        togglePasswordVisibility(icon) {
+                            const input = document.getElementById(icon.dataset.for);
+                            if (input.type === "password") {
+                                input.type = "text";
+                                icon.innerHTML = app.constants.SVG_EYE_SLASH;
+                            } else {
+                                input.type = "password";
+                                icon.innerHTML = app.constants.SVG_EYE_OPEN;
+                            }
+                        },
+                        showFatalError(message) {
+                            const main = document.querySelector("main");
+                            main.innerHTML = `<section class="card"><div class="card-content"><div class="output-box error">${message}</div></div></section>`;
+                        },
+                    },
+
+                    fileHandler: {
+                        handleFileSelect(event, type) {
+                            const file = event.target.files[0];
+                            if (!file) return;
+                            const infoEl = app.elements[`file${type.charAt(0).toUpperCase() + type.slice(1)}Info`];
+                            const stateKey = type === "encrypt" ? "fileToEncrypt" : "fileToDecrypt";
+
+                            if (file.size > app.constants.FILE_SIZE_LIMIT_BYTES) {
+                                infoEl.innerHTML = `<p style="color: var(--error-color);">❌ 檔案過大：${(
+                                    file.size / 1024 / 1024
+                                ).toFixed(2)} MB (限制 ${app.constants.FILE_SIZE_LIMIT_BYTES / 1024 / 1024} MB)</p>`;
+                                infoEl.hidden = false;
+                                app.state[stateKey] = null;
+                                return;
+                            }
+                            infoEl.innerHTML = `檔案名稱: <span>${file.name}</span><br>檔案大小: <span>${(
+                                file.size / 1024 / 1024
+                            ).toFixed(2)} MB</span>`;
+                            infoEl.hidden = false;
+                            app.state[stateKey] = file;
+                        },
+                        readFileAsArrayBuffer: (file) => file.arrayBuffer(),
+                        readFileAsText: (file) => file.text(),
+                    },
+                    
+                    crypto: {
+                        async _deriveKeyPbkdf2(passphrase, salt, iterations) {
+                            const keyMaterial = await crypto.subtle.importKey(
+                                "raw",
+                                new TextEncoder().encode(passphrase),
+                                "PBKDF2",
+                                false,
+                                ["deriveBits"]
+                            );
+
+                            const derivedBits = await crypto.subtle.deriveBits(
+                                {
+                                    name: "PBKDF2",
+                                    salt: salt,
+                                    iterations: iterations,
+                                    hash: "SHA-256",
+                                },
+                                keyMaterial,
+                                128
+                            );
+                            
+                            return crypto.subtle.importKey(
+                                "raw",
+                                derivedBits,
+                                "AES-KW",
+                                true,
+                                ["wrapKey", "unwrapKey"]
+                            );
+                        },
+
+                        async _encryptPbkdf2(plaintextBuffer, passphrase) {
+                            const salt = crypto.getRandomValues(new Uint8Array(16));
+                            const kek = await this._deriveKeyPbkdf2(passphrase, salt, app.constants.PBKDF2_ITERATIONS);
+                            
+                            const jwe = new jose.GeneralEncrypt(plaintextBuffer);
+                            jwe.setProtectedHeader({
+                                alg: app.state.selectedAlg,
+                                enc: app.state.selectedEnc,
+                                p2s: jose.base64url.encode(salt),
+                                p2c: app.constants.PBKDF2_ITERATIONS,
+                            });
+                            jwe.addRecipient(kek);
+                            return await jwe.encrypt();
+                        },
+                        
+                        // [修正] 將 JWE 物件轉換邏輯統一到此函式
+                        _toGeneralJwe(jwe) {
+                            let jweObject;
+                            try {
+                                // 處理 JSON 字串或已是物件的情況
+                                jweObject = (typeof jwe === 'string') ? JSON.parse(jwe) : jwe;
+                            } catch (e) {
+                                // 處理 Compact String
+                                const parts = jwe.split('.');
+                                if (parts.length !== 5) throw new Error("無效的 Compact JWE 格式");
+                                return {
+                                    protected: parts[0],
+                                    recipients: [{ encrypted_key: parts[1] }],
+                                    iv: parts[2],
+                                    ciphertext: parts[3],
+                                    tag: parts[4],
+                                };
+                            }
+
+                            // 處理 Flattened JSON
+                            if (jweObject.recipients === undefined) {
+                                return {
+                                    protected: jweObject.protected,
+                                    recipients: [{ encrypted_key: jweObject.encrypted_key }],
+                                    iv: jweObject.iv,
+                                    ciphertext: jweObject.ciphertext,
+                                    tag: jweObject.tag,
+                                };
+                            }
+                            
+                            return jweObject;
+                        },
+
+                        async _decryptPbkdf2(jwe, passphrase) {
+                            const jweObject = this._toGeneralJwe(jwe);
+                            const pHeader = JSON.parse(new TextDecoder().decode(jose.base64url.decode(jweObject.protected)));
+                            const salt = jose.base64url.decode(pHeader.p2s);
+                            const iterations = pHeader.p2c;
+
+                            const kek = await this._deriveKeyPbkdf2(passphrase, salt, iterations);
+                            
+                            const { plaintext } = await jose.generalDecrypt(jweObject, kek);
+                            return plaintext;
+                        },
+
+                        async _encryptArgon2(plaintextBuffer, passphrase) {
+                            if (typeof argon2 === "undefined") throw new Error("Argon2 函式庫未成功載入。");
+
+                            const salt = crypto.getRandomValues(new Uint8Array(16));
+                            const argonParams = {
+                                pass: passphrase,
+                                salt: salt,
+                                time: parseInt(app.elements.argon2Iterations.value, 10),
+                                mem: parseInt(app.elements.argon2Memory.value, 10),
+                                parallelism: parseInt(app.elements.argon2Parallelism.value, 10),
+                                hashLen: 16,
+                                type: argon2.ArgonType.Argon2id,
+                            };
+
+                            const kekBytes = (await argon2.hash(argonParams)).hash;
+                            const kek = await crypto.subtle.importKey("raw", kekBytes, "AES-KW", true, ["wrapKey", "unwrapKey"]);
+                            
+                            const jwe = new jose.GeneralEncrypt(plaintextBuffer);
+                            jwe.setProtectedHeader({
+                                alg: 'A128KW',
+                                enc: app.state.selectedEnc,
+                                p2s: jose.base64url.encode(salt),
+                                p2m: argonParams.mem,
+                                p2t: argonParams.time,
+                                p2p: argonParams.parallelism,
+                            });
+                            jwe.addRecipient(kek);
+                            return await jwe.encrypt();
+                        },
+
+                        async _decryptArgon2(jwe, passphrase) {
+                            if (typeof argon2 === "undefined") throw new Error("Argon2 函式庫未成功載入。");
+                            
+                            const jweObject = this._toGeneralJwe(jwe);
+                            const pHeader = JSON.parse(new TextDecoder().decode(jose.base64url.decode(jweObject.protected)));
+                            const salt = jose.base64url.decode(pHeader.p2s);
+                            const argonParams = {
+                                pass: passphrase,
+                                salt: salt,
+                                time: pHeader.p2t,
+                                mem: pHeader.p2m,
+                                parallelism: pHeader.p2p,
+                                hashLen: 16,
+                                type: argon2.ArgonType.Argon2id,
+                            };
+                            const kekBytes = (await argon2.hash(argonParams)).hash;
+                            const kek = await crypto.subtle.importKey("raw", kekBytes, "AES-KW", true, ["wrapKey", "unwrapKey"]);
+                            
+                            const { plaintext } = await jose.generalDecrypt(jweObject, kek, {
+                                keyManagementAlgorithms: ['A128KW']
+                            });
+                            return plaintext;
+                        },
+
+                        async encryptText() {
+                            const plaintext = app.elements.plaintext.value;
+                            const passphrase = app.elements.passphraseEncrypt.value;
+                            if (!plaintext || !passphrase) return app.utils.showToast("❌ 明文和密碼短語不能為空。");
+
+                            app.ui.setOutput("info", "⏳ 正在加密，請稍候...");
+                            await new Promise((r) => setTimeout(r, 50));
+
+                            try {
+                                const plaintextBuffer = new TextEncoder().encode(plaintext);
+                                let jweResult;
+                                const isArgon = app.state.selectedAlg === 'A128KW';
+
+                                if (isArgon) {
+                                    jweResult = await this._encryptArgon2(plaintextBuffer, passphrase);
+                                } else {
+                                    jweResult = await this._encryptPbkdf2(plaintextBuffer, passphrase);
+                                }
+                                
+                                const compactResult = `${jweResult.protected}.${jweResult.recipients[0].encrypted_key}.${jweResult.iv}.${jweResult.ciphertext}.${jweResult.tag}`;
+                                
+                                const jsonResult = {
+                                    protected: jweResult.protected,
+                                    encrypted_key: jweResult.recipients[0].encrypted_key,
+                                    iv: jweResult.iv,
+                                    ciphertext: jweResult.ciphertext,
+                                    tag: jweResult.tag,
+                                };
+
+                                app.state.lastEncryptedJson = jsonResult;
+                                app.state.lastEncryptedCompact = compactResult;
+                                app.ui.setOutput("success", `✅ 加密成功！`);
+
+                                app.elements.jsonResultView.value = JSON.stringify(jsonResult, null, 2);
+                                app.elements.compactResultView.value = compactResult;
+
+                                app.elements.qrCanvas.hidden = compactResult.length >= app.constants.QR_CODE_MAX_BYTES;
+                                if (!app.elements.qrCanvas.hidden) {
+                                    QRCode.toCanvas(app.elements.qrCanvas, compactResult, {
+                                        errorCorrectionLevel: "L",
+                                        width: 320,
+                                    });
+                                }
+                            } catch (e) {
+                                app.ui.setOutput("error", `❌ 加密失敗：${e.message}`);
+                                console.error("Encrypt failed:", e);
+                            }
+                        },
+
+                        async decryptText() {
+                            const ciphertext = app.elements.ciphertextInput.value.trim();
+                            const passphrase = app.elements.passphraseDecrypt.value;
+                            if (!ciphertext || !passphrase) return app.utils.showToast("❌ 密文和密碼短語不能為空。");
+                            
+                            app.ui.setOutput("info", "⏳ 正在解密，請稍候...");
+                            await new Promise((r) => setTimeout(r, 50));
+
+                            try {
+                                let plaintext;
+                                const pHeader = await this.parseHeader(ciphertext);
+                                const isArgon = pHeader.alg === 'A128KW' && pHeader.p2m;
+
+                                if (isArgon) {
+                                    plaintext = await this._decryptArgon2(ciphertext, passphrase);
+                                } else {
+                                    plaintext = await this._decryptPbkdf2(ciphertext, passphrase);
+                                }
+
+                                const decryptedText = new TextDecoder().decode(plaintext);
+                                app.state.lastDecryptedText = decryptedText;
+                                app.ui.setOutput(
+                                    "success",
+                                    `✅ 解密成功<br><br><strong style="font-size: 1.1em; white-space: pre-wrap; word-break: break-word;">${decryptedText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</strong>`
+                                );
+                            } catch (e) {
+                                console.error("Decrypt failed:", e);
+                                const msg = (e instanceof jose.errors.JWEInvalid || e instanceof jose.errors.JWEDecryptionFailed)
+                                    ? "密碼短語不正確，或密文格式無效/已損毀。"
+                                    : e.message;
+                                app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
+                            }
+                        },
+
+                        async encryptFile() {
+                            const file = app.state.fileToEncrypt;
+                            const passphrase = app.elements.passphraseFileEncrypt.value;
+                            if (!file || !passphrase) return app.utils.showToast("❌ 請選擇檔案並輸入密碼短語。");
+                            
+                            app.ui.setOutput("info", `⏳ 正在加密檔案 ${file.name}，請稍候...`);
+                            await new Promise((r) => setTimeout(r, 50));
+                            
+                            try {
+                                const fileBuffer = await app.fileHandler.readFileAsArrayBuffer(file);
+                                const jweResult = await this._encryptPbkdf2(new Uint8Array(fileBuffer), passphrase);
+                                const jsonResult = {
+                                    protected: jweResult.protected,
+                                    encrypted_key: jweResult.recipients[0].encrypted_key,
+                                    iv: jweResult.iv,
+                                    ciphertext: jweResult.ciphertext,
+                                    tag: jweResult.tag,
+                                };
+
+                                app.utils.downloadAsFile(JSON.stringify(jsonResult, null, 2), file.name + ".jwe");
+                                app.ui.setOutput("success", `✅ 檔案加密成功！已開始下載 ${file.name + ".jwe"}`);
+                            } catch (e) {
+                                app.ui.setOutput("error", `❌ 檔案加密失敗：${e.message}`);
+                                console.error("File Encrypt failed:", e);
+                            }
+                        },
+
+                        async decryptFile() {
+                            const file = app.state.fileToDecrypt;
+                            const passphrase = app.elements.passphraseFileDecrypt.value;
+                            if (!file || !passphrase) return app.utils.showToast("❌ 請選擇檔案並輸入密碼短語。");
+                            
+                            app.ui.setOutput("info", `⏳ 正在解密檔案 ${file.name}，請稍候...`);
+                            await new Promise((r) => setTimeout(r, 50));
+                            
+                            try {
+                                const ciphertext = await app.fileHandler.readFileAsText(file);
+                                const plaintext = await this._decryptPbkdf2(ciphertext, passphrase);
+
+                                const originalFilename = file.name.endsWith(".jwe")
+                                    ? file.name.slice(0, -4)
+                                    : `decrypted-${file.name}`;
+                                app.utils.downloadAsFile(new Blob([plaintext]), originalFilename);
+
+                                app.ui.setOutput("success", `✅ 檔案解密成功！已開始下載 ${originalFilename}`);
+                            } catch (e) {
+                                console.error("File Decrypt failed:", e);
+                                 const msg = (e instanceof jose.errors.JWEInvalid || e instanceof jose.errors.JWEDecryptionFailed)
+                                    ? "密碼短語不正確，或密文格式無效/已損毀。"
+                                    : e.message;
+                                app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
+                            }
+                        },
+                        
+                        async parseHeader(jwe) {
+                            let protectedHeaderB64U;
+                            if(typeof jwe === 'string') {
+                                try {
+                                    const parsed = JSON.parse(jwe);
+                                    protectedHeaderB64U = parsed.protected;
+                                } catch (e) {
+                                    protectedHeaderB64U = jwe.split('.')[0];
+                                }
+                            } else if (jwe && jwe.protected) {
+                                protectedHeaderB64U = jwe.protected;
+                            }
+                            
+                            if (!protectedHeaderB64U) {
+                                throw new Error("無效的 JWE 格式，找不到 'protected' 欄位。");
+                            }
+                            return JSON.parse(new TextDecoder().decode(jose.base64url.decode(protectedHeaderB64U)));
+                        },
+
+                        async parseParameters() {
+                            const ciphertext = app.elements.ciphertextInput.value.trim();
+                            if (!ciphertext) return app.utils.showToast("請先貼上密文");
+                            
+                            try {
+                                const pHeader = await this.parseHeader(ciphertext);
+
+                                let paramsHtml = `<p>金鑰管理 (alg): <span>${pHeader.alg || "N/A"}</span></p>
+                                                  <p>內容加密 (enc): <span>${pHeader.enc || "N/A"}</span></p>`;
+
+                                if (pHeader.p2c) {
+                                    paramsHtml += `<p>PBKDF2 迭代: <span>${pHeader.p2c.toLocaleString("en-US")}</span></p>`;
+                                }
+                                if (pHeader.p2m) {
+                                    paramsHtml += `<p>Argon2 記憶體: <span>${pHeader.p2m} KiB</span></p>`;
+                                    paramsHtml += `<p>Argon2 迭代: <span>${pHeader.p2t}</span></p>`;
+                                    paramsHtml += `<p>Argon2 平行度: <span>${pHeader.p2p}</span></p>`;
+                                }
+                                paramsHtml += `<p style="color: var(--success-color);">狀態：<span>標頭解析成功 ✅</span></p>`;
+                                app.elements.paramsDisplayArea.innerHTML = paramsHtml;
+                                app.elements.paramsDisplayArea.hidden = false;
+                            } catch (e) {
+                                app.elements.paramsDisplayArea.innerHTML = `<p style="color: var(--error-color);">❌ 解析失敗：${e.message}</p>`;
+                                app.elements.paramsDisplayArea.hidden = false;
+                            }
+                        },
+                    },
+                    utils: {
+                        copyToClipboard(content, contentType = "內容") {
+                            if (!content && content !== "") {
+                                return;
+                            }
+                            const data = typeof content === "string" ? content : JSON.stringify(content, null, 2);
+                            navigator.clipboard.writeText(data).then(
+                                () => this.showToast(`✅ 已複製 ${contentType}！`),
+                                () => this.showToast(`❌ 複製 ${contentType} 失敗`)
+                            );
+                        },
+                        pasteTo(elementId) {
+                            if (navigator.clipboard && navigator.clipboard.readText) {
+                                navigator.clipboard.readText().then(
+                                    (text) => {
+                                        app.elements[elementId].value = text;
+                                        this.showToast("✅ 已貼上內容！");
+                                    },
+                                    () => this.showToast("❌ 貼上失敗或未授予權限")
+                                );
+                            } else {
+                                this.showToast("❌ 您的瀏覽器不支援安全貼上功能")
+                            }
+                        },
+                        downloadAsFile(content, filename) {
+                            const blob =
+                                content instanceof Blob ? content : new Blob([content], { type: "application/json;charset=utf-8" });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement("a");
+                            link.href = url;
+                            link.download = filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                        },
+                        showToast(message) {
+                            if (app.state.toastTimer) clearTimeout(app.state.toastTimer);
+                            app.elements.toast.textContent = message;
+                            app.elements.toast.className = "show";
+                            app.state.toastTimer = setTimeout(() => {
+                                app.elements.toast.className = "";
+                                app.state.toastTimer = null;
+                            }, 3000);
+                        },
+                    },
+                    theme: {
+                        init() {
+                            const t = localStorage.getItem("jwe-app-theme") || "dark";
+                            this.apply(t);
+                        },
+                        apply(t) {
+                            document.documentElement.setAttribute("data-theme", t);
+                            app.elements.themeToggleBtn.textContent = t === "dark" ? "☀️" : "🌙";
+                            localStorage.setItem("jwe-app-theme", t);
+                        },
+                        toggle() {
+                            const t = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+                            this.apply(t);
+                        },
+                    },
+                };
+                app.init();
+            });
+        </script>
+    </body>
+</html>
