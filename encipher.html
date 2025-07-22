@@ -260,6 +260,9 @@
                 min-height: 120px;
                 resize: vertical;
             }
+            div h4 {
+                color: var(--warning-color);
+            }
             .password-wrapper {
                 position: relative;
                 display: flex;
@@ -518,7 +521,7 @@
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
                 gap: 1rem;
             }
-            /* --- [新增] Accordion 樣式 --- */
+            /* --- Accordion 樣式 --- */
             .accordion {
                 border: 1px solid var(--border-color);
                 border-radius: var(--border-radius-sm);
@@ -732,8 +735,8 @@
                                 <div class="form-group">
                                     <label>密鑰衍生演算法 (KDF)</label>
                                     <div id="kdfSelectionGroup" class="option-group">
-                                        <div class="option selected" data-value="PBKDF2">PBKDF2</div>
-                                        <div class="option" data-value="Argon2id">Argon2id</div>
+                                        <div class="option selected" data-value="Argon2id">Argon2id</div>
+                                        <div class="option" data-value="PBKDF2">PBKDF2</div>
                                     </div>
                                 </div>
                                 <div id="argon2-params-section" hidden>
@@ -963,20 +966,20 @@
                         currentYear: document.getElementById("currentYear"),
                         toast: document.getElementById("toast"),
                         scrollTopBtn: document.getElementById("scroll-to-top"),
-                        // [新增] Accordion 元素
                         accordionContainer: document.querySelector(".accordion"),
                     },
                     state: {
-                        currentAppMode: "text",
-                        currentMode: "encrypt",
-                        selectedAlgorithm: "AES-GCM",
-                        selectedKDF: "Argon2id",
+                        currentAppMode: null,
+                        currentMode: null,
+                        selectedAlgorithm: null,
+                        selectedKDF: null,
                         toastTimer: null,
                         lastEncryptedOutput: null,
                         lastDecryptedText: null,
                         fileToEncrypt: null,
                         fileToDecrypt: null,
                     },
+                    // 集中管理常數
                     constants: {
                         SALT_BYTES: 16,
                         IV_BYTES: 12,
@@ -988,13 +991,25 @@
                         FILE_SIZE_LIMIT_BYTES: 10 * 1024 * 1024,
                         SVG_EYE_OPEN: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`,
                         SVG_EYE_SLASH: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`,
+                        MODE_TEXT: "text",
+                        MODE_FILE: "file",
+                        OP_ENCRYPT: "encrypt",
+                        OP_DECRYPT: "decrypt",
+                        ALGO_AES_GCM: "AES-GCM",
+                        ALGO_CHACHA: "ChaCha20-Poly1305",
+                        KDF_ARGON2: "Argon2id",
+                        KDF_PBKDF2: "PBKDF2",
+                        HASH_SHA256: "SHA-256",
                     },
 
                     init() {
                         this.elements.currentYear.textContent = new Date().getFullYear();
                         this.theme.init();
                         this.setupEventListeners();
-                        this.ui.setAppMode("text"); // This will call reset and set initial modes
+                        this.state.currentAppMode = this.constants.MODE_TEXT;
+                        this.state.selectedAlgorithm = this.constants.ALGO_AES_GCM;
+                        this.state.selectedKDF = this.constants.KDF_ARGON2;
+                        this.ui.setAppMode(this.state.currentAppMode);
                         this.pwa.register();
                         this.utils.checkArgon2Ready();
                     },
@@ -1024,17 +1039,17 @@
 
                         this.elements.kdfSelectionGroup.addEventListener("click", (e) => {
                             const changed = this.ui.handleOptionSelection(e, "selectedKDF");
-                            if (changed) this.ui.toggleArgon2Params(app.state.selectedKDF === "Argon2id");
+                            if (changed) this.ui.toggleArgon2Params(app.state.selectedKDF === app.constants.KDF_ARGON2);
                         });
 
                         this.elements.encryptBtn.addEventListener("click", () => this.crypto.encryptText());
                         this.elements.decryptBtn.addEventListener("click", () => this.crypto.decryptText());
                         this.elements.parseBtn.addEventListener("click", () => this.crypto.parseParameters());
                         this.elements.fileEncryptInput.addEventListener("change", (e) =>
-                            this.fileHandler.handleFileSelect(e, "encrypt")
+                            this.fileHandler.handleFileSelect(e, this.constants.OP_ENCRYPT)
                         );
                         this.elements.fileDecryptInput.addEventListener("change", (e) =>
-                            this.fileHandler.handleFileSelect(e, "decrypt")
+                            this.fileHandler.handleFileSelect(e, this.constants.OP_DECRYPT)
                         );
                         this.elements.encryptFileBtn.addEventListener("click", () => this.crypto.encryptFile());
                         this.elements.decryptFileBtn.addEventListener("click", () => this.crypto.decryptFile());
@@ -1084,7 +1099,6 @@
                             this.elements.fileDecryptInput
                         );
 
-                        // [新增] Accordion 事件監聽
                         if (this.elements.accordionContainer) {
                             this.elements.accordionContainer.addEventListener("click", (e) => {
                                 const header = e.target.closest(".accordion-header");
@@ -1096,19 +1110,19 @@
                     ui: {
                         setAppMode(appMode) {
                             app.state.currentAppMode = appMode;
-                            const isTextMode = appMode === "text";
+                            const isTextMode = appMode === app.constants.MODE_TEXT;
                             this.handleOptionSelection(
                                 { target: app.elements.appModeSelector.querySelector(`[data-app-mode="${appMode}"]`) },
                                 null
                             );
                             app.elements.textModeSection.hidden = !isTextMode;
                             app.elements.fileModeSection.hidden = isTextMode;
-                            this.setMode("encrypt"); // Also resets
+                            this.setMode(app.constants.OP_ENCRYPT);
                         },
                         setMode(mode) {
                             this.resetAll();
                             app.state.currentMode = mode;
-                            const isEncrypt = mode === "encrypt";
+                            const isEncrypt = mode === app.constants.OP_ENCRYPT;
                             this.handleOptionSelection(
                                 { target: app.elements.modeSelector.querySelector(`[data-mode="${mode}"]`) },
                                 null
@@ -1124,9 +1138,9 @@
                                 group.querySelector(".selected")?.classList.remove("selected");
                                 target.classList.add("selected");
                                 if (stateKey) app.state[stateKey] = target.dataset.value;
-                                return true; // changed
+                                return true;
                             }
-                            return false; // not changed
+                            return false;
                         },
                         toggleArgon2Params(show) {
                             app.elements.argon2ParamsSection.hidden = !show;
@@ -1138,8 +1152,9 @@
                             app.elements.textModeResults.hidden = true;
                             app.elements.decryptionActions.hidden = true;
 
-                            if (type === "success" && app.state.currentAppMode === "text") {
-                                if (app.state.currentMode === "encrypt") app.elements.textModeResults.hidden = false;
+                            if (type === "success" && app.state.currentAppMode === app.constants.MODE_TEXT) {
+                                if (app.state.currentMode === app.constants.OP_ENCRYPT)
+                                    app.elements.textModeResults.hidden = false;
                                 else app.elements.decryptionActions.hidden = false;
                             }
                         },
@@ -1165,9 +1180,13 @@
                             app.elements.paramsDisplayArea.hidden = true;
                             app.state.lastEncryptedOutput = null;
                             app.state.lastDecryptedText = null;
-                            app.state.selectedKDF = "Argon2id";
+                            app.state.selectedKDF = app.constants.KDF_ARGON2;
                             this.handleOptionSelection(
-                                { target: app.elements.kdfSelectionGroup.querySelector(`[data-value="Argon2id"]`) },
+                                {
+                                    target: app.elements.kdfSelectionGroup.querySelector(
+                                        `[data-value="${app.constants.KDF_ARGON2}"]`
+                                    ),
+                                },
                                 "selectedKDF"
                             );
                             this.toggleArgon2Params(true);
@@ -1200,14 +1219,14 @@
                                     1024
                                 ).toFixed(2)} MB</p>`;
                                 infoEl.hidden = false;
-                                app.state[type === "encrypt" ? "fileToEncrypt" : "fileToDecrypt"] = null;
+                                app.state[type === app.constants.OP_ENCRYPT ? "fileToEncrypt" : "fileToDecrypt"] = null;
                                 return;
                             }
                             infoEl.innerHTML = `檔案名稱: <span>${file.name}</span><br>檔案大小: <span>${(
                                 file.size / 1024
                             ).toFixed(2)} KB</span>`;
                             infoEl.hidden = false;
-                            app.state[type === "encrypt" ? "fileToEncrypt" : "fileToDecrypt"] = file;
+                            app.state[type === app.constants.OP_ENCRYPT ? "fileToEncrypt" : "fileToDecrypt"] = file;
                         },
                         readFileAsArrayBuffer: (file) => file.arrayBuffer(),
                         readFileAsText: (file) => file.text(),
@@ -1249,7 +1268,7 @@
                         },
                         async deriveKey(passphrase, kdfParams) {
                             const salt = Base64.toUint8Array(kdfParams.salt);
-                            if (kdfParams.name === "Argon2id") {
+                            if (kdfParams.name === app.constants.KDF_ARGON2) {
                                 if (!(await app.utils.checkArgon2Ready())) {
                                     throw new Error(
                                         "Argon2 函式庫未成功載入，無法執行。請檢查網路連線或瀏覽器控制台。"
@@ -1266,27 +1285,38 @@
                                 });
                                 return hash.hash;
                             }
-                            if (kdfParams.name === "PBKDF2") {
+                            if (kdfParams.name === app.constants.KDF_PBKDF2) {
                                 const keyMaterial = await crypto.subtle.importKey(
                                     "raw",
                                     new TextEncoder().encode(passphrase),
-                                    { name: "PBKDF2" },
+                                    { name: app.constants.KDF_PBKDF2 },
                                     false,
                                     ["deriveKey", "deriveBits"]
                                 );
-                                const usages = kdfParams.purpose === "encrypt" ? ["encrypt"] : ["decrypt"];
+                                const usages =
+                                    kdfParams.purpose === app.constants.OP_ENCRYPT ? ["encrypt"] : ["decrypt"];
                                 const cipherName = kdfParams.cipher;
-                                if (cipherName === "AES-GCM") {
+                                if (cipherName === app.constants.ALGO_AES_GCM) {
                                     return await crypto.subtle.deriveKey(
-                                        { name: "PBKDF2", salt, iterations: kdfParams.iterations, hash: "SHA-256" },
+                                        {
+                                            name: app.constants.KDF_PBKDF2,
+                                            salt,
+                                            iterations: kdfParams.iterations,
+                                            hash: app.constants.HASH_SHA256,
+                                        },
                                         keyMaterial,
-                                        { name: "AES-GCM", length: app.constants.KEY_LENGTH_BITS },
+                                        { name: app.constants.ALGO_AES_GCM, length: app.constants.KEY_LENGTH_BITS },
                                         false,
                                         usages
                                     );
                                 } else {
                                     const derivedBits = await crypto.subtle.deriveBits(
-                                        { name: "PBKDF2", salt, iterations: kdfParams.iterations, hash: "SHA-256" },
+                                        {
+                                            name: app.constants.KDF_PBKDF2,
+                                            salt,
+                                            iterations: kdfParams.iterations,
+                                            hash: app.constants.HASH_SHA256,
+                                        },
                                         keyMaterial,
                                         app.constants.KEY_LENGTH_BITS
                                     );
@@ -1298,9 +1328,9 @@
                         async encrypt(dataToEncrypt, passphrase, selectedCipher, selectedKDF) {
                             const salt = crypto.getRandomValues(new Uint8Array(app.constants.SALT_BYTES));
                             let kdfParams, derivedKey, keyDerivationJson;
-                            if (selectedKDF === "Argon2id") {
+                            if (selectedKDF === app.constants.KDF_ARGON2) {
                                 kdfParams = {
-                                    name: "Argon2id",
+                                    name: app.constants.KDF_ARGON2,
                                     salt: Base64.fromUint8Array(salt, true),
                                     iterations: parseInt(app.elements.argon2Iterations.value, 10),
                                     memory: parseInt(app.elements.argon2Memory.value, 10) * 1024,
@@ -1308,20 +1338,20 @@
                                 };
                                 derivedKey = await this.deriveKey(passphrase, kdfParams);
                                 const { salt: _, ...argonParamsToSave } = kdfParams;
-                                keyDerivationJson = { name: "Argon2id", ...argonParamsToSave };
+                                keyDerivationJson = { name: app.constants.KDF_ARGON2, ...argonParamsToSave };
                             } else {
                                 kdfParams = {
-                                    name: "PBKDF2",
+                                    name: app.constants.KDF_PBKDF2,
                                     salt: Base64.fromUint8Array(salt, true),
                                     iterations: app.constants.PBKDF2_ITERATIONS,
-                                    purpose: "encrypt",
+                                    purpose: app.constants.OP_ENCRYPT,
                                     cipher: selectedCipher,
                                 };
                                 derivedKey = await this.deriveKey(passphrase, kdfParams);
                                 keyDerivationJson = {
-                                    name: "PBKDF2",
+                                    name: app.constants.KDF_PBKDF2,
                                     iterations: kdfParams.iterations,
-                                    hash: "SHA-256",
+                                    hash: app.constants.HASH_SHA256,
                                 };
                             }
                             const tempJsonForAad = {
@@ -1331,17 +1361,21 @@
                             };
                             const aad = this._buildAad(tempJsonForAad);
                             let encryptionOutput;
-                            if (selectedCipher === "AES-GCM") {
+                            if (selectedCipher === app.constants.ALGO_AES_GCM) {
                                 const iv = crypto.getRandomValues(new Uint8Array(app.constants.IV_BYTES));
                                 const aesKey =
                                     derivedKey instanceof CryptoKey
                                         ? derivedKey
-                                        : await crypto.subtle.importKey("raw", derivedKey, { name: "AES-GCM" }, false, [
-                                              "encrypt",
-                                          ]);
+                                        : await crypto.subtle.importKey(
+                                              "raw",
+                                              derivedKey,
+                                              { name: app.constants.ALGO_AES_GCM },
+                                              false,
+                                              ["encrypt"]
+                                          );
                                 const encryptedBuffer = await crypto.subtle.encrypt(
                                     {
-                                        name: "AES-GCM",
+                                        name: app.constants.ALGO_AES_GCM,
                                         iv,
                                         tagLength: app.constants.TAG_LENGTH_BITS,
                                         additionalData: aad,
@@ -1356,7 +1390,7 @@
                                 );
                                 const tag = encryptedBuffer.slice(encryptedBuffer.byteLength - tagLengthBytes);
                                 encryptionOutput = {
-                                    name: "AES-GCM",
+                                    name: app.constants.ALGO_AES_GCM,
                                     iv: Base64.fromUint8Array(iv, true),
                                     ciphertext: Base64.fromUint8Array(new Uint8Array(ciphertext), true),
                                     tag: Base64.fromUint8Array(new Uint8Array(tag), true),
@@ -1369,7 +1403,7 @@
                                     new Uint8Array(dataToEncrypt)
                                 );
                                 encryptionOutput = {
-                                    name: "ChaCha20-Poly1305",
+                                    name: app.constants.ALGO_CHACHA,
                                     nonce: Base64.fromUint8Array(nonce, true),
                                     ciphertext: Base64.fromUint8Array(ciphertextWithTag, true),
                                 };
@@ -1385,22 +1419,26 @@
                         async _decryptWithAAD(json, key) {
                             const enc = json.encryption;
                             const aad = this._buildAad(json);
-                            if (enc.name === "AES-GCM") {
+                            if (enc.name === app.constants.ALGO_AES_GCM) {
                                 const iv = Base64.toUint8Array(enc.iv);
                                 const ciphertext = Base64.toUint8Array(enc.ciphertext);
                                 const tag = Base64.toUint8Array(enc.tag);
                                 const aesKey =
                                     key instanceof CryptoKey
                                         ? key
-                                        : await crypto.subtle.importKey("raw", key, { name: "AES-GCM" }, false, [
-                                              "decrypt",
-                                          ]);
+                                        : await crypto.subtle.importKey(
+                                              "raw",
+                                              key,
+                                              { name: app.constants.ALGO_AES_GCM },
+                                              false,
+                                              ["decrypt"]
+                                          );
                                 const combinedBuffer = new Uint8Array(ciphertext.length + tag.length);
                                 combinedBuffer.set(ciphertext, 0);
                                 combinedBuffer.set(tag, ciphertext.length);
                                 return await crypto.subtle.decrypt(
                                     {
-                                        name: "AES-GCM",
+                                        name: app.constants.ALGO_AES_GCM,
                                         iv,
                                         tagLength: app.constants.TAG_LENGTH_BITS,
                                         additionalData: aad,
@@ -1408,7 +1446,7 @@
                                     aesKey,
                                     combinedBuffer
                                 );
-                            } else if (enc.name === "ChaCha20-Poly1305") {
+                            } else if (enc.name === app.constants.ALGO_CHACHA) {
                                 const nonce = Base64.toUint8Array(enc.nonce);
                                 const ciphertext = Base64.toUint8Array(enc.ciphertext);
                                 const chachaKeyBytes =
@@ -1419,25 +1457,29 @@
                         },
                         async _decryptLegacy(json, key) {
                             const enc = json.encryption;
-                            if (enc.name === "AES-GCM") {
+                            if (enc.name === app.constants.ALGO_AES_GCM) {
                                 const iv = Base64.toUint8Array(enc.iv);
                                 const ciphertext = Base64.toUint8Array(enc.ciphertext);
                                 const tag = Base64.toUint8Array(enc.tag);
                                 const aesKey =
                                     key instanceof CryptoKey
                                         ? key
-                                        : await crypto.subtle.importKey("raw", key, { name: "AES-GCM" }, false, [
-                                              "decrypt",
-                                          ]);
+                                        : await crypto.subtle.importKey(
+                                              "raw",
+                                              key,
+                                              { name: app.constants.ALGO_AES_GCM },
+                                              false,
+                                              ["decrypt"]
+                                          );
                                 const combinedBuffer = new Uint8Array(ciphertext.length + tag.length);
                                 combinedBuffer.set(ciphertext, 0);
                                 combinedBuffer.set(tag, ciphertext.length);
                                 return await crypto.subtle.decrypt(
-                                    { name: "AES-GCM", iv, tagLength: app.constants.TAG_LENGTH_BITS },
+                                    { name: app.constants.ALGO_AES_GCM, iv, tagLength: app.constants.TAG_LENGTH_BITS },
                                     aesKey,
                                     combinedBuffer
                                 );
-                            } else if (enc.name === "ChaCha20-Poly1305") {
+                            } else if (enc.name === app.constants.ALGO_CHACHA) {
                                 const nonce = Base64.toUint8Array(enc.nonce);
                                 const ciphertext = Base64.toUint8Array(enc.ciphertext);
                                 const chachaKeyBytes =
@@ -1459,7 +1501,7 @@
                                 iterations: json.keyDerivation.iterations,
                                 memory: json.keyDerivation.memory,
                                 parallelism: json.keyDerivation.parallelism,
-                                purpose: "decrypt",
+                                purpose: app.constants.OP_DECRYPT,
                                 cipher: json.encryption.name,
                             };
                             const key = await this.deriveKey(passphrase, kdfParams);
@@ -1484,6 +1526,7 @@
                             if (!mnemonic || !passphrase) return app.utils.showToast("❌ 明文和密碼短語不能為空。");
                             app.ui.setOutput("info", "⏳ 正在加密，請稍候...");
                             await new Promise((r) => setTimeout(r, 50));
+                            const startTime = performance.now(); // [修改2] 開始計時
                             try {
                                 const { finalBase64, jsonOutput } = await this.encrypt(
                                     new TextEncoder().encode(mnemonic),
@@ -1491,8 +1534,9 @@
                                     app.state.selectedAlgorithm,
                                     app.state.selectedKDF
                                 );
+                                const duration = ((performance.now() - startTime) / 1000).toFixed(3); // [修改2] 計算時間
                                 app.state.lastEncryptedOutput = finalBase64;
-                                app.ui.setOutput("success", `✅ 加密成功！`);
+                                app.ui.setOutput("success", `✅ 加密成功！ (處理時間：${duration} 秒)`); // [修改2] 顯示時間
                                 app.elements.base64ResultView.value = finalBase64;
                                 app.elements.jsonView.value = JSON.stringify(jsonOutput, null, 2);
                                 app.elements.qrCanvas.hidden = finalBase64.length >= app.constants.QR_CODE_MAX_BYTES;
@@ -1512,14 +1556,16 @@
                             if (!base64Cipher || !passphrase) return app.utils.showToast("❌ 密文和密碼短語不能為空。");
                             app.ui.setOutput("info", "⏳ 正在解密，請稍候...");
                             await new Promise((r) => setTimeout(r, 50));
+                            const startTime = performance.now(); // [修改2] 開始計時
                             try {
                                 const { decryptedBytes, usedLegacyFallback } = await this.decryptUnified(
                                     base64Cipher,
                                     passphrase
                                 );
+                                const duration = ((performance.now() - startTime) / 1000).toFixed(3); // [修改2] 計算時間
                                 const decryptedText = new TextDecoder().decode(decryptedBytes);
                                 app.state.lastDecryptedText = decryptedText;
-                                let successMessage = `✅ 解密成功<br><br><strong style="font-size: 1.1em; white-space: pre-wrap; word-break: break-word;">${decryptedText}</strong>`;
+                                let successMessage = `✅ 解密成功 (處理時間：${duration} 秒)<br><br><strong style="font-size: 1.1em; white-space: pre-wrap; word-break: break-word;">${decryptedText}</strong>`; // [修改2] 顯示時間
                                 if (usedLegacyFallback) {
                                     successMessage += `<br><br><small style="color: var(--note-color); font-style: italic;">ℹ️ 已自動相容舊版格式的密文。</small>`;
                                 }
@@ -1533,9 +1579,10 @@
                             const file = app.state.fileToEncrypt;
                             const passphrase = app.elements.passphraseFileEncrypt.value;
                             if (!file || !passphrase) return app.utils.showToast("❌ 請選擇檔案並輸入密碼短語。");
-                            const fileKDF = "Argon2id";
+                            const fileKDF = app.constants.KDF_ARGON2;
                             app.ui.setOutput("info", `⏳ 正在使用 ${fileKDF} 加密檔案 ${file.name}，請稍候...`);
                             await new Promise((r) => setTimeout(r, 50));
+                            const startTime = performance.now(); // [修改2] 開始計時
                             try {
                                 const fileBuffer = await app.fileHandler.readFileAsArrayBuffer(file);
                                 const { finalBase64 } = await this.encrypt(
@@ -1544,8 +1591,12 @@
                                     app.state.selectedAlgorithm,
                                     fileKDF
                                 );
+                                const duration = ((performance.now() - startTime) / 1000).toFixed(3); // [修改2] 計算時間
                                 app.utils.downloadAsFile(finalBase64, file.name + ".enc");
-                                app.ui.setOutput("success", `✅ 檔案加密成功！已開始下載 ${file.name + ".enc"}`);
+                                app.ui.setOutput(
+                                    "success",
+                                    `✅ 檔案加密成功！已開始下載 ${file.name + ".enc"} (處理時間：${duration} 秒)`
+                                ); // [修改2] 顯示時間
                             } catch (e) {
                                 app.ui.setOutput("error", `❌ 檔案加密失敗：${e.message}`);
                             }
@@ -1556,17 +1607,19 @@
                             if (!file || !passphrase) return app.utils.showToast("❌ 請選擇檔案並輸入密碼短語。");
                             app.ui.setOutput("info", `⏳ 正在解密檔案 ${file.name}，請稍候...`);
                             await new Promise((r) => setTimeout(r, 50));
+                            const startTime = performance.now(); // [修改2] 開始計時
                             try {
                                 const base64Cipher = await app.fileHandler.readFileAsText(file);
                                 const { decryptedBytes, usedLegacyFallback } = await this.decryptUnified(
                                     base64Cipher,
                                     passphrase
                                 );
+                                const duration = ((performance.now() - startTime) / 1000).toFixed(3); // [修改2] 計算時間
                                 const originalFilename = file.name.endsWith(".enc")
                                     ? file.name.slice(0, -4)
                                     : `decrypted-${file.name}`;
                                 app.utils.downloadAsFile(new Blob([decryptedBytes]), originalFilename);
-                                let successMessage = `✅ 檔案解密成功！已開始下載 ${originalFilename}`;
+                                let successMessage = `✅ 檔案解密成功！已開始下載 ${originalFilename} (處理時間：${duration} 秒)`; // [修改2] 顯示時間
                                 if (usedLegacyFallback) {
                                     successMessage += ` (已自動相容舊版格式)`;
                                 }
@@ -1585,9 +1638,9 @@
                                 const enc = json.encryption;
                                 if (!kd || !enc) throw new Error("JSON 結構不符");
                                 let kdfDetails = `${kd.name}`;
-                                if (kd.name === "PBKDF2") {
+                                if (kd.name === app.constants.KDF_PBKDF2) {
                                     kdfDetails += ` (${kd.hash}, ${kd.iterations.toLocaleString("en-US")} 迭代)`;
-                                } else if (kd.name === "Argon2id") {
+                                } else if (kd.name === app.constants.KDF_ARGON2) {
                                     kdfDetails += ` (mem: ${kd.memory / 1024}MB, iter: ${kd.iterations}, parallel: ${
                                         kd.parallelism
                                     })`;
@@ -1683,7 +1736,6 @@
                             this.apply(t);
                         },
                     },
-                    // [新增] Accordion 模組
                     accordion: {
                         toggle(h) {
                             const isOpen = h.classList.contains("active");
