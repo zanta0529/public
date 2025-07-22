@@ -19,7 +19,7 @@
         ></script>
 
         <style>
-            /* --- CSS 樣式 ... (內容不變) --- */
+            /* --- CSS 樣式 ... (內容不變，此處省略以節省篇幅) --- */
             :root {
                 --primary-color: #4f46e5;
                 --primary-hover-color: #6366f1;
@@ -591,7 +591,7 @@
                             <code>PBES2-Argon2id+A128KW</code> 演算法加密的密文，請遵循以下步驟：
                         </p>
                         <pre>
-1. 解析 JWE 保護標頭，讀取 `alg`、`enc` 及 Argon2 參數 (`p2m`, `p2t`, `p2p`, `p2s`)。
+1. 解析 JWE 保護標頭，讀取 `alg`、`enc` 及 Argon2 參數 (`p2m`, `2t`, `p2p`, `p2s`)。
 2. 使用 Argon2id 函式庫，以前述參數、Salt 和使用者輸入的密碼短語，重新計算出一個 128-bit (16-byte) 的「金鑰加密金鑰 (KEK)」。
 3. 使用標準的 AES Key Wrap (RFC 3394) 解密演算法 (A128KW) 和上一步的 KEK，解開 JWE 中的 `encrypted_key`，得到「內容加密金鑰 (CEK)」。
 4. 使用 CEK 和 `enc`, `iv`, `tag` 等標準 JWE 欄位，即可使用對應的對稱加密演算法 (如 A256GCM) 解密 `ciphertext`，還原明文。</pre
@@ -622,9 +622,7 @@
                                     <label>金鑰管理演算法 (alg)</label>
                                     <div id="algSelectionGroup" class="option-group">
                                         <div class="option selected" data-value="PBES2-HS256+A128KW">PBKDF2</div>
-                                        <div class="option" data-value="A128KW"> 
-                                            Argon2id (非標準擴充)
-                                        </div>
+                                        <div class="option" data-value="A128KW">Argon2id (非標準擴充)</div>
                                     </div>
                                 </div>
                                 <div id="argon2-params-section" hidden>
@@ -815,13 +813,13 @@
             </main>
         </div>
         <footer>
-             <p>&copy; <span id="currentYear"></span> JWE Crypto Tool</p>
+            <p>&copy; <span id="currentYear"></span> JWE Crypto Tool</p>
         </footer>
         <div id="toast"></div>
         <button id="scroll-to-top" class="fab" title="回到頂端"></button>
 
         <script type="module">
-            import * as jose from 'https://cdn.jsdelivr.net/npm/jose@5.4.1/dist/browser/index.js';
+            import * as jose from "https://cdn.jsdelivr.net/npm/jose@6.0.12/dist/webapi/lib/asn1.min.js";
 
             document.addEventListener("DOMContentLoaded", () => {
                 const app = {
@@ -908,7 +906,7 @@
                         window.addEventListener("scroll", () =>
                             this.elements.scrollTopBtn.classList.toggle("active", window.scrollY > 300)
                         );
-                        
+
                         this.elements.appModeSelector.addEventListener("click", (e) => {
                             const target = e.target.closest(".option");
                             if (target?.dataset.appMode) this.ui.setAppMode(target.dataset.appMode);
@@ -917,7 +915,7 @@
                             const target = e.target.closest(".option");
                             if (target?.dataset.mode) this.ui.setMode(target.dataset.mode);
                         });
-                        
+
                         const setupOptionListener = (groupId, stateKey, callback) => {
                             this.elements[groupId].addEventListener("click", (e) => {
                                 const changed = this.ui.handleOptionSelection(e, stateKey, groupId);
@@ -926,25 +924,25 @@
                         };
 
                         setupOptionListener("algSelectionGroup", "selectedAlg", () => {
-                            const isArgon = app.state.selectedAlg === 'A128KW';
+                            const isArgon = app.state.selectedAlg === "A128KW";
                             this.ui.toggleArgon2Params(isArgon);
                         });
                         setupOptionListener("encSelectionGroup", "selectedEnc");
-                        
+
                         this.elements.encryptBtn.addEventListener("click", () => this.crypto.encryptText());
                         this.elements.decryptBtn.addEventListener("click", () => this.crypto.decryptText());
                         this.elements.parseBtn.addEventListener("click", () => this.crypto.parseParameters());
-                        
+
                         this.elements.fileEncryptInput.addEventListener("change", (e) =>
                             this.fileHandler.handleFileSelect(e, "encrypt")
                         );
                         this.elements.fileDecryptInput.addEventListener("change", (e) =>
                             this.fileHandler.handleFileSelect(e, "decrypt")
                         );
-                        
+
                         this.elements.encryptFileBtn.addEventListener("click", () => this.crypto.encryptFile());
                         this.elements.decryptFileBtn.addEventListener("click", () => this.crypto.decryptFile());
-                        
+
                         this.elements.resetBtn.addEventListener("click", () => this.ui.resetAll());
                         this.elements.pasteBtn.addEventListener("click", () => this.utils.pasteTo("ciphertextInput"));
                         this.elements.copyJsonBtn.addEventListener("click", () =>
@@ -964,12 +962,12 @@
                                 );
                             }
                         });
-                        
+
                         this.elements.passwordToggles.forEach((el) => {
                             el.innerHTML = this.constants.SVG_EYE_OPEN;
                             el.addEventListener("click", (e) => this.ui.togglePasswordVisibility(e.currentTarget));
                         });
-                        
+
                         const setupDragDrop = (wrapper, input) => {
                             if (!wrapper) return;
                             ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
@@ -991,7 +989,7 @@
                                 }
                             });
                         };
-                        
+
                         setupDragDrop(
                             this.elements.fileEncryptInput.closest(".file-input-wrapper"),
                             this.elements.fileEncryptInput
@@ -1008,8 +1006,7 @@
                             const isTextMode = appMode === "text";
                             this.handleOptionSelection(
                                 { target: app.elements.appModeSelector.querySelector(`[data-app-mode="${appMode}"]`) },
-                                null,
-                                "appModeSelector"
+                                null
                             );
                             app.elements.textModeSection.hidden = !isTextMode;
                             app.elements.fileModeSection.hidden = isTextMode;
@@ -1021,24 +1018,22 @@
                             const isEncrypt = mode === "encrypt";
                             this.handleOptionSelection(
                                 { target: app.elements.modeSelector.querySelector(`[data-mode="${mode}"]`) },
-                                null,
-                                "modeSelector"
+                                null
                             );
                             app.elements.encryptSection.hidden = !isEncrypt;
                             app.elements.decryptSection.hidden = isEncrypt;
                             app.elements.pasteBtn.hidden = isEncrypt;
                         },
-                        handleOptionSelection(e, stateKey, groupId) {
+                        handleOptionSelection(e, stateKey) {
                             const target = e.target.closest(".option");
-                            if (!target) return false;
-                            
-                            const group = app.elements[groupId];
-                            if (target.classList.contains("selected")) return false;
-                            
-                            group.querySelector(".selected")?.classList.remove("selected");
-                            target.classList.add("selected");
-                            if (stateKey) app.state[stateKey] = target.dataset.value;
-                            return true;
+                            if (target && !target.classList.contains("selected")) {
+                                const group = target.parentElement;
+                                group.querySelector(".selected")?.classList.remove("selected");
+                                target.classList.add("selected");
+                                if (stateKey) app.state[stateKey] = target.dataset.value;
+                                return true;
+                            }
+                            return false;
                         },
                         toggleArgon2Params(show) {
                             app.elements.argon2ParamsSection.hidden = !show;
@@ -1051,11 +1046,8 @@
                             app.elements.decryptionActions.hidden = true;
 
                             if (type === "success" && app.state.currentAppMode === "text") {
-                                if (app.state.currentMode === "encrypt") {
-                                    app.elements.textModeResults.hidden = false;
-                                } else {
-                                    app.elements.decryptionActions.hidden = false;
-                                }
+                                if (app.state.currentMode === "encrypt") app.elements.textModeResults.hidden = false;
+                                else app.elements.decryptionActions.hidden = false;
                             }
                         },
                         resetAll() {
@@ -1087,15 +1079,20 @@
 
                             app.state.selectedAlg = "PBES2-HS256+A128KW";
                             this.handleOptionSelection(
-                                { target: app.elements.algSelectionGroup.querySelector(`[data-value="PBES2-HS256+A128KW"]`)},
-                                "selectedAlg", "algSelectionGroup"
-                            );
-                            app.state.selectedEnc = "A256GCM";
-                             this.handleOptionSelection(
-                                { target: app.elements.encSelectionGroup.querySelector(`[data-value="A256GCM"]`)},
-                                "selectedEnc", "encSelectionGroup"
+                                {
+                                    target: app.elements.algSelectionGroup.querySelector(
+                                        `[data-value="PBES2-HS256+A128KW"]`
+                                    ),
+                                },
+                                "selectedAlg"
                             );
                             this.toggleArgon2Params(false);
+
+                            app.state.selectedEnc = "A256GCM";
+                            this.handleOptionSelection(
+                                { target: app.elements.encSelectionGroup.querySelector(`[data-value="A256GCM"]`) },
+                                "selectedEnc"
+                            );
 
                             if (app.elements.qrCanvas) {
                                 const ctx = app.elements.qrCanvas.getContext("2d");
@@ -1112,10 +1109,6 @@
                                 icon.innerHTML = app.constants.SVG_EYE_OPEN;
                             }
                         },
-                        showFatalError(message) {
-                            const main = document.querySelector("main");
-                            main.innerHTML = `<section class="card"><div class="card-content"><div class="output-box error">${message}</div></div></section>`;
-                        },
                     },
 
                     fileHandler: {
@@ -1127,14 +1120,18 @@
 
                             if (file.size > app.constants.FILE_SIZE_LIMIT_BYTES) {
                                 infoEl.innerHTML = `<p style="color: var(--error-color);">❌ 檔案過大：${(
-                                    file.size / 1024 / 1024
+                                    file.size /
+                                    1024 /
+                                    1024
                                 ).toFixed(2)} MB (限制 ${app.constants.FILE_SIZE_LIMIT_BYTES / 1024 / 1024} MB)</p>`;
                                 infoEl.hidden = false;
                                 app.state[stateKey] = null;
                                 return;
                             }
                             infoEl.innerHTML = `檔案名稱: <span>${file.name}</span><br>檔案大小: <span>${(
-                                file.size / 1024 / 1024
+                                file.size /
+                                1024 /
+                                1024
                             ).toFixed(2)} MB</span>`;
                             infoEl.hidden = false;
                             app.state[stateKey] = file;
@@ -1142,18 +1139,18 @@
                         readFileAsArrayBuffer: (file) => file.arrayBuffer(),
                         readFileAsText: (file) => file.text(),
                     },
-                    
+
                     crypto: {
                         async _deriveKeyPbkdf2(passphrase, salt, iterations) {
                             const keyMaterial = await crypto.subtle.importKey(
                                 "raw",
                                 new TextEncoder().encode(passphrase),
-                                "PBKDF2",
+                                { name: "PBKDF2" },
                                 false,
-                                ["deriveBits"]
+                                ["deriveKey", "deriveBits"]
                             );
 
-                            const derivedBits = await crypto.subtle.deriveBits(
+                            return crypto.subtle.deriveKey(
                                 {
                                     name: "PBKDF2",
                                     salt: salt,
@@ -1161,42 +1158,18 @@
                                     hash: "SHA-256",
                                 },
                                 keyMaterial,
-                                128
-                            );
-                            
-                            return crypto.subtle.importKey(
-                                "raw",
-                                derivedBits,
-                                "AES-KW",
+                                { name: "AES-KW", length: 128 },
                                 true,
                                 ["wrapKey", "unwrapKey"]
                             );
                         },
 
-                        async _encryptPbkdf2(plaintextBuffer, passphrase) {
-                            const salt = crypto.getRandomValues(new Uint8Array(16));
-                            const kek = await this._deriveKeyPbkdf2(passphrase, salt, app.constants.PBKDF2_ITERATIONS);
-                            
-                            const jwe = new jose.GeneralEncrypt(plaintextBuffer);
-                            jwe.setProtectedHeader({
-                                alg: app.state.selectedAlg,
-                                enc: app.state.selectedEnc,
-                                p2s: jose.base64url.encode(salt),
-                                p2c: app.constants.PBKDF2_ITERATIONS,
-                            });
-                            jwe.addRecipient(kek);
-                            return await jwe.encrypt();
-                        },
-                        
-                        // [修正] 將 JWE 物件轉換邏輯統一到此函式
                         _toGeneralJwe(jwe) {
                             let jweObject;
                             try {
-                                // 處理 JSON 字串或已是物件的情況
-                                jweObject = (typeof jwe === 'string') ? JSON.parse(jwe) : jwe;
+                                jweObject = typeof jwe === "string" ? JSON.parse(jwe) : jwe;
                             } catch (e) {
-                                // 處理 Compact String
-                                const parts = jwe.split('.');
+                                const parts = jwe.split(".");
                                 if (parts.length !== 5) throw new Error("無效的 Compact JWE 格式");
                                 return {
                                     protected: parts[0],
@@ -1207,7 +1180,6 @@
                                 };
                             }
 
-                            // 處理 Flattened JSON
                             if (jweObject.recipients === undefined) {
                                 return {
                                     protected: jweObject.protected,
@@ -1217,18 +1189,20 @@
                                     tag: jweObject.tag,
                                 };
                             }
-                            
+
                             return jweObject;
                         },
 
                         async _decryptPbkdf2(jwe, passphrase) {
                             const jweObject = this._toGeneralJwe(jwe);
-                            const pHeader = JSON.parse(new TextDecoder().decode(jose.base64url.decode(jweObject.protected)));
+                            const pHeader = JSON.parse(
+                                new TextDecoder().decode(jose.base64url.decode(jweObject.protected))
+                            );
                             const salt = jose.base64url.decode(pHeader.p2s);
                             const iterations = pHeader.p2c;
 
                             const kek = await this._deriveKeyPbkdf2(passphrase, salt, iterations);
-                            
+
                             const { plaintext } = await jose.generalDecrypt(jweObject, kek);
                             return plaintext;
                         },
@@ -1248,11 +1222,14 @@
                             };
 
                             const kekBytes = (await argon2.hash(argonParams)).hash;
-                            const kek = await crypto.subtle.importKey("raw", kekBytes, "AES-KW", true, ["wrapKey", "unwrapKey"]);
-                            
+                            const kek = await crypto.subtle.importKey("raw", kekBytes, "AES-KW", true, [
+                                "wrapKey",
+                                "unwrapKey",
+                            ]);
+
                             const jwe = new jose.GeneralEncrypt(plaintextBuffer);
                             jwe.setProtectedHeader({
-                                alg: 'A128KW',
+                                alg: "A128KW",
                                 enc: app.state.selectedEnc,
                                 p2s: jose.base64url.encode(salt),
                                 p2m: argonParams.mem,
@@ -1265,9 +1242,11 @@
 
                         async _decryptArgon2(jwe, passphrase) {
                             if (typeof argon2 === "undefined") throw new Error("Argon2 函式庫未成功載入。");
-                            
+
                             const jweObject = this._toGeneralJwe(jwe);
-                            const pHeader = JSON.parse(new TextDecoder().decode(jose.base64url.decode(jweObject.protected)));
+                            const pHeader = JSON.parse(
+                                new TextDecoder().decode(jose.base64url.decode(jweObject.protected))
+                            );
                             const salt = jose.base64url.decode(pHeader.p2s);
                             const argonParams = {
                                 pass: passphrase,
@@ -1279,10 +1258,13 @@
                                 type: argon2.ArgonType.Argon2id,
                             };
                             const kekBytes = (await argon2.hash(argonParams)).hash;
-                            const kek = await crypto.subtle.importKey("raw", kekBytes, "AES-KW", true, ["wrapKey", "unwrapKey"]);
-                            
+                            const kek = await crypto.subtle.importKey("raw", kekBytes, "AES-KW", true, [
+                                "wrapKey",
+                                "unwrapKey",
+                            ]);
+
                             const { plaintext } = await jose.generalDecrypt(jweObject, kek, {
-                                keyManagementAlgorithms: ['A128KW']
+                                keyManagementAlgorithms: ["A128KW"],
                             });
                             return plaintext;
                         },
@@ -1297,23 +1279,30 @@
 
                             try {
                                 const plaintextBuffer = new TextEncoder().encode(plaintext);
-                                let jweResult;
-                                const isArgon = app.state.selectedAlg === 'A128KW';
+                                let compactResult;
+                                const isArgon = app.state.selectedAlg === "A128KW";
 
                                 if (isArgon) {
-                                    jweResult = await this._encryptArgon2(plaintextBuffer, passphrase);
+                                    const jweResult = await this._encryptArgon2(plaintextBuffer, passphrase);
+                                    compactResult = `${jweResult.protected}.${jweResult.recipients[0].encrypted_key}.${jweResult.iv}.${jweResult.ciphertext}.${jweResult.tag}`;
                                 } else {
-                                    jweResult = await this._encryptPbkdf2(plaintextBuffer, passphrase);
+                                    const secret = new TextEncoder().encode(passphrase);
+                                    compactResult = await new jose.CompactEncrypt(plaintextBuffer)
+                                        .setProtectedHeader({
+                                            alg: app.state.selectedAlg,
+                                            enc: app.state.selectedEnc,
+                                            p2c: app.constants.PBKDF2_ITERATIONS,
+                                        })
+                                        .encrypt(secret);
                                 }
-                                
-                                const compactResult = `${jweResult.protected}.${jweResult.recipients[0].encrypted_key}.${jweResult.iv}.${jweResult.ciphertext}.${jweResult.tag}`;
-                                
+
+                                const parts = compactResult.split(".");
                                 const jsonResult = {
-                                    protected: jweResult.protected,
-                                    encrypted_key: jweResult.recipients[0].encrypted_key,
-                                    iv: jweResult.iv,
-                                    ciphertext: jweResult.ciphertext,
-                                    tag: jweResult.tag,
+                                    protected: parts[0],
+                                    encrypted_key: parts[1],
+                                    iv: parts[2],
+                                    ciphertext: parts[3],
+                                    tag: parts[4],
                                 };
 
                                 app.state.lastEncryptedJson = jsonResult;
@@ -1340,14 +1329,14 @@
                             const ciphertext = app.elements.ciphertextInput.value.trim();
                             const passphrase = app.elements.passphraseDecrypt.value;
                             if (!ciphertext || !passphrase) return app.utils.showToast("❌ 密文和密碼短語不能為空。");
-                            
+
                             app.ui.setOutput("info", "⏳ 正在解密，請稍候...");
                             await new Promise((r) => setTimeout(r, 50));
 
                             try {
                                 let plaintext;
                                 const pHeader = await this.parseHeader(ciphertext);
-                                const isArgon = pHeader.alg === 'A128KW' && pHeader.p2m;
+                                const isArgon = pHeader.alg === "A128KW" && pHeader.p2m;
 
                                 if (isArgon) {
                                     plaintext = await this._decryptArgon2(ciphertext, passphrase);
@@ -1359,13 +1348,16 @@
                                 app.state.lastDecryptedText = decryptedText;
                                 app.ui.setOutput(
                                     "success",
-                                    `✅ 解密成功<br><br><strong style="font-size: 1.1em; white-space: pre-wrap; word-break: break-word;">${decryptedText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</strong>`
+                                    `✅ 解密成功<br><br><strong style="font-size: 1.1em; white-space: pre-wrap; word-break: break-word;">${decryptedText
+                                        .replace(/</g, "&lt;")
+                                        .replace(/>/g, "&gt;")}</strong>`
                                 );
                             } catch (e) {
                                 console.error("Decrypt failed:", e);
-                                const msg = (e instanceof jose.errors.JWEInvalid || e instanceof jose.errors.JWEDecryptionFailed)
-                                    ? "密碼短語不正確，或密文格式無效/已損毀。"
-                                    : e.message;
+                                const msg =
+                                    e instanceof jose.errors.JWEInvalid || e instanceof jose.errors.JWEDecryptionFailed
+                                        ? "密碼短語不正確，或密文格式無效/已損毀。"
+                                        : e.message;
                                 app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
                             }
                         },
@@ -1374,19 +1366,31 @@
                             const file = app.state.fileToEncrypt;
                             const passphrase = app.elements.passphraseFileEncrypt.value;
                             if (!file || !passphrase) return app.utils.showToast("❌ 請選擇檔案並輸入密碼短語。");
-                            
+
                             app.ui.setOutput("info", `⏳ 正在加密檔案 ${file.name}，請稍候...`);
                             await new Promise((r) => setTimeout(r, 50));
-                            
+
                             try {
                                 const fileBuffer = await app.fileHandler.readFileAsArrayBuffer(file);
-                                const jweResult = await this._encryptPbkdf2(new Uint8Array(fileBuffer), passphrase);
+                                const plaintextBuffer = new Uint8Array(fileBuffer);
+
+                                const secret = new TextEncoder().encode(passphrase);
+
+                                const compactResult = await new jose.CompactEncrypt(plaintextBuffer)
+                                    .setProtectedHeader({
+                                        alg: "PBES2-HS256+A128KW",
+                                        enc: "A256GCM",
+                                        p2c: app.constants.PBKDF2_ITERATIONS,
+                                    })
+                                    .encrypt(secret);
+
+                                const parts = compactResult.split(".");
                                 const jsonResult = {
-                                    protected: jweResult.protected,
-                                    encrypted_key: jweResult.recipients[0].encrypted_key,
-                                    iv: jweResult.iv,
-                                    ciphertext: jweResult.ciphertext,
-                                    tag: jweResult.tag,
+                                    protected: parts[0],
+                                    encrypted_key: parts[1],
+                                    iv: parts[2],
+                                    ciphertext: parts[3],
+                                    tag: parts[4],
                                 };
 
                                 app.utils.downloadAsFile(JSON.stringify(jsonResult, null, 2), file.name + ".jwe");
@@ -1401,10 +1405,10 @@
                             const file = app.state.fileToDecrypt;
                             const passphrase = app.elements.passphraseFileDecrypt.value;
                             if (!file || !passphrase) return app.utils.showToast("❌ 請選擇檔案並輸入密碼短語。");
-                            
+
                             app.ui.setOutput("info", `⏳ 正在解密檔案 ${file.name}，請稍候...`);
                             await new Promise((r) => setTimeout(r, 50));
-                            
+
                             try {
                                 const ciphertext = await app.fileHandler.readFileAsText(file);
                                 const plaintext = await this._decryptPbkdf2(ciphertext, passphrase);
@@ -1417,26 +1421,27 @@
                                 app.ui.setOutput("success", `✅ 檔案解密成功！已開始下載 ${originalFilename}`);
                             } catch (e) {
                                 console.error("File Decrypt failed:", e);
-                                 const msg = (e instanceof jose.errors.JWEInvalid || e instanceof jose.errors.JWEDecryptionFailed)
-                                    ? "密碼短語不正確，或密文格式無效/已損毀。"
-                                    : e.message;
+                                const msg =
+                                    e instanceof jose.errors.JWEInvalid || e instanceof jose.errors.JWEDecryptionFailed
+                                        ? "密碼短語不正確，或密文格式無效/已損毀。"
+                                        : e.message;
                                 app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
                             }
                         },
-                        
+
                         async parseHeader(jwe) {
                             let protectedHeaderB64U;
-                            if(typeof jwe === 'string') {
+                            if (typeof jwe === "string") {
                                 try {
                                     const parsed = JSON.parse(jwe);
                                     protectedHeaderB64U = parsed.protected;
                                 } catch (e) {
-                                    protectedHeaderB64U = jwe.split('.')[0];
+                                    protectedHeaderB64U = jwe.split(".")[0];
                                 }
                             } else if (jwe && jwe.protected) {
                                 protectedHeaderB64U = jwe.protected;
                             }
-                            
+
                             if (!protectedHeaderB64U) {
                                 throw new Error("無效的 JWE 格式，找不到 'protected' 欄位。");
                             }
@@ -1446,7 +1451,7 @@
                         async parseParameters() {
                             const ciphertext = app.elements.ciphertextInput.value.trim();
                             if (!ciphertext) return app.utils.showToast("請先貼上密文");
-                            
+
                             try {
                                 const pHeader = await this.parseHeader(ciphertext);
 
@@ -1454,7 +1459,9 @@
                                                   <p>內容加密 (enc): <span>${pHeader.enc || "N/A"}</span></p>`;
 
                                 if (pHeader.p2c) {
-                                    paramsHtml += `<p>PBKDF2 迭代: <span>${pHeader.p2c.toLocaleString("en-US")}</span></p>`;
+                                    paramsHtml += `<p>PBKDF2 迭代: <span>${pHeader.p2c.toLocaleString(
+                                        "en-US"
+                                    )}</span></p>`;
                                 }
                                 if (pHeader.p2m) {
                                     paramsHtml += `<p>Argon2 記憶體: <span>${pHeader.p2m} KiB</span></p>`;
@@ -1491,12 +1498,14 @@
                                     () => this.showToast("❌ 貼上失敗或未授予權限")
                                 );
                             } else {
-                                this.showToast("❌ 您的瀏覽器不支援安全貼上功能")
+                                this.showToast("❌ 您的瀏覽器不支援安全貼上功能");
                             }
                         },
                         downloadAsFile(content, filename) {
                             const blob =
-                                content instanceof Blob ? content : new Blob([content], { type: "application/json;charset=utf-8" });
+                                content instanceof Blob
+                                    ? content
+                                    : new Blob([content], { type: "application/json;charset=utf-8" });
                             const url = URL.createObjectURL(blob);
                             const link = document.createElement("a");
                             link.href = url;
@@ -1518,13 +1527,13 @@
                     },
                     theme: {
                         init() {
-                            const t = localStorage.getItem("jwe-app-theme") || "dark";
+                            const t = localStorage.getItem("my-app-theme") || "dark";
                             this.apply(t);
                         },
                         apply(t) {
                             document.documentElement.setAttribute("data-theme", t);
                             app.elements.themeToggleBtn.textContent = t === "dark" ? "☀️" : "🌙";
-                            localStorage.setItem("jwe-app-theme", t);
+                            localStorage.setItem("my-app-theme", t);
                         },
                         toggle() {
                             const t = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
