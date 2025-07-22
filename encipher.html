@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>進階加密、解密器</title>
+        <title>Encipher - 進階加密、解密器</title>
 
         <meta name="theme-color" content="#4f46e5" />
         <link rel="manifest" href="manifest.json" />
@@ -131,7 +131,12 @@
             }
             h1 {
                 text-align: center;
-                margin-bottom: 2.5rem;
+                margin-bottom: 1.5rem; /* 縮小標題與下方說明區塊的間距 */
+            }
+            h4 {
+                margin-top: 1.5rem;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
             }
             label {
                 font-weight: 600;
@@ -227,7 +232,6 @@
             :root[data-theme="dark"] .button:disabled {
                 border: 1px solid var(--border-color);
             }
-
             /* --- 表單元素 --- */
             input[type="text"],
             input[type="password"],
@@ -432,7 +436,6 @@
             [hidden] {
                 display: none !important;
             }
-
             /* --- FAB & Scroll-to-top --- */
             .fab {
                 position: fixed;
@@ -492,7 +495,6 @@
                 border-bottom: 15px solid var(--primary-text-color);
                 margin-bottom: 4px;
             }
-
             /* Argon2 參數區塊 */
             #argon2-params-section {
                 padding: 1.25rem;
@@ -515,6 +517,81 @@
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
                 gap: 1rem;
+            }
+            /* --- [新增] Accordion 樣式 --- */
+            .accordion {
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-sm);
+                margin-bottom: 2.5rem;
+            }
+            .accordion-item + .accordion-item {
+                border-top: 1px solid var(--border-color);
+            }
+            .accordion-header {
+                width: 100%;
+                background: none;
+                border: none;
+                padding: 1rem 1.5rem;
+                text-align: left;
+                cursor: pointer;
+                font-size: 1.1em;
+                font-weight: 600;
+                color: var(--text-color);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal);
+            }
+            .accordion-header:hover,
+            .accordion-header.active {
+                background-color: var(--primary-color);
+                color: var(--primary-text-color);
+            }
+            .accordion-header::after {
+                content: "▼";
+                font-size: 0.8em;
+                transition: transform var(--transition-duration-normal);
+            }
+            .accordion-header.active::after {
+                transform: rotate(180deg);
+            }
+            .accordion-content {
+                background-color: var(--section-header-bg);
+                max-height: 0;
+                overflow: hidden;
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+                transition: max-height var(--transition-duration-slow) ease-out,
+                    padding var(--transition-duration-slow) ease-out;
+            }
+            .accordion-header.active + .accordion-content {
+                max-height: 1000px; /* 增加最大高度以容納更多內容 */
+                padding-top: 1rem;
+                padding-bottom: 1.5rem;
+            }
+            .accordion-content p,
+            .accordion-content ul {
+                margin-top: 0;
+                margin-bottom: 1rem;
+            }
+            .accordion-content ul {
+                padding-left: 20px;
+            }
+            .accordion-content li {
+                margin-bottom: 0.5rem;
+            }
+            .accordion-content code {
+                background-color: var(--bg-color);
+                padding: 0.2em 0.4em;
+                border-radius: 3px;
+                font-family: "Courier New", Courier, monospace;
+            }
+            .accordion-content pre {
+                background-color: var(--bg-color);
+                padding: 1rem;
+                border-radius: var(--border-radius-sm);
+                white-space: pre-wrap;
+                word-break: break-all;
             }
 
             @media (max-width: 768px) {
@@ -550,6 +627,13 @@
                     right: 20px;
                     bottom: 20px;
                 }
+                .accordion-header {
+                    padding: 1rem;
+                }
+                .accordion-content {
+                    padding-left: 1rem;
+                    padding-right: 1rem;
+                }
             }
         </style>
     </head>
@@ -560,6 +644,63 @@
             <header>
                 <h1>進階加密、解密器</h1>
             </header>
+
+            <div class="accordion">
+                <div class="accordion-item">
+                    <button class="accordion-header" aria-expanded="false">ℹ️ 關於本工具 / 技術規格說明</button>
+                    <div class="accordion-content" aria-hidden="true">
+                        <h4>工具用途</h4>
+                        <p>
+                            這是一個純客戶端 (Client-side)
+                            的加密與解密工具，所有運算都在您的瀏覽器本機完成，確保資料隱私。它可用於加密敏感文字或小型檔案，產生一個可安全傳輸的密文。
+                        </p>
+
+                        <h4>技術規格</h4>
+                        <ul>
+                            <li><strong>加密格式：</strong> 最終輸出為一個 Base64 編碼的 JSON 物件。</li>
+                            <li>
+                                <strong>金鑰衍生 (KDF)：</strong> 支援 <code>Argon2id</code> 和 <code>PBKDF2</code>。
+                            </li>
+                            <li>
+                                <strong>對稱加密：</strong> 支援 <code>AES-256-GCM</code> 和
+                                <code>ChaCha20-Poly1305</code>，兩者均為認證加密 (AEAD) 演算法。
+                            </li>
+                        </ul>
+
+                        <h4>使用限制</h4>
+                        <ul>
+                            <li>所有運算依賴您電腦的效能，處理大型資料時可能會較慢。</li>
+                            <li>檔案加密有 <strong>10 MB</strong> 的大小限制。</li>
+                            <li>QR Code 僅支援約 2953 位元組以下的密文。</li>
+                            <li>
+                                <strong>重要：</strong> 本工具無法恢復遺失的密碼短語。一旦遺忘，加密資料將永久無法解密。
+                            </li>
+                        </ul>
+
+                        <h4>給開發者的話：實作相容的解密器</h4>
+                        <p>本工具未使用標準 JWE 格式，因此若要自行開發解密程式，請務必遵循以下規則：</p>
+                        <p>
+                            <strong>核心關鍵：AAD (認證附加資料) 的重建</strong><br />
+                            解密時，您必須重建一個與加密時完全相同的 AAD。AAD 是一個從最終輸出 JSON
+                            中提取部分欄位後，序列化而成的**緊湊 JSON 字串** (無多餘空白)，再經 UTF-8 編碼而成。
+                        </p>
+                        <p>AAD 物件的結構如下 (不含 <code>salt</code>, <code>iv</code>, <code>tag</code> 等欄位):</p>
+                        <pre><code>{
+  "version": 2,
+  "keyDerivation": {
+    "name": "...",
+    "iterations": "...",
+    "memory": "...",      // if Argon2id
+    "parallelism": "...", // if Argon2id
+    "hash": "..."         // if PBKDF2
+  },
+  "encryptionName": "..."
+}</code></pre>
+                        <p>此外，請注意處理 `version` 為 1 的舊格式（無 AAD）時的回溯相容性邏輯。</p>
+                    </div>
+                </div>
+            </div>
+
             <main>
                 <section class="card">
                     <h2>🔐 加解密工具</h2>
@@ -591,8 +732,8 @@
                                 <div class="form-group">
                                     <label>密鑰衍生演算法 (KDF)</label>
                                     <div id="kdfSelectionGroup" class="option-group">
-                                        <div class="option selected" data-value="Argon2id">Argon2id</div>
-                                        <div class="option" data-value="PBKDF2">PBKDF2</div>
+                                        <div class="option selected" data-value="PBKDF2">PBKDF2</div>
+                                        <div class="option" data-value="Argon2id">Argon2id</div>
                                     </div>
                                 </div>
                                 <div id="argon2-params-section" hidden>
@@ -785,11 +926,11 @@
                         passphraseEncrypt: document.getElementById("passphrase-encrypt"),
                         passphraseDecrypt: document.getElementById("passphrase-decrypt"),
                         algoSelectionGroup: document.getElementById("algoSelectionGroup"),
-                        kdfSelectionGroup: document.getElementById("kdfSelectionGroup"), // New
-                        argon2ParamsSection: document.getElementById("argon2-params-section"), // New
-                        argon2Memory: document.getElementById("argon2-memory"), // New
-                        argon2Iterations: document.getElementById("argon2-iterations"), // New
-                        argon2Parallelism: document.getElementById("argon2-parallelism"), // New
+                        kdfSelectionGroup: document.getElementById("kdfSelectionGroup"),
+                        argon2ParamsSection: document.getElementById("argon2-params-section"),
+                        argon2Memory: document.getElementById("argon2-memory"),
+                        argon2Iterations: document.getElementById("argon2-iterations"),
+                        argon2Parallelism: document.getElementById("argon2-parallelism"),
                         encryptBtn: document.getElementById("encryptBtn"),
                         decryptBtn: document.getElementById("decryptBtn"),
                         parseBtn: document.getElementById("parseBtn"),
@@ -822,12 +963,14 @@
                         currentYear: document.getElementById("currentYear"),
                         toast: document.getElementById("toast"),
                         scrollTopBtn: document.getElementById("scroll-to-top"),
+                        // [新增] Accordion 元素
+                        accordionContainer: document.querySelector(".accordion"),
                     },
                     state: {
                         currentAppMode: "text",
                         currentMode: "encrypt",
                         selectedAlgorithm: "AES-GCM",
-                        selectedKDF: "Argon2id", // New state
+                        selectedKDF: "Argon2id",
                         toastTimer: null,
                         lastEncryptedOutput: null,
                         lastDecryptedText: null,
@@ -879,7 +1022,6 @@
                             this.ui.handleOptionSelection(e, "selectedAlgorithm");
                         });
 
-                        // New Listener for KDF
                         this.elements.kdfSelectionGroup.addEventListener("click", (e) => {
                             const changed = this.ui.handleOptionSelection(e, "selectedKDF");
                             if (changed) this.ui.toggleArgon2Params(app.state.selectedKDF === "Argon2id");
@@ -941,6 +1083,14 @@
                             this.elements.fileDecryptInput.closest(".file-input-wrapper"),
                             this.elements.fileDecryptInput
                         );
+
+                        // [新增] Accordion 事件監聽
+                        if (this.elements.accordionContainer) {
+                            this.elements.accordionContainer.addEventListener("click", (e) => {
+                                const header = e.target.closest(".accordion-header");
+                                if (header) this.accordion.toggle(header);
+                            });
+                        }
                     },
 
                     ui: {
@@ -1015,7 +1165,6 @@
                             app.elements.paramsDisplayArea.hidden = true;
                             app.state.lastEncryptedOutput = null;
                             app.state.lastDecryptedText = null;
-                            // Reset KDF to default and hide params
                             app.state.selectedKDF = "Argon2id";
                             this.handleOptionSelection(
                                 { target: app.elements.kdfSelectionGroup.querySelector(`[data-value="Argon2id"]`) },
@@ -1075,7 +1224,6 @@
                                         e.message.includes("key.usages")))
                             );
                         },
-
                         _buildAad(json) {
                             const kd = json.keyDerivation;
                             const metaDataForAad = {
@@ -1099,10 +1247,8 @@
                             );
                             return new TextEncoder().encode(JSON.stringify(metaDataForAad));
                         },
-
                         async deriveKey(passphrase, kdfParams) {
                             const salt = Base64.toUint8Array(kdfParams.salt);
-
                             if (kdfParams.name === "Argon2id") {
                                 if (!(await app.utils.checkArgon2Ready())) {
                                     throw new Error(
@@ -1113,14 +1259,13 @@
                                     pass: passphrase,
                                     salt: salt,
                                     time: kdfParams.iterations,
-                                    mem: kdfParams.memory, // KiB
+                                    mem: kdfParams.memory,
                                     parallelism: kdfParams.parallelism,
                                     hashLen: 32,
                                     type: argon2.ArgonType.Argon2id,
                                 });
-                                return hash.hash; // Uint8Array
+                                return hash.hash;
                             }
-
                             if (kdfParams.name === "PBKDF2") {
                                 const keyMaterial = await crypto.subtle.importKey(
                                     "raw",
@@ -1131,8 +1276,6 @@
                                 );
                                 const usages = kdfParams.purpose === "encrypt" ? ["encrypt"] : ["decrypt"];
                                 const cipherName = kdfParams.cipher;
-
-                                // ✅ FIX: This now ONLY depends on the cipher name from the file/parameters, not the UI state.
                                 if (cipherName === "AES-GCM") {
                                     return await crypto.subtle.deriveKey(
                                         { name: "PBKDF2", salt, iterations: kdfParams.iterations, hash: "SHA-256" },
@@ -1150,14 +1293,11 @@
                                     return new Uint8Array(derivedBits);
                                 }
                             }
-
                             throw new Error("不支援的密鑰衍生演算法。");
                         },
-
                         async encrypt(dataToEncrypt, passphrase, selectedCipher, selectedKDF) {
                             const salt = crypto.getRandomValues(new Uint8Array(app.constants.SALT_BYTES));
                             let kdfParams, derivedKey, keyDerivationJson;
-
                             if (selectedKDF === "Argon2id") {
                                 kdfParams = {
                                     name: "Argon2id",
@@ -1184,14 +1324,12 @@
                                     hash: "SHA-256",
                                 };
                             }
-
                             const tempJsonForAad = {
                                 version: 2,
                                 keyDerivation: { ...keyDerivationJson },
                                 encryption: { name: selectedCipher },
                             };
                             const aad = this._buildAad(tempJsonForAad);
-
                             let encryptionOutput;
                             if (selectedCipher === "AES-GCM") {
                                 const iv = crypto.getRandomValues(new Uint8Array(app.constants.IV_BYTES));
@@ -1225,9 +1363,7 @@
                                     tagLength: app.constants.TAG_LENGTH_BITS,
                                 };
                             } else {
-                                // ChaCha20-Poly1305
                                 const nonce = crypto.getRandomValues(new Uint8Array(app.constants.NONCE_BYTES));
-                                // ✅ FIX: The 'derivedKey' for ChaCha20 is always a Uint8Array. Direct assignment is correct.
                                 const chachaKeyBytes = derivedKey;
                                 const ciphertextWithTag = chacha20poly1305(chachaKeyBytes, nonce, aad).encrypt(
                                     new Uint8Array(dataToEncrypt)
@@ -1238,7 +1374,6 @@
                                     ciphertext: Base64.fromUint8Array(ciphertextWithTag, true),
                                 };
                             }
-
                             const finalJson = {
                                 version: 2,
                                 keyDerivation: { ...keyDerivationJson, salt: Base64.fromUint8Array(salt, true) },
@@ -1247,7 +1382,6 @@
                             const finalBase64 = Base64.encode(JSON.stringify(finalJson), true);
                             return { finalBase64, jsonOutput: finalJson };
                         },
-
                         async _decryptWithAAD(json, key) {
                             const enc = json.encryption;
                             const aad = this._buildAad(json);
@@ -1283,7 +1417,6 @@
                             }
                             throw new Error("不支援的解密演算法。");
                         },
-
                         async _decryptLegacy(json, key) {
                             const enc = json.encryption;
                             if (enc.name === "AES-GCM") {
@@ -1313,16 +1446,13 @@
                             }
                             throw new Error("不支援的解密演算法。");
                         },
-
                         async decryptUnified(base64Cipher, passphrase) {
                             const jsonStr = Base64.decode(base64Cipher);
                             const json = JSON.parse(jsonStr);
                             if (!json.keyDerivation || !json.encryption) {
                                 throw new Error("無效或不支援的密文格式。");
                             }
-
                             const legacyCandidate = !Number.isInteger(json.version);
-
                             const kdfParams = {
                                 name: json.keyDerivation.name,
                                 salt: json.keyDerivation.salt,
@@ -1333,13 +1463,11 @@
                                 cipher: json.encryption.name,
                             };
                             const key = await this.deriveKey(passphrase, kdfParams);
-
                             try {
                                 const decryptedBytes = await this._decryptWithAAD(json, key);
                                 return { decryptedBytes, usedLegacyFallback: false };
                             } catch (e) {
                                 if (this._isAuthError(e) && legacyCandidate) {
-                                    console.log("AAD decryption failed, attempting legacy fallback...");
                                     try {
                                         const decryptedBytes = await this._decryptLegacy(json, key);
                                         return { decryptedBytes, usedLegacyFallback: true };
@@ -1350,15 +1478,12 @@
                                 throw new Error("密碼短語不正確，或密文已被竄改。");
                             }
                         },
-
                         async encryptText() {
                             const mnemonic = app.elements.mnemonic.value.trim();
                             const passphrase = app.elements.passphraseEncrypt.value;
                             if (!mnemonic || !passphrase) return app.utils.showToast("❌ 明文和密碼短語不能為空。");
-
                             app.ui.setOutput("info", "⏳ 正在加密，請稍候...");
                             await new Promise((r) => setTimeout(r, 50));
-
                             try {
                                 const { finalBase64, jsonOutput } = await this.encrypt(
                                     new TextEncoder().encode(mnemonic),
@@ -1379,10 +1504,8 @@
                                 }
                             } catch (e) {
                                 app.ui.setOutput("error", `❌ 加密失敗：${e.message}`);
-                                console.error("Encrypt failed:", e);
                             }
                         },
-
                         async decryptText() {
                             const base64Cipher = app.elements.ciphertextInput.value.trim();
                             const passphrase = app.elements.passphraseDecrypt.value;
@@ -1396,19 +1519,16 @@
                                 );
                                 const decryptedText = new TextDecoder().decode(decryptedBytes);
                                 app.state.lastDecryptedText = decryptedText;
-
                                 let successMessage = `✅ 解密成功<br><br><strong style="font-size: 1.1em; white-space: pre-wrap; word-break: break-word;">${decryptedText}</strong>`;
                                 if (usedLegacyFallback) {
                                     successMessage += `<br><br><small style="color: var(--note-color); font-style: italic;">ℹ️ 已自動相容舊版格式的密文。</small>`;
                                 }
                                 app.ui.setOutput("success", successMessage);
                             } catch (e) {
-                                console.error("Decrypt failed:", e);
                                 const msg = this._isAuthError(e) ? "密碼短語不正確，或密文已被竄改。" : e.message;
                                 app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
                             }
                         },
-
                         async encryptFile() {
                             const file = app.state.fileToEncrypt;
                             const passphrase = app.elements.passphraseFileEncrypt.value;
@@ -1428,10 +1548,8 @@
                                 app.ui.setOutput("success", `✅ 檔案加密成功！已開始下載 ${file.name + ".enc"}`);
                             } catch (e) {
                                 app.ui.setOutput("error", `❌ 檔案加密失敗：${e.message}`);
-                                console.error("File Encrypt failed:", e);
                             }
                         },
-
                         async decryptFile() {
                             const file = app.state.fileToDecrypt;
                             const passphrase = app.elements.passphraseFileDecrypt.value;
@@ -1448,19 +1566,16 @@
                                     ? file.name.slice(0, -4)
                                     : `decrypted-${file.name}`;
                                 app.utils.downloadAsFile(new Blob([decryptedBytes]), originalFilename);
-
                                 let successMessage = `✅ 檔案解密成功！已開始下載 ${originalFilename}`;
                                 if (usedLegacyFallback) {
                                     successMessage += ` (已自動相容舊版格式)`;
                                 }
                                 app.ui.setOutput("success", successMessage);
                             } catch (e) {
-                                console.error("File Decrypt failed:", e);
                                 const msg = this._isAuthError(e) ? "密碼短語不正確，或密文已被竄改。" : e.message;
                                 app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
                             }
                         },
-
                         async parseParameters() {
                             const base64Cipher = app.elements.ciphertextInput.value.trim();
                             if (!base64Cipher) return app.utils.showToast("請先貼上密文");
@@ -1469,7 +1584,6 @@
                                 const kd = json.keyDerivation;
                                 const enc = json.encryption;
                                 if (!kd || !enc) throw new Error("JSON 結構不符");
-
                                 let kdfDetails = `${kd.name}`;
                                 if (kd.name === "PBKDF2") {
                                     kdfDetails += ` (${kd.hash}, ${kd.iterations.toLocaleString("en-US")} 迭代)`;
@@ -1478,11 +1592,9 @@
                                         kd.parallelism
                                     })`;
                                 }
-
                                 const versionInfo = Number.isInteger(json.version)
                                     ? `V${json.version} (新版)`
                                     : "V1 (舊版)";
-
                                 app.elements.paramsDisplayArea.innerHTML = `<p>格式版本：<span>${versionInfo}</span></p>
                                  <p>金鑰衍生：<span>${kdfDetails}</span></p>
                                  <p>加密演算法：<span>${enc.name}</span></p>
@@ -1545,16 +1657,11 @@
                         },
                         async checkArgon2Ready() {
                             if (typeof argon2 !== "undefined") return true;
-                            // Wait a bit for the backup script to potentially load
                             return new Promise((resolve) => {
                                 setTimeout(() => {
                                     if (typeof argon2 !== "undefined") {
-                                        console.log("Argon2 loaded after a delay (likely from backup).");
                                         resolve(true);
                                     } else {
-                                        console.error(
-                                            "Argon2 library failed to load from both primary and backup sources."
-                                        );
                                         resolve(false);
                                     }
                                 }, 1000);
@@ -1576,12 +1683,21 @@
                             this.apply(t);
                         },
                     },
+                    // [新增] Accordion 模組
+                    accordion: {
+                        toggle(h) {
+                            const isOpen = h.classList.contains("active");
+                            h.classList.toggle("active");
+                            h.setAttribute("aria-expanded", !isOpen);
+                            h.nextElementSibling.setAttribute("aria-hidden", isOpen);
+                        },
+                    },
                     pwa: {
                         register() {
                             if ("serviceWorker" in navigator) {
                                 window.addEventListener("load", () => {
                                     navigator.serviceWorker.register("./sw.js").then(
-                                        (reg) => console.log("ServiceWorker registration successful:", reg.scope),
+                                        (reg) => {},
                                         (err) => console.log("ServiceWorker registration failed:", err)
                                     );
                                 });
