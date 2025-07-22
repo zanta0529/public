@@ -748,15 +748,15 @@
                                     <div class="param-grid">
                                         <div class="form-group">
                                             <label for="argon2-memory">記憶體 (MB)</label>
-                                            <input type="number" id="argon2-memory" value="256" min="32" step="16" />
+                                            <input type="number" id="argon2-memory" value="512" min="64" step="16" />
                                         </div>
                                         <div class="form-group">
                                             <label for="argon2-iterations">迭代次數</label>
-                                            <input type="number" id="argon2-iterations" value="2" min="2" step="1" />
+                                            <input type="number" id="argon2-iterations" value="4" min="4" step="1" />
                                         </div>
                                         <div class="form-group">
                                             <label for="argon2-parallelism">平行度</label>
-                                            <input type="number" id="argon2-parallelism" value="8" min="4" step="1" />
+                                            <input type="number" id="argon2-parallelism" value="4" min="4" step="1" />
                                         </div>
                                     </div>
                                     <div class="button-group" style="margin-bottom: 1.5rem">
@@ -1133,10 +1133,10 @@
 
                             try {
                                 const targetMs = 1000;
-                                const iterations = 2; // 固定迭代次數
+                                const iterations = 4; // 固定迭代次數
                                 const parallelism = navigator.hardwareConcurrency || 4;
                                 const memoryLevelsMb = [1024, 512, 256, 128, 64, 32]; // 從高到低測試
-                                let recommendedMemoryMb = 256; // 預設值
+                                let recommendedMemoryMb = 512; // 預設值
 
                                 for (const memMb of memoryLevelsMb) {
                                     const memKib = memMb * 1024;

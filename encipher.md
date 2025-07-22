@@ -37,7 +37,7 @@
   "keyDerivation": {
     "name": "Argon2id",
     "salt": "...",
-    "iterations": 2,
+    "iterations": 4,
     "memory": 65536,
     "parallelism": 4
   },
@@ -118,7 +118,7 @@ AAD 本身是一個**緊湊的 (無多餘空白)、UTF-8 編碼的 JSON 字串**
       "keyDerivation": {
         "name": "Argon2id",
         "salt": "some_salt_here",
-        "iterations": 2,
+        "iterations": 4,
         "memory": 65536,
         "parallelism": 4
       },
@@ -130,7 +130,7 @@ AAD 本身是一個**緊湊的 (無多餘空白)、UTF-8 編碼的 JSON 字串**
     ```
   * **對應的 AAD 緊湊 JSON 字串**
     ```json
-    {"version":2,"keyDerivation":{"name":"Argon2id","iterations":2,"memory":65536,"parallelism":4},"encryptionName":"AES-GCM"}
+    {"version":2,"keyDerivation":{"name":"Argon2id","iterations":4,"memory":65536,"parallelism":4},"encryptionName":"AES-GCM"}
     ```
 
 **情境 2：PBKDF2 + ChaCha20-Poly1305**
@@ -184,7 +184,7 @@ AAD 本身是一個**緊湊的 (無多餘空白)、UTF-8 編碼的 JSON 字串**
           * `memory`: 65536 (64 MiB)
           * `parallelism`: 4
       * **非互動式應用 (如後端加密)**：可接受更長延遲以換取更高安全性。
-          * `iterations`: 3 或更高
+          * `iterations`: 4 或更高
           * `memory`: 262144 (256 MiB) 或更高
           * `parallelism`: 4 或更高
 
