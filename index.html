@@ -341,19 +341,31 @@
                 {
                     category: "加解密工具",
                     tools: [
-                        { uri: "encipher.html", display: "[自訂格式] 加解密器（AES、ChaCha20、Argon2、PBKDF2）" },
-                        { uri: "encipher-standard.html", display: "[標準格式] 加解密器（JWE，JSON Web Encryption）" },
-                        { uri: "aes-gcm-argon2-decryptor.html", display: "[自訂格式] 簡易解密器（AES+Argon2，v2）" },
-                        { uri: "aes-gcm-pbkdf2-decryptor.html", display: "[自訂格式] 簡易解密器（AES+PBKDF2，v2）" },
-                        { uri: "encipher-demo.html", display: "[示範用] 加解密器（僅供 demo）" },
+                        {
+                            uri: "cipher/encipher.html",
+                            display: "[自訂格式] 加解密器（AES、ChaCha20、Argon2、PBKDF2）",
+                        },
+                        {
+                            uri: "cipher/encipher-standard.html",
+                            display: "[標準格式] 加解密器（JWE，JSON Web Encryption）",
+                        },
+                        {
+                            uri: "cipher/aes-gcm-argon2-decryptor.html",
+                            display: "[自訂格式] 簡易解密器（AES+Argon2，v2）",
+                        },
+                        {
+                            uri: "cipher/aes-gcm-pbkdf2-decryptor.html",
+                            display: "[自訂格式] 簡易解密器（AES+PBKDF2，v2）",
+                        },
+                        { uri: "cipher/encipher-demo.html", display: "[示範用] 加解密器（僅供 demo）" },
                     ],
                 },
                 {
                     category: "開發者工具",
                     tools: [
-                        { uri: "text_compressor.html", display: "長文字壓縮、解壓縮" },
-                        { uri: "shamir.html", display: "Shamir 祕密分割與還原" },
-                        { uri: "bip39.html", display: "BIP39 助記詞產生器" },
+                        { uri: "dev/text_compressor.html", display: "長文字壓縮、解壓縮" },
+                        { uri: "dev/shamir.html", display: "Shamir 祕密分割與還原" },
+                        { uri: "dev/bip39.html", display: "BIP39 助記詞產生器" },
                         { uri: "my_template.html", display: "Zanta 的通用網頁設計風格樣本" },
                     ],
                 },
@@ -364,8 +376,8 @@
                 {
                     category: "觀念說明",
                     tools: [
-                        { uri: "zkp-demo-blockchain.html", display: "ZKP 零知識證明（區塊鏈）" },
-                        { uri: "zkp-demo-cave.html", display: "ZKP 零知識證明（阿里巴巴山洞）" },
+                        { uri: "dev/zkp-demo-blockchain.html", display: "ZKP 零知識證明（區塊鏈）" },
+                        { uri: "dev/zkp-demo-cave.html", display: "ZKP 零知識證明（阿里巴巴山洞）" },
                     ],
                 },
             ];
