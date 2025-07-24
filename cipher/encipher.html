@@ -5,16 +5,40 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Encipher v3.0 - 進階加密、解密器</title>
 
-        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+        <!-- qrcode -->
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.js"
+            integrity="sha512-hAz8pxm1kva4chZWPXQhGehvvlIj1Loka653sQXoYHNj4sgSukoR3ZKyHEOT7kFGVW17wUqD9CbKeviIJ2XFKQ=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+            onerror="this.remove(); document.getElementById('backup-qrcode-script').style.display='block';"
+        ></script>
+        <script
+            id="backup-qrcode-script"
+            style="display: none"
+            src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        ></script>
+
+        <!--js-base64-->
         <script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.7/base64.min.js"></script>
+
+        <!--argon2-browser -->
         <script
             src="https://cdn.jsdelivr.net/npm/argon2-browser@1.18.0/dist/argon2-bundled.min.js"
+            integrity="sha256-d8ZLlGuvGlEW3FkfS5ll1jaxtFX3Xt0tSlh8t14BaHs="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
             onerror="this.remove(); document.getElementById('backup-argon2-script').style.display='block';"
         ></script>
         <script
             id="backup-argon2-script"
             style="display: none"
             src="https://unpkg.com/argon2-browser@1.18.0/dist/argon2-bundled.min.js"
+            integrity="sha256-d8ZLlGuvGlEW3FkfS5ll1jaxtFX3Xt0tSlh8t14BaHs="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
         ></script>
 
         <style>
