@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Encipher - 進階加密、解密器</title>
+        <title>Encipher v3.0 - 進階加密、解密器</title>
 
         <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.7/base64.min.js"></script>
@@ -646,12 +646,12 @@
 
         <div class="container">
             <header>
-                <h1>進階加密、解密器</h1>
+                <h1>進階加密、解密器 (v3.0)</h1>
             </header>
 
             <div class="accordion">
                 <div class="accordion-item">
-                    <button class="accordion-header" aria-expanded="false">ℹ️ 關於本工具 / 技術規格說明</button>
+                    <button class="accordion-header" aria-expanded="false">ℹ️ 關於本工具 / v3.0 技術規格</button>
                     <div class="accordion-content" aria-hidden="true">
                         <h4>工具用途</h4>
                         <p>
@@ -659,9 +659,19 @@
                             的加密與解密工具，所有運算都在您的瀏覽器本機完成，確保資料隱私。它可用於加密敏感文字或小型檔案，產生一個可安全傳輸的密文。
                         </p>
 
-                        <h4>技術規格</h4>
+                        <h4>版本 v3.0 說明</h4>
+                        <p style="color: var(--warning-color)">
+                            <strong>重要：</strong>此 v3.0
+                            版本採用了全新的、更穩健的加密格式，<strong>不相容</strong>於先前版本 (v1, v2)
+                            產生的密文。本次更新旨在徹底解決舊格式的設計缺陷。
+                        </p>
+
+                        <h4>技術規格 (v3.0)</h4>
                         <ul>
-                            <li><strong>加密格式：</strong> 最終輸出為一個 Base64 編碼的 JSON 物件。</li>
+                            <li>
+                                <strong>加密格式：</strong> 最終輸出為一個 Base64 編碼的 JSON 物件，格式版本 (`version`)
+                                固定為 `3`。
+                            </li>
                             <li>
                                 <strong>金鑰衍生 (KDF)：</strong> 支援 <code>Argon2id</code> 和 <code>PBKDF2</code>。
                             </li>
@@ -669,38 +679,36 @@
                                 <strong>對稱加密：</strong> 支援 <code>AES-256-GCM</code> 和
                                 <code>ChaCha20-Poly1305</code>，兩者均為認證加密 (AEAD) 演算法。
                             </li>
-                        </ul>
-
-                        <h4>使用限制</h4>
-                        <ul>
-                            <li>所有運算依賴您電腦的效能，處理大型資料時可能會較慢。</li>
-                            <li>檔案加密有 <strong>10 MB</strong> 的大小限制。</li>
-                            <li>QR Code 僅支援約 2953 位元組以下的密文。</li>
                             <li>
-                                <strong>重要：</strong> 本工具無法恢復遺失的密碼短語。一旦遺忘，加密資料將永久無法解密。
+                                <strong>資料結構</strong>: 所有演算法的輸出結構已統一。`nonce` (12位元組) 與 `tag`
+                                (16位元組) 均為獨立欄位。
                             </li>
                         </ul>
 
-                        <h4>給開發者的話：實作相容的解密器</h4>
-                        <p>本工具未使用標準 JWE 格式，因此若要自行開發解密程式，請務必遵循以下規則：</p>
+                        <h4>給開發者的話：實作相容的 v3.0 解密器</h4>
                         <p>
-                            <strong>核心關鍵：AAD (認證附加資料) 的重建</strong><br />
-                            解密時，您必須重建一個與加密時完全相同的 AAD。AAD 是一個從最終輸出 JSON
-                            中提取部分欄位後，序列化而成的**緊湊 JSON 字串** (無多餘空白)，再經 UTF-8 編碼而成。
+                            <strong>核心關鍵：AAD (認證附加資料) 的標準化重建</strong><br />
+                            解密時，您必須重建一個與加密時完全相同的 AAD。v3.0 的 AAD 是一個從最終輸出 JSON
+                            中提取部分欄位後，經過**標準化序列化**而成的緊湊 JSON 字串。
                         </p>
-                        <p>AAD 物件的結構如下 (不含 <code>salt</code>, <code>iv</code>, <code>tag</code> 等欄位):</p>
-                        <pre><code>{
-  "version": 2,
+                        <p>
+                            <strong>AAD 標準化序列化規則：</strong><br />
+                            在將 AAD 物件轉換為 JSON 字串前，<strong
+                                >必須對其所有層級的物件鍵 (key) 進行遞迴的字母序排序</strong
+                            >。這是確保跨平台一致性的強制要求。
+                        </p>
+                        <p>排序後的 AAD 物件結構如下 (不含 `salt`, `nonce`, `tag` 等欄位):</p>
+                        <pre><code>// 排序後的 AAD 物件範例
+{
+  "encryptionName": "AES-GCM",
   "keyDerivation": {
-    "name": "...",
-    "iterations": "...",
-    "memory": "...",      // if Argon2id
-    "parallelism": "...", // if Argon2id
-    "hash": "..."         // if PBKDF2
+    "iterations": 4,
+    "memory": 65536,
+    "name": "Argon2id",
+    "parallelism": 4
   },
-  "encryptionName": "..."
+  "version": 3
 }</code></pre>
-                        <p>此外，請注意處理 `version` 為 1 的舊格式（無 AAD）時的回溯相容性邏輯。</p>
                     </div>
                 </div>
             </div>
@@ -748,7 +756,7 @@
                                     <div class="param-grid">
                                         <div class="form-group">
                                             <label for="argon2-memory">記憶體 (MB)</label>
-                                            <input type="number" id="argon2-memory" value="512" min="64" step="16" />
+                                            <input type="number" id="argon2-memory" value="256" min="64" step="16" />
                                         </div>
                                         <div class="form-group">
                                             <label for="argon2-iterations">迭代次數</label>
@@ -789,7 +797,7 @@
                                     <textarea
                                         id="ciphertext-input"
                                         rows="6"
-                                        placeholder="在此貼上加密後的 Base64 密文"
+                                        placeholder="在此貼上 v3.0 格式的 Base64 密文"
                                     ></textarea>
                                 </div>
                                 <div class="form-group">
@@ -948,8 +956,8 @@
                         encryptBtn: document.getElementById("encryptBtn"),
                         decryptBtn: document.getElementById("decryptBtn"),
                         parseBtn: document.getElementById("parseBtn"),
-                        benchmarkBtn: document.getElementById("benchmarkBtn"), // [新增]
-                        benchmarkStatus: document.getElementById("benchmarkStatus"), // [新增]
+                        benchmarkBtn: document.getElementById("benchmarkBtn"),
+                        benchmarkStatus: document.getElementById("benchmarkStatus"),
                         // File Handling
                         fileEncryptInput: document.getElementById("file-encrypt-input"),
                         fileEncryptInfo: document.getElementById("file-encrypt-info"),
@@ -992,12 +1000,12 @@
                         fileToEncrypt: null,
                         fileToDecrypt: null,
                     },
-                    // 集中管理常數
                     constants: {
+                        VERSION: 3,
                         SALT_BYTES: 16,
-                        IV_BYTES: 12,
-                        TAG_LENGTH_BITS: 128,
                         NONCE_BYTES: 12,
+                        TAG_BYTES: 16,
+                        TAG_LENGTH_BITS: 128,
                         KEY_LENGTH_BITS: 256,
                         PBKDF2_ITERATIONS: 2000000,
                         QR_CODE_MAX_BYTES: 2953,
@@ -1057,7 +1065,7 @@
                         this.elements.encryptBtn.addEventListener("click", () => this.crypto.encryptText());
                         this.elements.decryptBtn.addEventListener("click", () => this.crypto.decryptText());
                         this.elements.parseBtn.addEventListener("click", () => this.crypto.parseParameters());
-                        this.elements.benchmarkBtn.addEventListener("click", () => this.benchmark.run()); // [新增]
+                        this.elements.benchmarkBtn.addEventListener("click", () => this.benchmark.run());
                         this.elements.fileEncryptInput.addEventListener("change", (e) =>
                             this.fileHandler.handleFileSelect(e, this.constants.OP_ENCRYPT)
                         );
@@ -1074,7 +1082,10 @@
                         );
                         this.elements.downloadBtn.addEventListener("click", () => {
                             if (app.state.lastEncryptedOutput) {
-                                this.utils.downloadAsFile(app.state.lastEncryptedOutput, `encrypted-${Date.now()}.enc`);
+                                this.utils.downloadAsFile(
+                                    app.state.lastEncryptedOutput,
+                                    `encrypted-v3-${Date.now()}.enc`
+                                );
                             }
                         });
                         this.elements.passwordToggles.forEach((el) => {
@@ -1119,7 +1130,6 @@
                             });
                         }
                     },
-                    // [新增] 基準測試模組
                     benchmark: {
                         async run() {
                             const { elements, utils } = app;
@@ -1136,7 +1146,7 @@
                                 const iterations = 4; // 固定迭代次數
                                 const parallelism = navigator.hardwareConcurrency || 4;
                                 const memoryLevelsMb = [1024, 512, 256, 128, 64, 32]; // 從高到低測試
-                                let recommendedMemoryMb = 512; // 預設值
+                                let recommendedMemoryMb = 256; // 預設值
 
                                 for (const memMb of memoryLevelsMb) {
                                     const memKib = memMb * 1024;
@@ -1151,13 +1161,11 @@
                                         type: argon2.ArgonType.Argon2id,
                                     });
                                     const duration = performance.now() - startTime;
-
-                                    // 尋找第一個執行時間小於目標的等級
                                     if (duration < targetMs) {
                                         recommendedMemoryMb = memMb;
                                         break;
                                     }
-                                    await new Promise((r) => setTimeout(r, 50)); // 短暫休息避免卡頓
+                                    await new Promise((r) => setTimeout(r, 50));
                                 }
 
                                 elements.argon2Memory.value = recommendedMemoryMb;
@@ -1315,6 +1323,18 @@
                                         e.message.includes("key.usages")))
                             );
                         },
+                        _canonicalizeObject(obj) {
+                            if (obj === null || typeof obj !== "object" || Array.isArray(obj)) {
+                                return obj;
+                            }
+                            const sortedObj = {};
+                            Object.keys(obj)
+                                .sort()
+                                .forEach((key) => {
+                                    sortedObj[key] = this._canonicalizeObject(obj[key]);
+                                });
+                            return sortedObj;
+                        },
                         _buildAad(json) {
                             const kd = json.keyDerivation;
                             const metaDataForAad = {
@@ -1328,6 +1348,7 @@
                                 },
                                 encryptionName: json.encryption.name,
                             };
+                            // Clean up undefined keys before canonicalization
                             Object.keys(metaDataForAad).forEach(
                                 (key) => metaDataForAad[key] === undefined && delete metaDataForAad[key]
                             );
@@ -1336,7 +1357,9 @@
                                     metaDataForAad.keyDerivation[key] === undefined &&
                                     delete metaDataForAad.keyDerivation[key]
                             );
-                            return new TextEncoder().encode(JSON.stringify(metaDataForAad));
+
+                            const canonicalized = this._canonicalizeObject(metaDataForAad);
+                            return new TextEncoder().encode(JSON.stringify(canonicalized));
                         },
                         async deriveKey(passphrase, kdfParams) {
                             const salt = Base64.toUint8Array(kdfParams.salt);
@@ -1367,8 +1390,7 @@
                                 );
                                 const usages =
                                     kdfParams.purpose === app.constants.OP_ENCRYPT ? ["encrypt"] : ["decrypt"];
-                                const cipherName = kdfParams.cipher;
-                                if (cipherName === app.constants.ALGO_AES_GCM) {
+                                if (kdfParams.cipher === app.constants.ALGO_AES_GCM) {
                                     return await crypto.subtle.deriveKey(
                                         {
                                             name: app.constants.KDF_PBKDF2,
@@ -1409,8 +1431,12 @@
                                     parallelism: parseInt(app.elements.argon2Parallelism.value, 10),
                                 };
                                 derivedKey = await this.deriveKey(passphrase, kdfParams);
-                                const { salt: _, ...argonParamsToSave } = kdfParams;
-                                keyDerivationJson = { name: app.constants.KDF_ARGON2, ...argonParamsToSave };
+                                keyDerivationJson = {
+                                    name: kdfParams.name,
+                                    iterations: kdfParams.iterations,
+                                    memory: kdfParams.memory,
+                                    parallelism: kdfParams.parallelism,
+                                };
                             } else {
                                 kdfParams = {
                                     name: app.constants.KDF_PBKDF2,
@@ -1426,15 +1452,18 @@
                                     hash: app.constants.HASH_SHA256,
                                 };
                             }
+
                             const tempJsonForAad = {
-                                version: 2,
+                                version: app.constants.VERSION,
                                 keyDerivation: { ...keyDerivationJson },
                                 encryption: { name: selectedCipher },
                             };
                             const aad = this._buildAad(tempJsonForAad);
+
                             let encryptionOutput;
+                            const nonce = crypto.getRandomValues(new Uint8Array(app.constants.NONCE_BYTES));
+
                             if (selectedCipher === app.constants.ALGO_AES_GCM) {
-                                const iv = crypto.getRandomValues(new Uint8Array(app.constants.IV_BYTES));
                                 const aesKey =
                                     derivedKey instanceof CryptoKey
                                         ? derivedKey
@@ -1448,125 +1477,57 @@
                                 const encryptedBuffer = await crypto.subtle.encrypt(
                                     {
                                         name: app.constants.ALGO_AES_GCM,
-                                        iv,
+                                        iv: nonce,
                                         tagLength: app.constants.TAG_LENGTH_BITS,
                                         additionalData: aad,
                                     },
                                     aesKey,
                                     dataToEncrypt
                                 );
-                                const tagLengthBytes = app.constants.TAG_LENGTH_BITS / 8;
                                 const ciphertext = encryptedBuffer.slice(
                                     0,
-                                    encryptedBuffer.byteLength - tagLengthBytes
+                                    encryptedBuffer.byteLength - app.constants.TAG_BYTES
                                 );
-                                const tag = encryptedBuffer.slice(encryptedBuffer.byteLength - tagLengthBytes);
+                                const tag = encryptedBuffer.slice(encryptedBuffer.byteLength - app.constants.TAG_BYTES);
                                 encryptionOutput = {
                                     name: app.constants.ALGO_AES_GCM,
-                                    iv: Base64.fromUint8Array(iv, true),
+                                    nonce: Base64.fromUint8Array(nonce, true),
                                     ciphertext: Base64.fromUint8Array(new Uint8Array(ciphertext), true),
                                     tag: Base64.fromUint8Array(new Uint8Array(tag), true),
-                                    tagLength: app.constants.TAG_LENGTH_BITS,
                                 };
                             } else {
-                                const nonce = crypto.getRandomValues(new Uint8Array(app.constants.NONCE_BYTES));
+                                // ChaCha20-Poly1305
                                 const chachaKeyBytes = derivedKey;
                                 const ciphertextWithTag = chacha20poly1305(chachaKeyBytes, nonce, aad).encrypt(
                                     new Uint8Array(dataToEncrypt)
                                 );
+                                const ciphertext = ciphertextWithTag.slice(
+                                    0,
+                                    ciphertextWithTag.length - app.constants.TAG_BYTES
+                                );
+                                const tag = ciphertextWithTag.slice(ciphertextWithTag.length - app.constants.TAG_BYTES);
                                 encryptionOutput = {
                                     name: app.constants.ALGO_CHACHA,
                                     nonce: Base64.fromUint8Array(nonce, true),
-                                    ciphertext: Base64.fromUint8Array(ciphertextWithTag, true),
+                                    ciphertext: Base64.fromUint8Array(ciphertext, true),
+                                    tag: Base64.fromUint8Array(tag, true),
                                 };
                             }
                             const finalJson = {
-                                version: 2,
+                                version: app.constants.VERSION,
                                 keyDerivation: { ...keyDerivationJson, salt: Base64.fromUint8Array(salt, true) },
                                 encryption: encryptionOutput,
                             };
                             const finalBase64 = Base64.encode(JSON.stringify(finalJson), true);
                             return { finalBase64, jsonOutput: finalJson };
                         },
-                        async _decryptWithAAD(json, key) {
-                            const enc = json.encryption;
-                            const aad = this._buildAad(json);
-                            if (enc.name === app.constants.ALGO_AES_GCM) {
-                                const iv = Base64.toUint8Array(enc.iv);
-                                const ciphertext = Base64.toUint8Array(enc.ciphertext);
-                                const tag = Base64.toUint8Array(enc.tag);
-                                const aesKey =
-                                    key instanceof CryptoKey
-                                        ? key
-                                        : await crypto.subtle.importKey(
-                                              "raw",
-                                              key,
-                                              { name: app.constants.ALGO_AES_GCM },
-                                              false,
-                                              ["decrypt"]
-                                          );
-                                const combinedBuffer = new Uint8Array(ciphertext.length + tag.length);
-                                combinedBuffer.set(ciphertext, 0);
-                                combinedBuffer.set(tag, ciphertext.length);
-                                return await crypto.subtle.decrypt(
-                                    {
-                                        name: app.constants.ALGO_AES_GCM,
-                                        iv,
-                                        tagLength: app.constants.TAG_LENGTH_BITS,
-                                        additionalData: aad,
-                                    },
-                                    aesKey,
-                                    combinedBuffer
-                                );
-                            } else if (enc.name === app.constants.ALGO_CHACHA) {
-                                const nonce = Base64.toUint8Array(enc.nonce);
-                                const ciphertext = Base64.toUint8Array(enc.ciphertext);
-                                const chachaKeyBytes =
-                                    key instanceof Uint8Array ? key : await crypto.subtle.exportKey("raw", key);
-                                return chacha20poly1305(chachaKeyBytes, nonce, aad).decrypt(ciphertext);
-                            }
-                            throw new Error("不支援的解密演算法。");
-                        },
-                        async _decryptLegacy(json, key) {
-                            const enc = json.encryption;
-                            if (enc.name === app.constants.ALGO_AES_GCM) {
-                                const iv = Base64.toUint8Array(enc.iv);
-                                const ciphertext = Base64.toUint8Array(enc.ciphertext);
-                                const tag = Base64.toUint8Array(enc.tag);
-                                const aesKey =
-                                    key instanceof CryptoKey
-                                        ? key
-                                        : await crypto.subtle.importKey(
-                                              "raw",
-                                              key,
-                                              { name: app.constants.ALGO_AES_GCM },
-                                              false,
-                                              ["decrypt"]
-                                          );
-                                const combinedBuffer = new Uint8Array(ciphertext.length + tag.length);
-                                combinedBuffer.set(ciphertext, 0);
-                                combinedBuffer.set(tag, ciphertext.length);
-                                return await crypto.subtle.decrypt(
-                                    { name: app.constants.ALGO_AES_GCM, iv, tagLength: app.constants.TAG_LENGTH_BITS },
-                                    aesKey,
-                                    combinedBuffer
-                                );
-                            } else if (enc.name === app.constants.ALGO_CHACHA) {
-                                const nonce = Base64.toUint8Array(enc.nonce);
-                                const ciphertext = Base64.toUint8Array(enc.ciphertext);
-                                const chachaKeyBytes =
-                                    key instanceof Uint8Array ? key : await crypto.subtle.exportKey("raw", key);
-                                return chacha20poly1305(chachaKeyBytes, nonce).decrypt(ciphertext);
-                            }
-                            throw new Error("不支援的解密演算法。");
-                        },
-                        async decryptUnified(base64Cipher, passphrase) {
+                        async decrypt(base64Cipher, passphrase) {
                             const jsonStr = Base64.decode(base64Cipher);
                             const json = JSON.parse(jsonStr);
-                            if (!json.keyDerivation || !json.encryption) {
-                                throw new Error("無效或不支援的密文格式。");
+                            if (!json.keyDerivation || !json.encryption || json.version !== app.constants.VERSION) {
+                                throw new Error("無效或不支援的密文格式 (僅支援 v3.0)。");
                             }
-                            const legacyCandidate = !Number.isInteger(json.version);
+
                             const kdfParams = {
                                 name: json.keyDerivation.name,
                                 salt: json.keyDerivation.salt,
@@ -1577,19 +1538,51 @@
                                 cipher: json.encryption.name,
                             };
                             const key = await this.deriveKey(passphrase, kdfParams);
+                            const enc = json.encryption;
+                            const aad = this._buildAad(json);
+                            const nonce = Base64.toUint8Array(enc.nonce);
+                            const ciphertext = Base64.toUint8Array(enc.ciphertext);
+                            const tag = Base64.toUint8Array(enc.tag);
+
                             try {
-                                const decryptedBytes = await this._decryptWithAAD(json, key);
-                                return { decryptedBytes, usedLegacyFallback: false };
-                            } catch (e) {
-                                if (this._isAuthError(e) && legacyCandidate) {
-                                    try {
-                                        const decryptedBytes = await this._decryptLegacy(json, key);
-                                        return { decryptedBytes, usedLegacyFallback: true };
-                                    } catch (legacyError) {
-                                        throw new Error("密碼短語不正確，或密文已被竄改。");
-                                    }
+                                if (enc.name === app.constants.ALGO_AES_GCM) {
+                                    const aesKey =
+                                        key instanceof CryptoKey
+                                            ? key
+                                            : await crypto.subtle.importKey(
+                                                  "raw",
+                                                  key,
+                                                  { name: app.constants.ALGO_AES_GCM },
+                                                  false,
+                                                  ["decrypt"]
+                                              );
+                                    const combinedBuffer = new Uint8Array(ciphertext.length + tag.length);
+                                    combinedBuffer.set(ciphertext, 0);
+                                    combinedBuffer.set(tag, ciphertext.length);
+                                    return await crypto.subtle.decrypt(
+                                        {
+                                            name: app.constants.ALGO_AES_GCM,
+                                            iv: nonce,
+                                            tagLength: app.constants.TAG_LENGTH_BITS,
+                                            additionalData: aad,
+                                        },
+                                        aesKey,
+                                        combinedBuffer
+                                    );
+                                } else if (enc.name === app.constants.ALGO_CHACHA) {
+                                    const chachaKeyBytes =
+                                        key instanceof Uint8Array ? key : await crypto.subtle.exportKey("raw", key);
+                                    const combinedCiphertext = new Uint8Array(ciphertext.length + tag.length);
+                                    combinedCiphertext.set(ciphertext);
+                                    combinedCiphertext.set(tag, ciphertext.length);
+                                    return chacha20poly1305(chachaKeyBytes, nonce, aad).decrypt(combinedCiphertext);
                                 }
-                                throw new Error("密碼短語不正確，或密文已被竄改。");
+                                throw new Error("不支援的解密演算法。");
+                            } catch (e) {
+                                if (this._isAuthError(e)) {
+                                    throw new Error("密碼短語不正確，或密文已被竄改。");
+                                }
+                                throw e;
                             }
                         },
                         async encryptText() {
@@ -1630,21 +1623,14 @@
                             await new Promise((r) => setTimeout(r, 50));
                             const startTime = performance.now();
                             try {
-                                const { decryptedBytes, usedLegacyFallback } = await this.decryptUnified(
-                                    base64Cipher,
-                                    passphrase
-                                );
+                                const decryptedBytes = await this.decrypt(base64Cipher, passphrase);
                                 const duration = ((performance.now() - startTime) / 1000).toFixed(3);
                                 const decryptedText = new TextDecoder().decode(decryptedBytes);
                                 app.state.lastDecryptedText = decryptedText;
                                 let successMessage = `✅ 解密成功 (處理時間：${duration} 秒)<br><br><strong style="font-size: 1.1em; white-space: pre-wrap; word-break: break-word;">${decryptedText}</strong>`;
-                                if (usedLegacyFallback) {
-                                    successMessage += `<br><br><small style="color: var(--note-color); font-style: italic;">ℹ️ 已自動相容舊版格式的密文。</small>`;
-                                }
                                 app.ui.setOutput("success", successMessage);
                             } catch (e) {
-                                const msg = this._isAuthError(e) ? "密碼短語不正確，或密文已被竄改。" : e.message;
-                                app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
+                                app.ui.setOutput("error", `❌ 解密失敗：${e.message}`);
                             }
                         },
                         async encryptFile() {
@@ -1682,23 +1668,16 @@
                             const startTime = performance.now();
                             try {
                                 const base64Cipher = await app.fileHandler.readFileAsText(file);
-                                const { decryptedBytes, usedLegacyFallback } = await this.decryptUnified(
-                                    base64Cipher,
-                                    passphrase
-                                );
+                                const decryptedBytes = await this.decrypt(base64Cipher, passphrase);
                                 const duration = ((performance.now() - startTime) / 1000).toFixed(3);
                                 const originalFilename = file.name.endsWith(".enc")
                                     ? file.name.slice(0, -4)
                                     : `decrypted-${file.name}`;
                                 app.utils.downloadAsFile(new Blob([decryptedBytes]), originalFilename);
                                 let successMessage = `✅ 檔案解密成功！已開始下載 ${originalFilename} (處理時間：${duration} 秒)`;
-                                if (usedLegacyFallback) {
-                                    successMessage += ` (已自動相容舊版格式)`;
-                                }
                                 app.ui.setOutput("success", successMessage);
                             } catch (e) {
-                                const msg = this._isAuthError(e) ? "密碼短語不正確，或密文已被竄改。" : e.message;
-                                app.ui.setOutput("error", `❌ 解密失敗：${msg}`);
+                                app.ui.setOutput("error", `❌ 解密失敗：${e.message}`);
                             }
                         },
                         async parseParameters() {
@@ -1717,9 +1696,10 @@
                                         kd.parallelism
                                     })`;
                                 }
-                                const versionInfo = Number.isInteger(json.version)
-                                    ? `V${json.version} (新版)`
-                                    : "V1 (舊版)";
+                                const versionInfo =
+                                    json.version === app.constants.VERSION
+                                        ? `v${json.version}`
+                                        : `不支援的版本 (${json.version})`;
                                 app.elements.paramsDisplayArea.innerHTML = `<p>格式版本：<span>${versionInfo}</span></p>
                                  <p>金鑰衍生：<span>${kdfDetails}</span></p>
                                  <p>加密演算法：<span>${enc.name}</span></p>
