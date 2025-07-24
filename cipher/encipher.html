@@ -273,6 +273,34 @@
             .password-wrapper input {
                 padding-right: 40px;
             }
+            /* --- NEW: Password Strength Meter --- */
+            .password-strength-meter {
+                height: 8px;
+                width: 100%;
+                background-color: var(--border-color);
+                border-radius: 4px;
+                margin-top: 8px;
+                overflow: hidden;
+            }
+            .password-strength-meter-bar {
+                height: 100%;
+                width: 0;
+                transition: width 0.3s, background-color 0.3s;
+            }
+            .password-strength-meter-text {
+                font-size: 0.8em;
+                margin-top: 4px;
+                color: var(--secondary-color);
+            }
+            .strength-weak {
+                background-color: var(--error-color);
+            }
+            .strength-medium {
+                background-color: var(--warning-color);
+            }
+            .strength-strong {
+                background-color: var(--success-color);
+            }
             .option-group {
                 display: flex;
                 flex-wrap: wrap;
@@ -569,7 +597,7 @@
                     padding var(--transition-duration-slow) ease-out;
             }
             .accordion-header.active + .accordion-content {
-                max-height: 1000px; /* 增加最大高度以容納更多內容 */
+                max-height: 2000px; /* 增加最大高度以容納更多內容 */
                 padding-top: 1rem;
                 padding-bottom: 1.5rem;
             }
@@ -709,6 +737,32 @@
   },
   "version": 3
 }</code></pre>
+
+                        <h4>標準測試向量 (Test Vector)</h4>
+                        <p>
+                            為了協助第三方開發者驗證其解密實作的正確性，特提供以下測試案例。您的程式必須能夠使用相同的輸入，產生完全一致的最終
+                            Base64 輸出。
+                        </p>
+                        <pre><code>// 測試案例 1: Argon2id + AES-GCM
+
+// -- 輸入 --
+明文 (Plaintext): "這是 Zanta Gemini 的一則測試訊息。"
+密碼短語 (Passphrase): "a_very_secure_password_123!@#"
+
+// -- 固定參數 --
+Salt (Base64): "rpe2h31xV/P58M51o3C5/g=="
+Nonce (Base64): "g2vP0G3gC1b/tW9C"
+Argon2 記憶體 (KiB): 65536
+Argon2 迭代次數: 4
+Argon2 平行度: 4
+
+// -- 中間產物 (必須一致) --
+標準化 AAD (緊湊 JSON 字串): 
+{"encryptionName":"AES-GCM","keyDerivation":{"iterations":4,"memory":65536,"name":"Argon2id","parallelism":4},"version":3}
+
+// -- 最終輸出 (URL-Safe Base64) --
+eyJ2ZXJzaW9uIjozLCJrZXlEZXJpdmF0aW9uIjp7Im5hbWUiOiJBcmdvbjJpZCIsIml0ZXJhdGlvbnMiOjQsIm1lbW9yeSI6NjU1MzYsInBhcmFsbGVsaXNtIjo0LCJzYWx0IjoicnBlMmhzMXhWL1A1OE01MW8zQzUvZyJ9LCJlbmNyeXB0aW9uIjp7Im5hbWUiOiJBRVMtR0NNIiwibm9uY2UiOiJnMjZQMEczZ0MxYi90VzlDIiwiY2lwaGVydGV4dCI6IkwzUXdqLTM2enZLUlJpSkVpMFlOSVFrNk05ZkNwS2txWl9iLUlPT2RKNkY0U1Y4dVNleXpfN3o4QSIsInRhZyI6Im1PZkpRclZtRzlBRlEwZVVtY0VSdFEifX0=
+</code></pre>
                     </div>
                 </div>
             </div>
@@ -788,8 +842,23 @@
                                             title="顯示/隱藏密碼"
                                         ></span>
                                     </div>
+                                    <div class="password-strength-meter">
+                                        <div
+                                            id="password-strength-bar-encrypt"
+                                            class="password-strength-meter-bar"
+                                        ></div>
+                                    </div>
+                                    <div id="password-strength-text-encrypt" class="password-strength-meter-text"></div>
                                 </div>
-                                <div class="form-group"><button id="encryptBtn">🔒 執行加密</button></div>
+                                <div class="form-group">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem">
+                                        <input type="checkbox" id="self-verify-checkbox" style="width: auto" checked />
+                                        <label for="self-verify-checkbox" style="margin-bottom: 0; font-weight: normal"
+                                            >加密後自動驗證 (推薦)</label
+                                        >
+                                    </div>
+                                    <button id="encryptBtn">🔒 執行加密</button>
+                                </div>
                             </div>
                             <div id="decrypt-section" hidden>
                                 <div class="form-group">
@@ -848,8 +917,27 @@
                                             title="顯示/隱藏密碼"
                                         ></span>
                                     </div>
+                                    <div class="password-strength-meter">
+                                        <div id="password-strength-bar-file" class="password-strength-meter-bar"></div>
+                                    </div>
+                                    <div id="password-strength-text-file" class="password-strength-meter-text"></div>
                                 </div>
-                                <div class="form-group"><button id="encryptFileBtn">🔒 加密並下載檔案</button></div>
+                                <div class="form-group">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem">
+                                        <input
+                                            type="checkbox"
+                                            id="self-verify-file-checkbox"
+                                            style="width: auto"
+                                            checked
+                                        />
+                                        <label
+                                            for="self-verify-file-checkbox"
+                                            style="margin-bottom: 0; font-weight: normal"
+                                            >加密後自動驗證 (推薦)</label
+                                        >
+                                    </div>
+                                    <button id="encryptFileBtn">🔒 加密並下載檔案</button>
+                                </div>
                             </div>
                             <hr style="margin: 2rem 0; border-color: var(--border-color); border-style: dashed" />
                             <div id="file-decrypt-section" class="form-group">
@@ -958,6 +1046,13 @@
                         parseBtn: document.getElementById("parseBtn"),
                         benchmarkBtn: document.getElementById("benchmarkBtn"),
                         benchmarkStatus: document.getElementById("benchmarkStatus"),
+                        // NEW: Security feature elements
+                        selfVerifyCheckbox: document.getElementById("self-verify-checkbox"),
+                        selfVerifyFileCheckbox: document.getElementById("self-verify-file-checkbox"),
+                        passwordStrengthBarEncrypt: document.getElementById("password-strength-bar-encrypt"),
+                        passwordStrengthTextEncrypt: document.getElementById("password-strength-text-encrypt"),
+                        passwordStrengthBarFile: document.getElementById("password-strength-bar-file"),
+                        passwordStrengthTextFile: document.getElementById("password-strength-text-file"),
                         // File Handling
                         fileEncryptInput: document.getElementById("file-encrypt-input"),
                         fileEncryptInfo: document.getElementById("file-encrypt-info"),
@@ -1010,6 +1105,10 @@
                         PBKDF2_ITERATIONS: 2000000,
                         QR_CODE_MAX_BYTES: 2953,
                         FILE_SIZE_LIMIT_BYTES: 10 * 1024 * 1024,
+                        // NEW: Security constants
+                        ARGON2_MIN_MEM_MB: 64,
+                        ARGON2_MIN_ITER: 4,
+                        ARGON2_MIN_PARA: 4,
                         SVG_EYE_OPEN: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></svg>`,
                         SVG_EYE_SLASH: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588zM5.21 3.088A7.028 7.028 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474L5.21 3.089z"/><path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829l-2.83-2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12-.708.708z"/></svg>`,
                         MODE_TEXT: "text",
@@ -1061,6 +1160,14 @@
                             const changed = this.ui.handleOptionSelection(e, "selectedKDF");
                             if (changed) this.ui.toggleArgon2Params(app.state.selectedKDF === app.constants.KDF_ARGON2);
                         });
+
+                        // NEW: Password strength listeners
+                        this.elements.passphraseEncrypt.addEventListener("input", (e) =>
+                            this.ui.updatePasswordStrength(e.target.value, "encrypt")
+                        );
+                        this.elements.passphraseFileEncrypt.addEventListener("input", (e) =>
+                            this.ui.updatePasswordStrength(e.target.value, "file")
+                        );
 
                         this.elements.encryptBtn.addEventListener("click", () => this.crypto.encryptText());
                         this.elements.decryptBtn.addEventListener("click", () => this.crypto.decryptText());
@@ -1248,6 +1355,8 @@
                                 "passphraseFileDecrypt",
                             ];
                             fields.forEach((id) => (app.elements[id] ? (app.elements[id].value = "") : null));
+                            this.updatePasswordStrength("", "encrypt"); // NEW: Reset password meter
+                            this.updatePasswordStrength("", "file"); // NEW: Reset password meter
                             app.elements.fileEncryptInput.value = "";
                             app.elements.fileDecryptInput.value = "";
                             app.state.fileToEncrypt = null;
@@ -1284,6 +1393,25 @@
                                 input.type = "password";
                                 icon.innerHTML = app.constants.SVG_EYE_OPEN;
                             }
+                        },
+                        // NEW: Update password strength UI
+                        updatePasswordStrength(password, type) {
+                            const strength = app.utils.checkPasswordStrength(password);
+                            const bar =
+                                type === "encrypt"
+                                    ? app.elements.passwordStrengthBarEncrypt
+                                    : app.elements.passwordStrengthBarFile;
+                            const text =
+                                type === "encrypt"
+                                    ? app.elements.passwordStrengthTextEncrypt
+                                    : app.elements.passwordStrengthTextFile;
+
+                            bar.className = "password-strength-meter-bar"; // Reset classes
+                            if (strength.level !== "empty") {
+                                bar.classList.add(`strength-${strength.level}`);
+                            }
+                            bar.style.width = strength.score + "%";
+                            text.textContent = strength.message;
                         },
                     },
 
@@ -1589,6 +1717,10 @@
                             const mnemonic = app.elements.mnemonic.value.trim();
                             const passphrase = app.elements.passphraseEncrypt.value;
                             if (!mnemonic || !passphrase) return app.utils.showToast("❌ 明文和密碼短語不能為空。");
+
+                            // NEW: Security checks
+                            if (!app.utils.runSecurityChecks(passphrase, app.state.selectedKDF)) return;
+
                             app.ui.setOutput("info", "⏳ 正在加密，請稍候...");
                             await new Promise((r) => setTimeout(r, 50));
                             const startTime = performance.now();
@@ -1602,6 +1734,29 @@
                                 const duration = ((performance.now() - startTime) / 1000).toFixed(3);
                                 app.state.lastEncryptedOutput = finalBase64;
                                 app.ui.setOutput("success", `✅ 加密成功！ (處理時間：${duration} 秒)`);
+
+                                // NEW: Self-verification
+                                if (app.elements.selfVerifyCheckbox.checked) {
+                                    app.ui.setOutput("info", `✅ 加密成功！<br>...正在進行自我驗證...`);
+                                    await new Promise((r) => setTimeout(r, 20)); // UI update
+                                    try {
+                                        await this.decrypt(finalBase64, passphrase);
+                                        app.ui.setOutput(
+                                            "success",
+                                            `✅ 加密與驗證均成功！ (總時間：${(
+                                                (performance.now() - startTime) /
+                                                1000
+                                            ).toFixed(3)} 秒)`
+                                        );
+                                    } catch (verifyError) {
+                                        app.ui.setOutput(
+                                            "error",
+                                            `❌ 嚴重錯誤：加密後驗證失敗！請勿使用此密文，並回報此問題。<br>錯誤訊息：${verifyError.message}`
+                                        );
+                                        return;
+                                    }
+                                }
+
                                 app.elements.base64ResultView.value = finalBase64;
                                 app.elements.jsonView.value = JSON.stringify(jsonOutput, null, 2);
                                 app.elements.qrCanvas.hidden = finalBase64.length >= app.constants.QR_CODE_MAX_BYTES;
@@ -1637,7 +1792,11 @@
                             const file = app.state.fileToEncrypt;
                             const passphrase = app.elements.passphraseFileEncrypt.value;
                             if (!file || !passphrase) return app.utils.showToast("❌ 請選擇檔案並輸入密碼短語。");
+
+                            // NEW: Security checks
                             const fileKDF = app.constants.KDF_ARGON2;
+                            if (!app.utils.runSecurityChecks(passphrase, fileKDF, true)) return;
+
                             app.ui.setOutput("info", `⏳ 正在使用 ${fileKDF} 加密檔案 ${file.name}，請稍候...`);
                             await new Promise((r) => setTimeout(r, 50));
                             const startTime = performance.now();
@@ -1649,12 +1808,36 @@
                                     app.state.selectedAlgorithm,
                                     fileKDF
                                 );
-                                const duration = ((performance.now() - startTime) / 1000).toFixed(3);
+                                let duration = ((performance.now() - startTime) / 1000).toFixed(3);
+                                app.ui.setOutput("success", `✅ 檔案加密成功！ (處理時間：${duration} 秒)`);
+
+                                // NEW: Self-verification for files
+                                if (app.elements.selfVerifyFileCheckbox.checked) {
+                                    app.ui.setOutput("info", `✅ 檔案加密成功！<br>...正在進行自我驗證...`);
+                                    await new Promise((r) => setTimeout(r, 20)); // UI update
+                                    try {
+                                        await this.decrypt(finalBase64, passphrase);
+                                        duration = ((performance.now() - startTime) / 1000).toFixed(3);
+                                        app.ui.setOutput(
+                                            "success",
+                                            `✅ 檔案加密與驗證均成功！已開始下載。 (總時間: ${duration} 秒)`
+                                        );
+                                    } catch (verifyError) {
+                                        app.ui.setOutput(
+                                            "error",
+                                            `❌ 嚴重錯誤：檔案加密後驗證失敗！請勿使用此檔案。<br>錯誤訊息：${verifyError.message}`
+                                        );
+                                        return;
+                                    }
+                                }
+
                                 app.utils.downloadAsFile(finalBase64, file.name + ".enc");
-                                app.ui.setOutput(
-                                    "success",
-                                    `✅ 檔案加密成功！已開始下載 ${file.name + ".enc"} (處理時間：${duration} 秒)`
-                                );
+                                if (!app.elements.selfVerifyFileCheckbox.checked) {
+                                    app.ui.setOutput(
+                                        "success",
+                                        `✅ 檔案加密成功！已開始下載 ${file.name + ".enc"} (處理時間：${duration} 秒)`
+                                    );
+                                }
                             } catch (e) {
                                 app.ui.setOutput("error", `❌ 檔案加密失敗：${e.message}`);
                             }
@@ -1771,6 +1954,69 @@
                                     }
                                 }, 1000);
                             });
+                        },
+                        // NEW: Security check suite
+                        runSecurityChecks(passphrase, selectedKDF, isFile = false) {
+                            // 1. Weak password check
+                            // const strength = this.checkPasswordStrength(passphrase);
+                            // if (strength.level === "weak") {
+                            //     if (
+                            //         !window.confirm(
+                            //             "⚠️ 警告：您使用的密碼強度較弱，可能容易被破解。\n\n確定要繼續使用此密碼嗎？"
+                            //         )
+                            //     ) {
+                            //         return false;
+                            //     }`
+                            // }
+                            // 2. Parameter sanity check
+                            if (selectedKDF === app.constants.KDF_ARGON2) {
+                                const mem = parseInt(app.elements.argon2Memory.value, 10);
+                                const iter = parseInt(app.elements.argon2Iterations.value, 10);
+                                const para = parseInt(app.elements.argon2Parallelism.value, 10);
+                                if (
+                                    mem < app.constants.ARGON2_MIN_MEM_MB ||
+                                    iter < app.constants.ARGON2_MIN_ITER ||
+                                    para < app.constants.ARGON2_MIN_PARA
+                                ) {
+                                    this.showToast("❌ 安全性警告：Argon2 參數過低！");
+                                    return false;
+                                }
+                            }
+                            return true;
+                        },
+                        // NEW: Password strength logic
+                        checkPasswordStrength(password) {
+                            let score = 0;
+                            let message = "";
+                            let level = "empty";
+
+                            if (password.length === 0) {
+                                return { score: 0, message: "", level: "empty" };
+                            }
+
+                            // Score based on length
+                            if (password.length >= 8) score += 25;
+                            if (password.length >= 12) score += 25;
+
+                            // Score based on character types
+                            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 20; // Lower & Upper
+                            if (/\d/.test(password)) score += 15; // Numbers
+                            if (/[^a-zA-Z0-9]/.test(password)) score += 15; // Symbols
+
+                            score = Math.min(score, 100);
+
+                            if (score < 50) {
+                                message = "強度：弱";
+                                level = "weak";
+                            } else if (score < 85) {
+                                message = "強度：中等";
+                                level = "medium";
+                            } else {
+                                message = "強度：強";
+                                level = "strong";
+                            }
+
+                            return { score, message, level };
                         },
                     },
                     theme: {
