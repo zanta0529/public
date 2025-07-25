@@ -4,8 +4,8 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Shamir's Secret Sharing Tool 2.0</title>
-      <script type="module" crossorigin src="/public/shamir/assets/index-DlVKRVAU.js"></script>
-      <link rel="stylesheet" crossorigin href="/public/shamir/assets/index--eLACsVo.css">
+      <script type="module" crossorigin src="/public/shamir/assets/index-C2UZf0xp.js"></script>
+      <link rel="stylesheet" crossorigin href="/public/shamir/assets/index-BoL5_7TX.css">
     </head>
     <body>
         <div id="app">
@@ -45,12 +45,27 @@
                         <button id="clearSplitBtn" class="secondary">清除</button>
                     </div>
                     <div id="splitResultArea" style="display: none">
-                        <h2>分割結果</h2>
+                        <div class="result-header">
+                            <h2>分割結果</h2>
+                            <div class="encoding-switcher">
+                                <span>Base64</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="encodingToggle" />
+                                    <span class="slider round"></span>
+                                </label>
+                                <span>Base58Check</span>
+                                <span
+                                    class="tooltip-icon"
+                                    data-tooltip="Base58Check 是一種常用於加密貨幣的編碼方式。它移除了視覺上易混淆的字元 (0, O, I, l)，並內建校驗碼 (Checksum) 來驗證資料完整性，大幅降低手動抄寫時的出錯風險。"
+                                    >ⓘ</span
+                                >
+                            </div>
+                        </div>
                         <table id="splitResultTable">
                             <thead>
                                 <tr>
                                     <th style="width: 30px">ID</th>
-                                    <th>Base64 分割值</th>
+                                    <th>編碼分割值</th>
                                     <th style="width: 150px">操作</th>
                                 </tr>
                             </thead>
