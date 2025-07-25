@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Encipher v3.0 - 進階加密、解密器</title>
+        <script src="/public/cipher/argon2-bundled.min.js"></script>
+      <script type="module" crossorigin src="/public/cipher/assets/index-CTpPwGxe.js"></script>
+      <link rel="stylesheet" crossorigin href="/public/cipher/assets/index-CtSF-SMD.css">
+    </head>
+    <body>
+
+        <button id="themeToggleBtn" class="fab" title="切換主題">🌙</button>
+
+        <div class="container">
+            <header>
+                <h1>進階加密、解密器 (v3.0)</h1>
+            </header>
+
+            <div class="accordion">
+                <div class="accordion-item">
+                    <button class="accordion-header" aria-expanded="false">ℹ️ 關於本工具 / v3.0 技術規格</button>
+                    <div class="accordion-content" aria-hidden="true">
+                        <h4>工具用途</h4>
+                        <p>
+                            這是一個純客戶端 (Client-side)
+                            的加密與解密工具，所有運算都在您的瀏覽器本機完成，確保資料隱私。它可用於加密敏感文字或小型檔案，產生一個可安全傳輸的密文。
+                        </p>
+
+                        <h4>版本 v3.0 說明</h4>
+                        <p style="color: var(--warning-color)">
+                            <strong>重要：</strong>此 v3.0
+                            版本採用了全新的、更穩健的加密格式，<strong>不相容</strong>於先前版本 (v1, v2)
+                            產生的密文。本次更新旨在徹底解決舊格式的設計缺陷。
+                        </p>
+
+                        <h4>技術規格 (v3.0)</h4>
+                        <ul>
+                            <li>
+                                <strong>加密格式：</strong> 最終輸出為一個 Base64 編碼的 JSON 物件，格式版本 (`version`)
+                                固定為 `3`。
+                            </li>
+                            <li>
+                                <strong>金鑰衍生 (KDF)：</strong> 支援 <code>Argon2id</code> 和 <code>PBKDF2</code>。
+                            </li>
+                            <li>
+                                <strong>對稱加密：</strong> 支援 <code>AES-256-GCM</code> 和
+                                <code>ChaCha20-Poly1305</code>，兩者均為認證加密 (AEAD) 演算法。
+                            </li>
+                            <li>
+                                <strong>資料結構</strong>: 所有演算法的輸出結構已統一。`nonce` (12位元組) 與 `tag`
+                                (16位元組) 均為獨立欄位。
+                            </li>
+                        </ul>
+
+                        <h4>給開發者的話：實作相容的 v3.0 解密器</h4>
+                        <p>
+                            <strong>核心關鍵：AAD (認證附加資料) 的標準化重建</strong><br />
+                            解密時，您必須重建一個與加密時完全相同的 AAD。v3.0 的 AAD 是一個從最終輸出 JSON
+                            中提取部分欄位後，經過**標準化序列化**而成的緊湊 JSON 字串。
+                        </p>
+                        <p>
+                            <strong>AAD 標準化序列化規則：</strong><br />
+                            在將 AAD 物件轉換為 JSON 字串前，<strong
+                                >必須對其所有層級的物件鍵 (key) 進行遞迴的字母序排序</strong
+                            >。這是確保跨平台一致性的強制要求。
+                        </p>
+                        <p>排序後的 AAD 物件結構如下 (不含 `salt`, `nonce`, `tag` 等欄位):</p>
+                        <pre><code>// 排序後的 AAD 物件範例
+{
+  "encryptionName": "AES-GCM",
+  "keyDerivation": {
+    "iterations": 4,
+    "memory": 65536,
+    "name": "Argon2id",
+    "parallelism": 4
+  },
+  "version": 3
+}</code></pre>
+
+                        <h4>標準測試向量 (Test Vector)</h4>
+                        <p>
+                            為了協助第三方開發者驗證其解密實作的正確性，特提供以下測試案例。您的程式必須能夠使用相同的輸入，產生完全一致的最終
+                            Base64 輸出。
+                        </p>
+                        <pre><code>// 測試案例 1: Argon2id + AES-GCM
+
+// -- 輸入 --
+明文 (Plaintext): "這是 Zanta Gemini 的一則測試訊息。"
+密碼短語 (Passphrase): "a_very_secure_password_123!@#"
+
+// -- 固定參數 --
+Salt (Base64): "rpe2h31xV/P58M51o3C5/g=="
+Nonce (Base64): "g2vP0G3gC1b/tW9C"
+Argon2 記憶體 (KiB): 65536
+Argon2 迭代次數: 4
+Argon2 平行度: 4
+
+// -- 中間產物 (必須一致) --
+標準化 AAD (緊湊 JSON 字串): 
+{"encryptionName":"AES-GCM","keyDerivation":{"iterations":4,"memory":65536,"name":"Argon2id","parallelism":4},"version":3}
+
+// -- 最終輸出 (URL-Safe Base64) --
+eyJ2ZXJzaW9uIjozLCJrZXlEZXJpdmF0aW9uIjp7Im5hbWUiOiJBcmdvbjJpZCIsIml0ZXJhdGlvbnMiOjQsIm1lbW9yeSI6NjU1MzYsInBhcmFsbGVsaXNtIjo0LCJzYWx0IjoicnBlMmhzMXhWL1A1OE01MW8zQzUvZyJ9LCJlbmNyeXB0aW9uIjp7Im5hbWUiOiJBRVMtR0NNIiwibm9uY2UiOiJnMjZQMEczZ0MxYi90VzlDIiwiY2lwaGVydGV4dCI6IkwzUXdqLTM2enZLUlJpSkVpMFlOSVFrNk05ZkNwS2txWl9iLUlPT2RKNkY0U1Y4dVNleXpfN3o4QSIsInRhZyI6Im1PZkpRclZtRzlBRlEwZVVtY0VSdFEifX0=
+</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <main>
+                <section class="card">
+                    <h2>🔐 加解密工具</h2>
+                    <div class="card-content">
+                        <div id="appModeSelector" class="option-group">
+                            <div class="option selected" data-app-mode="text">📃 純文字模式</div>
+                            <div class="option" data-app-mode="file">💾 檔案模式</div>
+                        </div>
+
+                        <div id="text-mode-section">
+                            <div id="modeSelector" class="option-group">
+                                <div class="option selected" data-mode="encrypt">🔒 加密模式</div>
+                                <div class="option" data-mode="decrypt">🔓 解密模式</div>
+                            </div>
+                            <div id="encrypt-section">
+                                <div class="form-group">
+                                    <label for="mnemonic">明文 (Plain-Text)</label>
+                                    <textarea id="mnemonic" rows="4" placeholder="在此輸入要加密的文字"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>加密演算法</label>
+                                    <div id="algoSelectionGroup" class="option-group">
+                                        <div class="option selected" data-value="AES-GCM" title="AES-GCM">AES-GCM</div>
+                                        <div class="option" data-value="ChaCha20-Poly1305" title="ChaCha20-Poly1305">
+                                            ChaCha20-Poly1305
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>密鑰衍生演算法 (KDF)</label>
+                                    <div id="kdfSelectionGroup" class="option-group">
+                                        <div class="option selected" data-value="Argon2id">Argon2id</div>
+                                        <div class="option" data-value="PBKDF2">PBKDF2</div>
+                                    </div>
+                                </div>
+                                <div id="argon2-params-section" hidden>
+                                    <div class="message-block hint-note" style="margin-top: 0; margin-bottom: 1rem">
+                                        ℹ️ Argon2
+                                        參數會影響效能與安全性。記憶體越大、迭代次數越多，安全性越高但速度越慢。
+                                    </div>
+                                    <div class="param-grid">
+                                        <div class="form-group">
+                                            <label for="argon2-memory">記憶體 (MB)</label>
+                                            <input type="number" id="argon2-memory" value="256" min="64" step="16" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="argon2-iterations">迭代次數</label>
+                                            <input type="number" id="argon2-iterations" value="4" min="4" step="1" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="argon2-parallelism">平行度</label>
+                                            <input type="number" id="argon2-parallelism" value="4" min="4" step="1" />
+                                        </div>
+                                    </div>
+                                    <div class="button-group" style="margin-bottom: 1.5rem">
+                                        <button
+                                            id="benchmarkBtn"
+                                            class="secondary"
+                                            style="font-size: 0.9em; padding: 0.5rem 1rem"
+                                        >
+                                            ⚡️ 產生建議參數
+                                        </button>
+                                        <span id="benchmarkStatus"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="passphrase-encrypt">密碼短語 (Passphrase)</label>
+                                    <div class="password-wrapper">
+                                        <input id="passphrase-encrypt" type="password" placeholder="輸入密碼短語" />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-encrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
+                                    <div class="password-strength-meter">
+                                        <div
+                                            id="password-strength-bar-encrypt"
+                                            class="password-strength-meter-bar"
+                                        ></div>
+                                    </div>
+                                    <div id="password-strength-text-encrypt" class="password-strength-meter-text"></div>
+                                </div>
+                                <div class="form-group">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem">
+                                        <input type="checkbox" id="self-verify-checkbox" style="width: auto" checked />
+                                        <label for="self-verify-checkbox" style="margin-bottom: 0; font-weight: normal"
+                                            >加密後自動驗證 (推薦)</label
+                                        >
+                                    </div>
+                                    <button id="encryptBtn">🔒 執行加密</button>
+                                </div>
+                            </div>
+                            <div id="decrypt-section" hidden>
+                                <div class="form-group">
+                                    <label for="ciphertext-input">密文 (Base64 JSON)</label>
+                                    <textarea
+                                        id="ciphertext-input"
+                                        rows="6"
+                                        placeholder="在此貼上 v3.0 格式的 Base64 密文"
+                                    ></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <button id="parseBtn" class="secondary">🔍 解析參數 (可選)</button>
+                                </div>
+                                <div id="params-display-area" hidden></div>
+                                <div class="form-group">
+                                    <label for="passphrase-decrypt">密碼短語 (Passphrase)</label>
+                                    <div class="password-wrapper">
+                                        <input
+                                            id="passphrase-decrypt"
+                                            type="password"
+                                            placeholder="輸入解密用的密碼短語"
+                                        />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-decrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
+                                </div>
+                                <div class="form-group"><button id="decryptBtn">🔓 開始解密</button></div>
+                            </div>
+                        </div>
+
+                        <div id="file-mode-section" hidden>
+                            <div class="message-block hint-note" style="margin-top: 0">
+                                ℹ️ 檔案加解密流程全程在您的瀏覽器本機完成，您的檔案不會被上傳到任何伺服器。
+                            </div>
+                            <div id="file-encrypt-section" class="form-group" style="margin-top: 1rem">
+                                <label>檔案加密</label>
+                                <div class="file-input-wrapper">
+                                    <span>點擊此處選擇檔案，或將檔案拖曳至此</span>
+                                    <input type="file" id="file-encrypt-input" />
+                                </div>
+                                <div id="file-encrypt-info" class="file-info" hidden></div>
+                                <div class="form-group" style="margin-top: 1rem">
+                                    <label for="passphrase-file-encrypt">密碼短語 (Passphrase)</label>
+                                    <div class="password-wrapper">
+                                        <input
+                                            id="passphrase-file-encrypt"
+                                            type="password"
+                                            placeholder="輸入加密用的密碼短語"
+                                        />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-file-encrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
+                                    <div class="password-strength-meter">
+                                        <div id="password-strength-bar-file" class="password-strength-meter-bar"></div>
+                                    </div>
+                                    <div id="password-strength-text-file" class="password-strength-meter-text"></div>
+                                </div>
+                                <div class="form-group">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem">
+                                        <input
+                                            type="checkbox"
+                                            id="self-verify-file-checkbox"
+                                            style="width: auto"
+                                            checked
+                                        />
+                                        <label
+                                            for="self-verify-file-checkbox"
+                                            style="margin-bottom: 0; font-weight: normal"
+                                            >加密後自動驗證 (推薦)</label
+                                        >
+                                    </div>
+                                    <button id="encryptFileBtn">🔒 加密並下載檔案</button>
+                                </div>
+                            </div>
+                            <hr style="margin: 2rem 0; border-color: var(--border-color); border-style: dashed" />
+                            <div id="file-decrypt-section" class="form-group">
+                                <label>檔案解密</label>
+                                <div class="file-input-wrapper">
+                                    <span>點擊選擇加密檔 (.enc)，或將檔案拖曳至此</span>
+                                    <input type="file" id="file-decrypt-input" accept=".enc" />
+                                </div>
+                                <div id="file-decrypt-info" class="file-info" hidden></div>
+                                <div class="form-group" style="margin-top: 1rem">
+                                    <label for="passphrase-file-decrypt">密碼短語 (Passphrase)</label>
+                                    <div class="password-wrapper">
+                                        <input
+                                            id="passphrase-file-decrypt"
+                                            type="password"
+                                            placeholder="輸入解密用的密碼短語"
+                                        />
+                                        <span
+                                            class="toggle-password-icon"
+                                            data-for="passphrase-file-decrypt"
+                                            title="顯示/隱藏密碼"
+                                        ></span>
+                                    </div>
+                                </div>
+                                <div class="form-group"><button id="decryptFileBtn">🔓 解密並下載檔案</button></div>
+                            </div>
+                        </div>
+
+                        <div class="button-group" style="justify-content: center; margin-top: 1.5rem">
+                            <button id="pasteBtn" class="secondary" style="flex: 1; max-width: 200px" hidden>
+                                📋 貼上密文
+                            </button>
+                            <button id="resetBtn" class="secondary" style="flex: 1; max-width: 200px">
+                                🔄 全部重設
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card" id="results-area" hidden>
+                    <h2>執行結果</h2>
+                    <div class="card-content">
+                        <div id="output" class="output-box info">...</div>
+
+                        <div id="text-mode-results" hidden>
+                            <div class="form-group" style="margin-top: 1.5rem">
+                                <label for="base64ResultView">最終 Base64 密文 (可複製/分享)</label>
+                                <textarea id="base64ResultView" readonly rows="10"></textarea>
+                                <div class="button-group" style="margin-top: 1rem; justify-content: center">
+                                    <button id="copyBtn" class="secondary">📚 複製密文</button>
+                                    <button id="downloadBtn" class="secondary">⬇️ 下載為 .enc</button>
+                                </div>
+                            </div>
+                            <div class="form-group" style="text-align: center">
+                                <canvas id="qrCanvas" width="320" height="320"></canvas>
+                            </div>
+                            <div class="form-group">
+                                <label for="jsonView">內部 JSON 結構 (僅供檢視)</label>
+                                <textarea id="jsonView" readonly rows="15"></textarea>
+                            </div>
+                        </div>
+
+                        <div
+                            id="decryption-actions"
+                            class="button-group"
+                            style="margin-top: 1rem; justify-content: center"
+                            hidden
+                        >
+                            <button id="copyDecryptedBtn" class="secondary">📚 複製解密結果</button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+        <footer>
+            <p>&copy; <span id="currentYear"></span> Zanta's Utilities</p>
+        </footer>
+        <div id="toast"></div>
+        <button id="scroll-to-top" class="fab" title="回到頂端"></button>
+    </body>
+</html>
