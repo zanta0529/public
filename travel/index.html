@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>旅遊行程小幫手 v2.0</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+      <script type="module" crossorigin src="/public/travel/assets/index-CtI5grHo.js"></script>
+      <link rel="stylesheet" crossorigin href="/public/travel/assets/index-Ox3qbbTQ.css">
+    </head>
+    <body>
+        <div id="app-container">
+            <aside id="itinerary-panel">
+                <div class="panel-header">
+                    <h1>我的行程</h1>
+                    <div class="header-controls">
+                        <button id="manage-itineraries-btn" title="行程管理">管理</button>
+                        <input type="text" id="search-input" placeholder="搜尋地點..." />
+                        <button id="export-json" title="匯出當前行程為 JSON">💾</button>
+                        <button id="export-printable" title="匯出可列印頁面">🖨️</button>
+                    </div>
+                </div>
+                <div id="stats-panel">
+                    <div class="stat-item">
+                        <span id="stats-days">0</span>
+                        <label>天</label>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stats-locations">0</span>
+                        <label>地點</label>
+                    </div>
+                    <div class="stat-item">
+                        <span id="stats-distance">0</span>
+                        <label>公里</label>
+                    </div>
+                </div>
+                <div id="itinerary-list-container">
+                    <div id="itinerary-list-header">
+                        <h2 id="itinerary-title">尚未載入行程</h2>
+                        <span id="read-only-indicator" class="hidden">唯讀模式</span>
+                    </div>
+                    <div id="itinerary-list"></div>
+                    <div id="add-location-container" class="hidden">
+                        <button id="add-location-btn">+ 新增景點</button>
+                    </div>
+                </div>
+            </aside>
+
+            <div id="panel-handle">
+                <div class="handle-icon"></div>
+            </div>
+
+            <main id="map-container">
+                <div id="filters-wrapper">
+                    <div id="filters">
+                        <div id="date-filters"></div>
+                        <div id="category-filters"></div>
+                    </div>
+                    <div id="filters-handle">
+                        <div class="filters-handle-icon"></div>
+                    </div>
+                </div>
+                <div id="map"></div>
+            </main>
+        </div>
+
+        <div id="itinerary-manager-modal" class="modal-backdrop hidden">
+            <div class="modal-content">
+                <h2>行程管理</h2>
+                <ul id="itinerary-manager-list"></ul>
+                <div class="modal-actions">
+                    <button id="create-new-itinerary-btn">建立新行程</button>
+                    <button id="import-itinerary-btn">匯入行程檔 (.json)</button>
+                    <button class="close-modal-btn">關閉</button>
+                </div>
+            </div>
+        </div>
+        <input type="file" id="import-file-input" class="hidden" accept=".json" />
+
+        <div id="create-itinerary-modal" class="modal-backdrop hidden">
+            <div class="modal-content">
+                <h2>建立新行程</h2>
+                <div class="form-group">
+                    <label for="new-itinerary-name">行程名稱</label>
+                    <input type="text" id="new-itinerary-name" required />
+                </div>
+                <div class="form-group">
+                    <label for="new-itinerary-password">編輯密碼 (可選，若留空則無需密碼)</label>
+                    <input type="password" id="new-itinerary-password" />
+                </div>
+                <div class="modal-actions">
+                    <button id="save-new-itinerary-btn">建立</button>
+                    <button class="close-modal-btn">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="password-prompt-modal" class="modal-backdrop hidden">
+            <div class="modal-content">
+                <h2>需要密碼</h2>
+                <p>此行程受密碼保護，請輸入以啟用編輯功能。</p>
+                <div class="form-group">
+                    <label for="itinerary-password-input">編輯密碼</label>
+                    <input type="password" id="itinerary-password-input" required />
+                </div>
+                <div class="modal-actions">
+                    <button id="submit-password-btn">確認</button>
+                    <button id="load-readonly-btn">以唯讀模式載入</button>
+                    <button class="close-modal-btn">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="edit-location-modal" class="modal-backdrop hidden">
+            <div class="modal-content large">
+                <h2 id="edit-location-title">編輯景點</h2>
+                <div class="form-group">
+                    <label for="location-name">地點名稱</label>
+                    <div class="search-wrapper">
+                        <input type="text" id="location-name" placeholder="輸入關鍵字後點擊右側搜尋" />
+                        <button id="search-location-btn">🔍</button>
+                    </div>
+                    <div id="location-search-results"></div>
+                </div>
+                <div class="form-group">
+                    <label for="location-date">日期</label>
+                    <input type="date" id="location-date" required />
+                </div>
+                <div class="form-group">
+                    <label for="location-category">分類</label>
+                    <select id="location-category">
+                        <option value="sight">景點</option>
+                        <option value="food">餐飲</option>
+                        <option value="stay">住宿</option>
+                        <option value="transport">交通</option>
+                        <option value="default">其他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="location-description">描述</label>
+                    <textarea id="location-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>座標 (緯度, 經度) - 由搜尋自動填入</label>
+                    <input type="text" id="location-coordinates" readonly />
+                </div>
+                <div class="modal-actions">
+                    <button id="save-location-btn">儲存</button>
+                    <button class="close-modal-btn">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    </body>
+</html>
