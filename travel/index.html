@@ -3,16 +3,26 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>旅遊行程小幫手 v2.0</title>
+        <title>旅遊行程小幫手 v3.0 - Firebase</title>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <script type="module" crossorigin src="/public/travel/assets/index-f4sG44Vu.js"></script>
-      <link rel="stylesheet" crossorigin href="/public/travel/assets/index-Ox3qbbTQ.css">
+      <script type="module" crossorigin src="/public/travel/assets/index-c4uDDxXI.js"></script>
+      <link rel="stylesheet" crossorigin href="/public/travel/assets/index-0QLQvHmI.css">
     </head>
     <body>
         <div id="app-container">
             <aside id="itinerary-panel">
                 <div class="panel-header">
                     <h1>我的行程</h1>
+                    <div id="auth-container">
+                        <div id="user-info" class="hidden">
+                            <span id="user-email"></span>
+                            <button id="logout-btn">登出</button>
+                        </div>
+                        <div id="guest-info">
+                            <button id="show-login-btn">登入</button>
+                            <button id="show-signup-btn">註冊</button>
+                        </div>
+                    </div>
                     <div class="header-controls">
                         <button id="manage-itineraries-btn" title="行程管理">管理</button>
                         <input type="text" id="search-input" placeholder="搜尋地點..." />
@@ -37,7 +47,6 @@
                 <div id="itinerary-list-container">
                     <div id="itinerary-list-header">
                         <h2 id="itinerary-title">尚未載入行程</h2>
-                        <span id="read-only-indicator" class="hidden">唯讀模式</span>
                     </div>
                     <div id="itinerary-list"></div>
                     <div id="add-location-container" class="hidden">
@@ -64,19 +73,45 @@
             </main>
         </div>
 
+        <div id="login-modal" class="modal-backdrop hidden">
+            <div class="modal-content">
+                <h2>登入</h2>
+                <div class="form-group">
+                    <label for="login-email">電子郵件</label> <input type="email" id="login-email" required />
+                </div>
+                <div class="form-group">
+                    <label for="login-password">密碼</label> <input type="password" id="login-password" required />
+                </div>
+                <div class="modal-actions">
+                    <button id="login-btn">登入</button> <button class="close-modal-btn">取消</button>
+                </div>
+            </div>
+        </div>
+        <div id="signup-modal" class="modal-backdrop hidden">
+            <div class="modal-content">
+                <h2>註冊新帳號</h2>
+                <div class="form-group">
+                    <label for="signup-email">電子郵件</label> <input type="email" id="signup-email" required />
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">密碼 (至少6位數)</label>
+                    <input type="password" id="signup-password" required />
+                </div>
+                <div class="modal-actions">
+                    <button id="signup-btn">註冊</button> <button class="close-modal-btn">取消</button>
+                </div>
+            </div>
+        </div>
         <div id="itinerary-manager-modal" class="modal-backdrop hidden">
             <div class="modal-content">
                 <h2>行程管理</h2>
                 <ul id="itinerary-manager-list"></ul>
                 <div class="modal-actions">
                     <button id="create-new-itinerary-btn">建立新行程</button>
-                    <button id="import-itinerary-btn">匯入行程檔 (.json)</button>
                     <button class="close-modal-btn">關閉</button>
                 </div>
             </div>
         </div>
-        <input type="file" id="import-file-input" class="hidden" accept=".json" />
-
         <div id="create-itinerary-modal" class="modal-backdrop hidden">
             <div class="modal-content">
                 <h2>建立新行程</h2>
@@ -84,33 +119,11 @@
                     <label for="new-itinerary-name">行程名稱</label>
                     <input type="text" id="new-itinerary-name" required />
                 </div>
-                <div class="form-group">
-                    <label for="new-itinerary-password">編輯密碼 (可選，若留空則無需密碼)</label>
-                    <input type="password" id="new-itinerary-password" />
-                </div>
                 <div class="modal-actions">
-                    <button id="save-new-itinerary-btn">建立</button>
-                    <button class="close-modal-btn">取消</button>
+                    <button id="save-new-itinerary-btn">建立</button> <button class="close-modal-btn">取消</button>
                 </div>
             </div>
         </div>
-
-        <div id="password-prompt-modal" class="modal-backdrop hidden">
-            <div class="modal-content">
-                <h2>需要密碼</h2>
-                <p>此行程受密碼保護，請輸入以啟用編輯功能。</p>
-                <div class="form-group">
-                    <label for="itinerary-password-input">編輯密碼</label>
-                    <input type="password" id="itinerary-password-input" required />
-                </div>
-                <div class="modal-actions">
-                    <button id="submit-password-btn">確認</button>
-                    <button id="load-readonly-btn">以唯讀模式載入</button>
-                    <button class="close-modal-btn">取消</button>
-                </div>
-            </div>
-        </div>
-
         <div id="edit-location-modal" class="modal-backdrop hidden">
             <div class="modal-content large">
                 <h2 id="edit-location-title">編輯景點</h2>
@@ -123,8 +136,7 @@
                     <div id="location-search-results"></div>
                 </div>
                 <div class="form-group">
-                    <label for="location-date">日期</label>
-                    <input type="date" id="location-date" required />
+                    <label for="location-date">日期</label> <input type="date" id="location-date" required />
                 </div>
                 <div class="form-group">
                     <label for="location-category">分類</label>
@@ -145,12 +157,16 @@
                     <input type="text" id="location-coordinates" readonly />
                 </div>
                 <div class="modal-actions">
-                    <button id="save-location-btn">儲存</button>
-                    <button class="close-modal-btn">取消</button>
+                    <button id="save-location-btn">儲存</button> <button class="close-modal-btn">取消</button>
                 </div>
             </div>
         </div>
 
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     </body>
 </html>
