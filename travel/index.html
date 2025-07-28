@@ -5,8 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>旅遊行程小幫手 v3.2 - 錯誤修復</title>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <script type="module" crossorigin src="/public/travel/assets/index-Dwz_v2-1.js"></script>
-      <link rel="stylesheet" crossorigin href="/public/travel/assets/index-CrK47IPi.css">
+      <script type="module" crossorigin src="/public/travel/assets/index-DdK9Om9o.js"></script>
+      <link rel="stylesheet" crossorigin href="/public/travel/assets/index-Bd-MRgNz.css">
     </head>
     <body>
         <div id="app-container">
@@ -16,17 +16,19 @@
 
             <aside id="itinerary-panel">
                 <div class="panel-header">
-                    <h1>我的行程</h1>
-                    <div id="auth-container">
-                        <div id="user-info" class="hidden">
-                            <span id="user-email"></span>
-                            <button id="logout-btn">登出</button>
-                        </div>
-                        <div id="guest-info">
-                            <button id="show-login-btn">登入</button>
-                            <button id="show-signup-btn">註冊</button>
+                    <div class="header-main-row">
+                        <h1>我的行程</h1>
+                        <div id="auth-container">
+                            <div id="user-info" class="hidden">
+                                <span id="user-email"></span>
+                                <button id="logout-btn">登出</button>
+                            </div>
+                            <div id="guest-info">
+                                <button id="show-login-btn">登入</button>
+                            </div>
                         </div>
                     </div>
+
                     <div class="header-controls">
                         <button id="manage-itineraries-btn" title="行程管理">管理</button>
                         <input type="text" id="search-input" placeholder="搜尋地點..." />
@@ -71,6 +73,7 @@
                 <div class="form-group">
                     <label for="login-password">密碼</label><input type="password" id="login-password" required />
                 </div>
+                <p class="auth-note">本服務採邀請制，請聯絡管理員以開通帳號。</p>
                 <div class="modal-actions">
                     <button id="login-btn">登入</button><button class="close-modal-btn">取消</button>
                 </div>
