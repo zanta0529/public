@@ -28,6 +28,10 @@ body {
     overflow: hidden; /* 防止頁面滾動 */
 }
 
+.hidden {
+    display: none !important;
+}
+
 /* --- 主體與側邊欄佈局 --- */
 #app-container {
     position: relative;
@@ -85,30 +89,41 @@ body {
     align-items: center;
 }
 
-#search-input {
-    flex-grow: 1;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    font-size: 0.9em;
-    padding: 8px;
-}
-#search-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-#export-pdf {
+.header-controls button {
     padding: 8px 12px;
     background-color: white;
     color: var(--primary-color);
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 0.9em;
+    font-weight: bold;
+    line-height: 1.2;
+    flex-shrink: 0; /* 防止按鈕被壓縮 */
+}
+/* 修正圖示按鈕的 padding */
+#export-json,
+#export-printable {
+    padding: 8px 10px;
     font-size: 1.2em;
     line-height: 1;
 }
-#export-pdf:hover {
+
+.header-controls button:hover {
     background-color: #f1f1f1;
+}
+
+#search-input {
+    flex-grow: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 0.9em;
+    padding: 8px;
+    min-width: 50px; /* 避免被過度壓縮 */
+}
+#search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
 }
 
 #stats-panel {
@@ -133,14 +148,62 @@ body {
     display: block;
 }
 
+#itinerary-list-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+}
+#itinerary-list-header {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#itinerary-list-header h2 {
+    font-size: 1em;
+    margin: 0;
+    color: var(--secondary-color);
+}
+#read-only-indicator {
+    font-size: 0.8em;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background-color: var(--category-stay);
+    color: white;
+    font-weight: bold;
+}
+
 #itinerary-list {
     overflow-y: auto;
     flex-grow: 1;
     padding: 10px 0;
 }
 
+#add-location-container {
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+#add-location-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    font-weight: bold;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+#add-location-btn:hover {
+    background-color: #2980b9;
+}
+
 .day-group {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .day-header {
@@ -154,7 +217,7 @@ body {
 }
 
 .location-item {
-    padding: 15px 20px;
+    padding: 12px 20px;
     cursor: grab;
     border-bottom: 1px solid var(--border-color);
     transition: background-color 0.2s;
@@ -162,34 +225,47 @@ body {
     align-items: center;
     gap: 15px;
 }
-
 .location-item.dragging {
     opacity: 0.5;
     background: #cce5ff;
 }
-
 .location-item:hover {
     background-color: #e8f4fd;
 }
-
 .location-item p {
     font-size: 1em;
     margin: 0;
     flex-grow: 1;
 }
-
 .location-number {
     font-weight: bold;
     color: var(--secondary-color);
     font-size: 1.1em;
 }
-
 .category-badge {
     padding: 3px 8px;
     border-radius: 12px;
     font-size: 0.75em;
     color: white;
     flex-shrink: 0;
+}
+.location-controls {
+    display: flex;
+    gap: 5px;
+}
+.location-controls button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1em;
+    padding: 2px;
+    color: var(--light-text-color);
+}
+.location-controls button:hover {
+    color: var(--primary-color);
+}
+.location-controls .delete-btn:hover {
+    color: var(--category-food);
 }
 
 /* --- 側邊欄把手 --- */
@@ -210,16 +286,13 @@ body {
     border-bottom-right-radius: 5px;
     z-index: 2001;
 }
-
 #panel-handle:not(.open) {
     left: 0;
     right: auto;
 }
-
 #panel-handle:hover {
     background-color: #495f75;
 }
-
 .handle-icon {
     width: 100%;
     height: 40px;
@@ -230,14 +303,12 @@ body {
     justify-content: center;
     align-items: center;
 }
-
 .handle-icon::before {
     content: "▲";
     position: absolute;
     transition: transform 0.3s ease;
     transform: rotate(90deg) scale(0.6);
 }
-
 #panel-handle.open .handle-icon::before {
     transform: rotate(-90deg) scale(0.6);
 }
@@ -252,7 +323,6 @@ body {
     width: 90%;
     max-width: 800px;
 }
-
 #filters {
     background-color: rgba(255, 255, 255, 0.9);
     padding: 8px;
@@ -265,7 +335,6 @@ body {
     max-height: 500px;
     transition: max-height 0.35s ease-in-out, padding 0.35s ease-in-out;
 }
-
 #filters.collapsed {
     max-height: 0;
     padding-top: 0;
@@ -273,7 +342,6 @@ body {
     border: none;
     box-shadow: none;
 }
-
 #date-filters,
 #category-filters {
     display: flex;
@@ -281,8 +349,6 @@ body {
     flex-wrap: wrap;
     justify-content: center;
 }
-
-/* --- Filter Button Styles --- */
 #filters button {
     padding: 8px 15px;
     border-radius: 5px;
@@ -293,18 +359,13 @@ body {
     font-size: 0.9em;
     transition: all 0.2s;
 }
-
 #filters button:hover {
     filter: brightness(1.1);
 }
-
-/* Optimized active state with outline */
 #filters button.active {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
-
-/* Category button colors defined in CSS */
 #filters button[data-category="sight"] {
     background-color: var(--category-sight);
     color: white;
@@ -330,8 +391,6 @@ body {
     color: white;
     border-color: transparent;
 }
-
-/* --- 頂部篩選器握把 --- */
 #filters-handle {
     width: 60px;
     height: 20px;
@@ -344,11 +403,9 @@ body {
     align-items: center;
     transition: background-color 0.2s ease;
 }
-
 #filters-handle:hover {
     background-color: #495f75;
 }
-
 .filters-handle-icon {
     width: 100%;
     height: 100%;
@@ -359,7 +416,6 @@ body {
     justify-content: center;
     align-items: center;
 }
-
 .filters-handle-icon::before {
     content: "▲";
     position: absolute;
@@ -367,76 +423,142 @@ body {
     transition: transform 0.3s ease-in-out;
     transform: scale(0.6);
 }
-
 #filters-handle.collapsed .filters-handle-icon::before {
     transform: scale(0.6) rotate(180deg);
 }
 
-/* --- 地圖 Popup 視窗樣式 --- */
-.leaflet-popup-content-wrapper {
+/* --- Modal Styles --- */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background-color: white;
+    padding: 25px 30px;
     border-radius: 8px;
-    box-shadow: var(--shadow);
-    padding: 0;
-    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
 }
-.custom-popup .leaflet-popup-content {
-    margin: 0 !important;
-    width: auto !important;
-    min-width: 250px;
-    max-width: 350px;
+.modal-content.large {
+    max-width: 650px;
 }
-.popup-header {
-    padding: 10px 15px;
-    background-color: var(--secondary-color);
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+}
+.modal-actions {
+    margin-top: 25px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+.modal-actions button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: bold;
+}
+.modal-actions button:first-of-type {
+    background-color: var(--primary-color);
     color: white;
 }
-.popup-header h3 {
-    margin: 0;
-    font-size: 1.2em;
+.modal-actions button:not(:first-of-type) {
+    background-color: var(--border-color);
+    color: var(--text-color);
 }
-.popup-body {
-    padding: 15px;
+.form-group {
+    margin-bottom: 15px;
 }
-.custom-popup .popup-dates {
-    font-size: 0.9em;
-    color: var(--primary-color);
-    font-weight: bold;
-    margin-bottom: 8px;
-}
-.custom-popup p {
-    margin: 0;
-    color: var(--light-text-color);
-    line-height: 1.5;
-    font-size: 0.95em;
-}
-.custom-popup img {
-    max-width: 100%;
-    height: auto;
-    margin-top: 10px;
+.form-group label {
     display: block;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: var(--light-text-color);
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.search-wrapper {
+    display: flex;
+    gap: 5px;
+}
+#location-search-results {
+    margin-top: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+.search-result-item {
+    padding: 10px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+.search-result-item:hover {
+    background-color: #e8f4fd;
+}
+.search-result-item:not(:last-child) {
+    border-bottom: 1px solid var(--border-color);
 }
 
-/* --- 座標說明區塊樣式 --- */
-#coord-help {
-    padding: 10px 20px;
+/* Itinerary Manager List Styles */
+#itinerary-manager-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 40vh;
+    overflow-y: auto;
+}
+.itinerary-manager-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 5px;
+}
+.itinerary-manager-item:hover {
     background-color: #f8f9fa;
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0;
 }
-#coord-help-toggle {
-    font-size: 0.9em;
-    color: var(--primary-color);
-    text-decoration: none;
+.itinerary-manager-item-name {
+    font-weight: bold;
 }
-#coord-help-content {
-    display: none;
-    margin-top: 10px;
+.itinerary-manager-item-actions button {
+    margin-left: 8px;
+    padding: 5px 10px;
     font-size: 0.85em;
-    color: var(--light-text-color);
-    line-height: 1.6;
+    cursor: pointer;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
 }
-#coord-help-content ol {
-    padding-left: 20px;
+.itinerary-manager-item-actions .load-btn {
+    background-color: var(--category-sight);
+    color: white;
+    border-color: transparent;
+}
+.itinerary-manager-item-actions .delete-btn {
+    background-color: var(--category-food);
+    color: white;
+    border-color: transparent;
 }
 
 /* --- Toast 提示訊息 --- */
@@ -454,7 +576,6 @@ body {
     transition: opacity 0.5s, transform 0.5s;
     transform: translate(-50%, 100%);
 }
-
 .toast-message.show {
     opacity: 1;
     transform: translate(-50%, 0);
@@ -465,27 +586,8 @@ body {
 .toast-message.success {
     background-color: #2ecc71;
 }
-
-/* --- Styles for Collapsed Day Group --- */
-.day-group.collapsed .location-item {
-    display: none;
-}
-
-.day-group.collapsed .day-header {
-    cursor: pointer;
-    background-color: #f8f9fa;
-}
-
-.day-group.collapsed .day-header:hover {
-    background-color: #e9ecef;
-}
-
-.day-group.collapsed .day-header::after {
-    content: "+";
-    float: right;
-    font-size: 1.2em;
-    font-weight: bold;
-    color: var(--primary-color);
+.toast-message.error {
+    background-color: #e74c3c;
 }
 
 /* --- 響應式設計 (RWD) --- */
@@ -498,7 +600,6 @@ body {
         transform: translateX(0);
     }
     #filters-wrapper {
-        /* Adjust wrapper for mobile */
         left: 10px;
         right: 10px;
         transform: translateX(0);
@@ -510,7 +611,6 @@ body {
         overflow-x: auto;
         padding-bottom: 5px;
     }
-
     #panel-handle.open {
         left: auto;
         right: 0;
