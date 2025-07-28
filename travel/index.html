@@ -3,13 +3,17 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>旅遊行程小幫手 v3.0 - Firebase</title>
+        <title>旅遊行程小幫手 v3.2 - 錯誤修復</title>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <script type="module" crossorigin src="/public/travel/assets/index-c4uDDxXI.js"></script>
-      <link rel="stylesheet" crossorigin href="/public/travel/assets/index-0QLQvHmI.css">
+      <script type="module" crossorigin src="/public/travel/assets/index-Ds-Dn4Cv.js"></script>
+      <link rel="stylesheet" crossorigin href="/public/travel/assets/index-CrK47IPi.css">
     </head>
     <body>
         <div id="app-container">
+            <div id="offline-warning-banner" class="hidden">
+                <p><strong>離線模式：</strong>目前操作僅會儲存於本機，待網路恢復後才可同步至雲端。</p>
+            </div>
+
             <aside id="itinerary-panel">
                 <div class="panel-header">
                     <h1>我的行程</h1>
@@ -31,33 +35,19 @@
                     </div>
                 </div>
                 <div id="stats-panel">
-                    <div class="stat-item">
-                        <span id="stats-days">0</span>
-                        <label>天</label>
-                    </div>
-                    <div class="stat-item">
-                        <span id="stats-locations">0</span>
-                        <label>地點</label>
-                    </div>
-                    <div class="stat-item">
-                        <span id="stats-distance">0</span>
-                        <label>公里</label>
-                    </div>
+                    <div class="stat-item"><span id="stats-days">0</span><label>天</label></div>
+                    <div class="stat-item"><span id="stats-locations">0</span><label>地點</label></div>
+                    <div class="stat-item"><span id="stats-distance">0</span><label>公里</label></div>
                 </div>
                 <div id="itinerary-list-container">
-                    <div id="itinerary-list-header">
-                        <h2 id="itinerary-title">尚未載入行程</h2>
-                    </div>
+                    <div id="itinerary-list-header"><h2 id="itinerary-title">尚未載入行程</h2></div>
                     <div id="itinerary-list"></div>
                     <div id="add-location-container" class="hidden">
                         <button id="add-location-btn">+ 新增景點</button>
                     </div>
                 </div>
             </aside>
-
-            <div id="panel-handle">
-                <div class="handle-icon"></div>
-            </div>
+            <div id="panel-handle"><div class="handle-icon"></div></div>
 
             <main id="map-container">
                 <div id="filters-wrapper">
@@ -65,11 +55,10 @@
                         <div id="date-filters"></div>
                         <div id="category-filters"></div>
                     </div>
-                    <div id="filters-handle">
-                        <div class="filters-handle-icon"></div>
-                    </div>
+                    <div id="filters-handle"><div class="filters-handle-icon"></div></div>
                 </div>
                 <div id="map"></div>
+                <div id="map-offline-placeholder" class="map-offline-placeholder hidden">離線模式下無法載入地圖</div>
             </main>
         </div>
 
@@ -77,13 +66,13 @@
             <div class="modal-content">
                 <h2>登入</h2>
                 <div class="form-group">
-                    <label for="login-email">電子郵件</label> <input type="email" id="login-email" required />
+                    <label for="login-email">電子郵件</label><input type="email" id="login-email" required />
                 </div>
                 <div class="form-group">
-                    <label for="login-password">密碼</label> <input type="password" id="login-password" required />
+                    <label for="login-password">密碼</label><input type="password" id="login-password" required />
                 </div>
                 <div class="modal-actions">
-                    <button id="login-btn">登入</button> <button class="close-modal-btn">取消</button>
+                    <button id="login-btn">登入</button><button class="close-modal-btn">取消</button>
                 </div>
             </div>
         </div>
@@ -91,14 +80,14 @@
             <div class="modal-content">
                 <h2>註冊新帳號</h2>
                 <div class="form-group">
-                    <label for="signup-email">電子郵件</label> <input type="email" id="signup-email" required />
+                    <label for="signup-email">電子郵件</label><input type="email" id="signup-email" required />
                 </div>
                 <div class="form-group">
-                    <label for="signup-password">密碼 (至少6位數)</label>
-                    <input type="password" id="signup-password" required />
+                    <label for="signup-password">密碼 (至少6位數)</label
+                    ><input type="password" id="signup-password" required />
                 </div>
                 <div class="modal-actions">
-                    <button id="signup-btn">註冊</button> <button class="close-modal-btn">取消</button>
+                    <button id="signup-btn">註冊</button><button class="close-modal-btn">取消</button>
                 </div>
             </div>
         </div>
@@ -107,8 +96,9 @@
                 <h2>行程管理</h2>
                 <ul id="itinerary-manager-list"></ul>
                 <div class="modal-actions">
-                    <button id="create-new-itinerary-btn">建立新行程</button>
-                    <button class="close-modal-btn">關閉</button>
+                    <button id="load-from-json-btn">從 JSON 載入</button
+                    ><button id="create-new-itinerary-btn">建立新行程</button
+                    ><button class="close-modal-btn">關閉</button>
                 </div>
             </div>
         </div>
@@ -116,11 +106,11 @@
             <div class="modal-content">
                 <h2>建立新行程</h2>
                 <div class="form-group">
-                    <label for="new-itinerary-name">行程名稱</label>
-                    <input type="text" id="new-itinerary-name" required />
+                    <label for="new-itinerary-name">行程名稱</label
+                    ><input type="text" id="new-itinerary-name" required />
                 </div>
                 <div class="modal-actions">
-                    <button id="save-new-itinerary-btn">建立</button> <button class="close-modal-btn">取消</button>
+                    <button id="save-new-itinerary-btn">建立</button><button class="close-modal-btn">取消</button>
                 </div>
             </div>
         </div>
@@ -130,17 +120,20 @@
                 <div class="form-group">
                     <label for="location-name">地點名稱</label>
                     <div class="search-wrapper">
-                        <input type="text" id="location-name" placeholder="輸入關鍵字後點擊右側搜尋" />
-                        <button id="search-location-btn">🔍</button>
+                        <input type="text" id="location-name" placeholder="輸入關鍵字後點擊右側搜尋" /><button
+                            id="search-location-btn"
+                        >
+                            🔍
+                        </button>
                     </div>
                     <div id="location-search-results"></div>
                 </div>
                 <div class="form-group">
-                    <label for="location-date">日期</label> <input type="date" id="location-date" required />
+                    <label for="location-date">日期</label><input type="date" id="location-date" required />
                 </div>
                 <div class="form-group">
-                    <label for="location-category">分類</label>
-                    <select id="location-category">
+                    <label for="location-category">分類</label
+                    ><select id="location-category">
                         <option value="sight">景點</option>
                         <option value="food">餐飲</option>
                         <option value="stay">住宿</option>
@@ -149,24 +142,23 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="location-description">描述</label>
-                    <textarea id="location-description" rows="3"></textarea>
+                    <label for="location-description">描述</label
+                    ><textarea id="location-description" rows="3"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>座標 (緯度, 經度) - 由搜尋自動填入</label>
-                    <input type="text" id="location-coordinates" readonly />
+                    <label>座標 (緯度, 經度) - 由搜尋自動填入</label
+                    ><input type="text" id="location-coordinates" readonly />
                 </div>
                 <div class="modal-actions">
-                    <button id="save-location-btn">儲存</button> <button class="close-modal-btn">取消</button>
+                    <button id="save-location-btn">儲存</button><button class="close-modal-btn">取消</button>
                 </div>
             </div>
         </div>
+        <input type="file" id="json-file-input" accept=".json" style="display: none" />
 
         <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
         <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
         <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     </body>
 </html>
