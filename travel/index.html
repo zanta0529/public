@@ -5,8 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>旅遊行程小幫手 v3.2</title>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <script type="module" crossorigin src="/public/travel/assets/index-Omvym_Mv.js"></script>
-      <link rel="stylesheet" crossorigin href="/public/travel/assets/index-y78bwK8G.css">
+      <script type="module" crossorigin src="/public/travel/assets/index-DSz_lH9r.js"></script>
+      <link rel="stylesheet" crossorigin href="/public/travel/assets/index-g8gfP-kx.css">
     </head>
     <body>
         <div id="app-container">
@@ -171,11 +171,31 @@
                 </div>
             </div>
         </div>
+
+        <div id="share-modal" class="modal-backdrop hidden">
+            <div class="modal-content">
+                <h2>分享行程</h2>
+                <p class="share-instructions">您可以產生一個唯讀的分享連結，讓任何人都能查看此行程的快照。</p>
+                <div class="form-group">
+                    <label for="share-link-input">分享連結</label>
+                    <div class="share-link-wrapper">
+                        <input type="text" id="share-link-input" readonly placeholder="點擊下方按鈕以產生連結..." />
+                        <button id="copy-share-link-btn" title="複製連結">📋</button>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="generate-share-link-btn">產生連結</button>
+                    <button class="close-modal-btn">關閉</button>
+                </div>
+            </div>
+        </div>
+
         <input type="file" id="json-file-input" accept=".json" style="display: none" />
 
         <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
         <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
         <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     </body>
 </html>
