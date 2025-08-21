@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Encipher v4 - JWE 進階加密、解密器</title>
         <script src="/public/encipher/argon2-bundled.min.js"></script>
-      <script type="module" crossorigin src="/public/encipher/assets/index-CmszM5hI.js"></script>
+      <script type="module" crossorigin src="/public/encipher/assets/index-DexUQ-7m.js"></script>
       <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-C58Rb1fk.css">
     </head>
     <body>
@@ -279,9 +279,9 @@ eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiQXJnb24yaWQiLCJzYWx0IjoiQUFBQUFB
                                 <label>檔案加密</label>
                                 <div class="file-input-wrapper">
                                     <span>點擊此處選擇檔案，或將檔案拖曳至此</span>
-                                    <input type="file" id="file-encrypt-input" />
+                                    <input type="file" id="file-encrypt-input" multiple />
                                 </div>
-                                <div id="file-encrypt-info" class="file-info" hidden></div>
+                                <ul id="file-encrypt-list" class="file-info" hidden></ul>
                                 <div class="form-group" style="margin-top: 1rem">
                                     <label for="passphrase-file-encrypt">密碼短語 (Passphrase)</label>
                                     <div class="password-wrapper">
@@ -323,9 +323,9 @@ eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiQXJnb24yaWQiLCJzYWx0IjoiQUFBQUFB
                                 <label>檔案解密</label>
                                 <div class="file-input-wrapper">
                                     <span>點擊選擇加密檔 (.jwe)，或將檔案拖曳至此</span>
-                                    <input type="file" id="file-decrypt-input" accept=".jwe" />
+                                    <input type="file" id="file-decrypt-input" accept=".jwe" multiple />
                                 </div>
-                                <div id="file-decrypt-info" class="file-info" hidden></div>
+                                <ul id="file-decrypt-list" class="file-info" hidden></ul>
                                 <div class="form-group" style="margin-top: 1rem">
                                     <label for="passphrase-file-decrypt">密碼短語 (Passphrase)</label>
                                     <div class="password-wrapper">
