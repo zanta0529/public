@@ -59,7 +59,7 @@
         <label for="jwe">JWE Compact 字串：</label
         ><textarea
             id="jwe"
-            rows="3"
+            rows="5"
             placeholder="例如：eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiUEJLREYyIiwic2FsdCI6IjROTGhteG9XM1FjRGlhakwzdnd5OUEiLCJpIjo5MDAwMDAwfQ..qgQsqq_urZcnbNKW.utgX9ise1hG7hB74UzStLf9D9EWMxIJISk3t.RW3FU0urPLCBp0fJUgysMA"
         ></textarea
         ><button id="parseBtn">解析</button><button id="decryptBtn">解密！</button>
@@ -183,10 +183,43 @@
                         keyManagementAlgorithms: ["dir"],
                     });
                     const decodedText = new TextDecoder().decode(plaintext);
-                    output.innerHTML = `<strong>解密成功！明文：</strong> ${decodedText}`;
+                    const safeDecodedText = escapeHTML(decodedText);
+                    output.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong>解密成功！</strong>                            
+                        </div>
+                        <button id="copyBtn">複製明文</button>
+                        <pre style="white-space: pre-wrap; word-break: break-all; background: #eee; padding: 10px; border-radius: 4px; margin-top: 10px;">${safeDecodedText}</pre>
+                    `;
+
+                    document.getElementById("copyBtn").addEventListener("click", function () {
+                        navigator.clipboard.writeText(decodedText).then(
+                            () => {
+                                this.textContent = "已複製！";
+                                this.disabled = true;
+                                setTimeout(() => {
+                                    this.textContent = "複製明文";
+                                    this.disabled = false;
+                                }, 2000);
+                            },
+                            (err) => {
+                                console.error("無法複製: ", err);
+                                alert("複製失敗！您的瀏覽器可能不支援或未授權。");
+                            }
+                        );
+                    });
                 } catch (error) {
                     output.innerHTML = `<strong class="error">翻車啦！</strong> ${error.message}，快檢查輸入或叫我 debug！`;
                 }
+            }
+            function escapeHTML(str) {
+                if (typeof str !== "string") return "";
+                return str
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
             }
             function base64UrlToBytes(base64Url) {
                 const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
