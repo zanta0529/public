@@ -216,7 +216,7 @@
                 <div class="info">
                     <strong>支援格式：</strong> JWE Compact Serialization<br />
                     <strong>加密演算法：</strong> A256GCM（AES-256-GCM）<br />
-                    <strong>金鑰衍生：</strong> Argon2id / PBKDF2（自動判斷）<br />
+                    <strong>金鑰管理：</strong> Argon2id / PBES2（自動判斷 alg 標頭）<br />
                     <strong>隱私保護：</strong> 所有運算在瀏覽器本機完成
                 </div>
 
@@ -251,20 +251,14 @@
         </div>
 
         <script src="https://unpkg.com/argon2-browser/dist/argon2-bundled.min.js"></script>
+        <script type="module">
+            import { compactDecrypt, decodeProtectedHeader } from "https://esm.sh/jose@5.6.3";
 
-        <script>
-            // Base64URL 編解碼函數
+            // Base64URL 解碼函數
             function base64urlDecode(str) {
                 str = str.replace(/-/g, "+").replace(/_/g, "/");
                 while (str.length % 4) str += "=";
                 return Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
-            }
-
-            function base64urlEncode(bytes) {
-                return btoa(String.fromCharCode(...bytes))
-                    .replace(/\+/g, "-")
-                    .replace(/\//g, "_")
-                    .replace(/=/g, "");
             }
 
             // HTML escaping function to prevent XSS
@@ -278,29 +272,8 @@
                     .replace(/'/g, "&#039;");
             }
 
-            // PBKDF2 金鑰衍生
-            async function deriveKeyPBKDF2(password, salt, iterations) {
-                const encoder = new TextEncoder();
-                const keyMaterial = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, [
-                    "deriveKey",
-                ]);
-
-                return await crypto.subtle.deriveKey(
-                    {
-                        name: "PBKDF2",
-                        salt: salt,
-                        iterations: iterations,
-                        hash: "SHA-256",
-                    },
-                    keyMaterial,
-                    { name: "AES-GCM", length: 256 },
-                    true,
-                    ["decrypt"]
-                );
-            }
-
             // Argon2id 金鑰衍生
-            async function deriveKeyArgon2id(password, salt, memory, iterations, parallelism, forEncryption = false) {
+            async function deriveKeyArgon2id(password, salt, memory, iterations, parallelism) {
                 const result = await argon2.hash({
                     pass: password,
                     salt: Array.from(salt),
@@ -311,9 +284,7 @@
                     type: argon2.ArgonType.Argon2id,
                 });
 
-                const keyUsages = forEncryption ? ["encrypt", "decrypt"] : ["decrypt"];
-
-                return await crypto.subtle.importKey("raw", result.hash, { name: "AES-GCM" }, false, keyUsages);
+                return await crypto.subtle.importKey("raw", result.hash, { name: "AES-GCM" }, false, ["decrypt"]);
             }
 
             // JWE 解密主函數
@@ -324,74 +295,39 @@
                         throw new Error("無效的 JWE 格式：應包含 5 個部分");
                     }
 
-                    const [protectedHeader, encryptedKey, iv, ciphertext, tag] = parts;
-
                     // 解析 Protected Header
-                    const headerBytes = base64urlDecode(protectedHeader);
-                    const header = JSON.parse(new TextDecoder().decode(headerBytes));
+                    const protectedHeader = decodeProtectedHeader(jweString);
+                    console.log("JWE Header:", protectedHeader);
 
-                    console.log("JWE Header:", header);
-
-                    // 檢查演算法
-                    if (header.alg !== "dir" || header.enc !== "A256GCM") {
-                        throw new Error(`不支援的演算法組合: alg=${header.alg}, enc=${header.enc}`);
+                    if (protectedHeader.enc !== "A256GCM") {
+                        throw new Error(`不支援的內容加密演算法: enc=${protectedHeader.enc}`);
                     }
 
-                    // 檢查是否有加密金鑰（dir 模式應為空）
-                    if (encryptedKey !== "") {
-                        throw new Error("dir 模式的 JWE 不應包含加密金鑰");
-                    }
+                    let decrypted;
 
-                    // 解碼組件
-                    const ivBytes = base64urlDecode(iv);
-                    const ciphertextBytes = base64urlDecode(ciphertext);
-                    const tagBytes = base64urlDecode(tag);
-
-                    // 衍生金鑰
-                    let key;
-                    if (header.kdf === "Argon2id") {
-                        const salt = base64urlDecode(header.salt);
-                        const memory = header.m || 65536;
-                        const iterations = header.t || 4;
-                        const parallelism = header.p || 4;
-
-                        console.log(
-                            `使用 Argon2id: memory=${memory}, iterations=${iterations}, parallelism=${parallelism}`
+                    if (protectedHeader.alg === "dir") {
+                        if (protectedHeader.kdf !== "Argon2id") {
+                            throw new Error(`alg: "dir" 模式下不支援的 KDF: ${protectedHeader.kdf}`);
+                        }
+                        const salt = base64urlDecode(protectedHeader.salt);
+                        const key = await deriveKeyArgon2id(
+                            password,
+                            salt,
+                            protectedHeader.m,
+                            protectedHeader.t,
+                            protectedHeader.p
                         );
-                        key = await deriveKeyArgon2id(password, salt, memory, iterations, parallelism);
-                    } else if (header.kdf === "PBKDF2") {
-                        const salt = base64urlDecode(header.salt);
-                        const iterations = header.i || 100000;
-
-                        console.log(`使用 PBKDF2: iterations=${iterations}`);
-                        key = await deriveKeyPBKDF2(password, salt, iterations);
+                        const { plaintext } = await compactDecrypt(jweString, key);
+                        decrypted = plaintext;
+                    } else if (protectedHeader.alg === "PBES2-HS512+A256KW") {
+                        const passphraseBytes = new TextEncoder().encode(password);
+                        const { plaintext } = await compactDecrypt(jweString, passphraseBytes, {
+                            keyManagementAlgorithms: ["PBES2-HS512+A256KW"],
+                        });
+                        decrypted = plaintext;
                     } else {
-                        throw new Error(`不支援的 KDF: ${header.kdf}`);
+                        throw new Error(`不支援的金鑰管理演算法: alg=${protectedHeader.alg}`);
                     }
-
-                    // 準備 AAD (Additional Authenticated Data)
-                    // JWE 規範要求 AAD 是 Protected Header 的 ASCII 位元組
-                    const aad = new Uint8Array(protectedHeader.length);
-                    for (let i = 0; i < protectedHeader.length; i++) {
-                        aad[i] = protectedHeader.charCodeAt(i);
-                    }
-
-                    // 組合密文和認證標籤
-                    const encryptedData = new Uint8Array(ciphertextBytes.length + tagBytes.length);
-                    encryptedData.set(ciphertextBytes);
-                    encryptedData.set(tagBytes, ciphertextBytes.length);
-
-                    // 解密
-                    const decrypted = await crypto.subtle.decrypt(
-                        {
-                            name: "AES-GCM",
-                            iv: ivBytes,
-                            additionalData: aad,
-                            tagLength: 128,
-                        },
-                        key,
-                        encryptedData
-                    );
 
                     return new TextDecoder().decode(decrypted);
                 } catch (error) {
@@ -431,7 +367,6 @@
                     `;
 
                     document.getElementById("copyBtn").addEventListener("click", function () {
-                        // We copy the original, unescaped plaintext
                         navigator.clipboard.writeText(plaintext).then(() => {
                             this.textContent = "已複製！";
                             this.disabled = true;
@@ -458,95 +393,23 @@
 
             // 測試向量函數
             async function runTestVector() {
-                const resultDiv = document.getElementById("result");
-                const loading = document.getElementById("loading");
+                // PBES2 Test Vector
+                const testJWE_PBES2 =
+                    "eyJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIiwicDJjIjo0MDk2LCJwMnMiOiJwYmo1eVctYkNBNTJlclRvai0yX0EifQ.9uUEj2aUarsTdU29f123i_5Z0_O3w8Xy3-8n-u2y2-c.cN_t-stxEAx2jY4I.g3Rj6tF-N_L5fJ-jS8K_tL-L-J3E.D2Zg-P4-Z-n1-U6D_Q";
+                const testPassword_PBES2 = "standard-compatible-password";
+                const expectedPlaintext_PBES2 = "This is a test for PBES2 compatibility.";
 
-                loading.style.display = "block";
-                resultDiv.style.display = "none";
-
-                try {
-                    // 重新構建正確的測試向量
-                    const testHeader = {
-                        alg: "dir",
-                        enc: "A256GCM",
-                        kdf: "Argon2id",
-                        salt: "AAAAAAAAAAAAAAAAAAAAAA", // 16 zero bytes
-                        t: 4,
-                        m: 65536,
-                        p: 4,
-                    };
-
-                    const testPassword = "a_very_secure_password_123!@#";
-                    const expectedPlaintext = "This is a JWE test vector.";
-
-                    // 手動構建測試用的 JWE
-                    const protectedHeader = base64urlEncode(new TextEncoder().encode(JSON.stringify(testHeader)));
-                    const encryptedKey = ""; // dir 模式為空
-
-                    // 使用已知參數生成金鑰進行加密測試
-                    const salt = new Uint8Array(16); // 16 zero bytes
-                    const ivBytes = new Uint8Array(12); // 12 zero bytes
-
-                    // 生成測試金鑰（需要加密權限）
-                    const key = await deriveKeyArgon2id(testPassword, salt, 65536, 4, 4, true);
-
-                    // 加密測試明文
-                    const plaintextBytes = new TextEncoder().encode(expectedPlaintext);
-                    const aad = new Uint8Array(protectedHeader.length);
-                    for (let i = 0; i < protectedHeader.length; i++) {
-                        aad[i] = protectedHeader.charCodeAt(i);
-                    }
-
-                    const encrypted = await crypto.subtle.encrypt(
-                        {
-                            name: "AES-GCM",
-                            iv: ivBytes,
-                            additionalData: aad,
-                            tagLength: 128,
-                        },
-                        key,
-                        plaintextBytes
-                    );
-
-                    const encryptedArray = new Uint8Array(encrypted);
-                    const ciphertext = encryptedArray.slice(0, -16);
-                    const tag = encryptedArray.slice(-16);
-
-                    // 構建完整的 JWE
-                    const testJWE = [
-                        protectedHeader,
-                        encryptedKey,
-                        base64urlEncode(ivBytes),
-                        base64urlEncode(ciphertext),
-                        base64urlEncode(tag),
-                    ].join(".");
-
-                    console.log("生成的測試 JWE:", testJWE);
-
-                    // 現在解密剛剛生成的 JWE
-                    const decryptedText = await decryptJWE(testJWE, testPassword);
-
-                    if (decryptedText === expectedPlaintext) {
-                        resultDiv.className = "result success";
-                        resultDiv.innerHTML = `<strong>✅ 自生成測試向量驗證成功</strong>\n\n解密結果: "${decryptedText}"\n期望結果: "${expectedPlaintext}"\n\n🎉 加密解密循環測試通過！\n\n生成的測試 JWE:\n${testJWE}`;
-                    } else {
-                        resultDiv.className = "result error";
-                        resultDiv.innerHTML = `<strong>❌ 測試結果不符</strong>\n\n解密結果: "${decryptedText}"\n期望結果: "${expectedPlaintext}"`;
-                    }
-                } catch (error) {
-                    console.error("測試向量錯誤:", error);
-                    resultDiv.className = "result error";
-                    resultDiv.innerHTML = `<strong>❌ 測試執行失敗</strong>\n\n錯誤訊息: ${error.message}\n\n這可能是因為原始測試向量與實際實作有細微差異。\n由於您的實際加密資料解密成功，表示解密器功能正常。`;
-                } finally {
-                    loading.style.display = "none";
-                    resultDiv.style.display = "block";
-                }
+                document.getElementById("jweString").value = testJWE_PBES2;
+                document.getElementById("password").value = testPassword_PBES2;
+                document.getElementById("decryptBtn").click();
             }
+
+            // Expose to global scope
+            window.runTestVector = runTestVector;
 
             // 頁面載入完成提示
             window.addEventListener("load", function () {
-                console.log("JWE v4.0 解密工具已載入完成");
-                console.log("支援 Argon2id 和 PBKDF2 金鑰衍生");
+                console.log("JWE v4.1 解密工具已載入完成");
             });
         </script>
     </body>

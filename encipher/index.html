@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Encipher v4 - JWE 進階加密、解密器</title>
         <script src="/public/encipher/argon2-bundled.min.js"></script>
-      <script type="module" crossorigin src="/public/encipher/assets/index-Bqc921Yy.js"></script>
+      <script type="module" crossorigin src="/public/encipher/assets/index-JnbkiRDw.js"></script>
       <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-C58Rb1fk.css">
     </head>
     <body>
@@ -203,6 +203,26 @@ eyJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIiwicDJjIjo0MDk2LCJwMnMi
                                             ⚡️ 產生建議參數
                                         </button>
                                         <span id="benchmarkStatus"></span>
+                                    </div>
+                                </div>
+
+                                <div class="kdf-params-section" data-kdf="PBES2-HS512+A256KW" hidden>
+                                    <div class="message-block hint-note" style="margin-top: 0; margin-bottom: 1rem">
+                                        ℹ️ PBKDF2
+                                        的核心安全參數是迭代次數。越高的次數能越有效抵抗暴力破解，但也會消耗更多運算時間。
+                                    </div>
+                                    <div class="param-grid">
+                                        <div class="form-group">
+                                            <label for="pbkdf2-iterations">迭代次數 (p2c)</label>
+                                            <input
+                                                type="number"
+                                                id="pbkdf2-iterations"
+                                                value="1000000"
+                                                min="600000"
+                                                max="10000000"
+                                                step="100000"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
