@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Encipher v4 - JWE 進階加密、解密器</title>
         <script src="/public/encipher/argon2-bundled.min.js"></script>
-      <script type="module" crossorigin src="/public/encipher/assets/index-DexUQ-7m.js"></script>
+      <script type="module" crossorigin src="/public/encipher/assets/index-Bqc921Yy.js"></script>
       <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-C58Rb1fk.css">
     </head>
     <body>
@@ -19,7 +19,7 @@
 
             <div class="accordion">
                 <div class="accordion-item">
-                    <button class="accordion-header" aria-expanded="false">ℹ️ 關於本工具 / v4.0 技術規格</button>
+                    <button class="accordion-header" aria-expanded="false">ℹ️ 關於本工具 / v4.1 技術規格</button>
                     <div class="accordion-content" aria-hidden="true">
                         <h4>工具用途</h4>
                         <p>
@@ -28,68 +28,58 @@
                             JWE (JSON Web Encryption) 標準、可安全傳輸的密文。
                         </p>
 
-                        <h4>版本 v4.0 說明</h4>
+                        <h4>版本 v4.1 說明</h4>
                         <p style="color: var(--warning-color)">
-                            <strong>重要：</strong>此 v4.0 版本採用了業界標準的
-                            <strong>JWE Compact Serialization</strong> 格式，旨在提供更好的互通性。它與先前的任何版本
-                            (v1, v2, v3) 均不相容。
+                            <strong>重要：</strong>此版本採用了業界標準的
+                            <strong>JWE Compact Serialization</strong> 格式，旨在提供更好的互通性。它與 v3.0
+                            之前的任何版本均不相容。
                         </p>
 
-                        <h4>技術規格 (v4.0)</h4>
+                        <h4>技術規格 (v4.1)</h4>
                         <ul>
                             <li>
                                 <strong>加密格式：</strong> 最終輸出為一個
                                 <strong>JWE Compact Serialization</strong> 字串。
                             </li>
                             <li>
-                                <strong>金鑰衍生 (KDF)：</strong> 支援 <code>Argon2id</code> (預設) 和
-                                <code>PBKDF2</code>。產生的金鑰將直接用於加密 (<code>alg: "dir"</code>)。
+                                <strong>金鑰管理 (`alg`)：</strong> 支援兩種模式：
+                                <ul>
+                                    <li>
+                                        <code>dir</code> (Direct Encryption): 搭配自訂的 <code>Argon2id</code> KDF
+                                        參數，為**最高安全模式**。
+                                    </li>
+                                    <li><code>PBES2-HS512+A256KW</code>: 遵循 RFC 7518 標準，為**最高相容模式**。</li>
+                                </ul>
                             </li>
-                            <li>
-                                <strong>對稱加密：</strong> 固定使用 <code>A256GCM</code> (AES-256-GCM) 作為加密演算法
-                                (<code>enc: "A256GCM"</code>)。
-                            </li>
+                            <li><strong>對稱加密 (`enc`)：</strong> 固定使用 <code>A256GCM</code> (AES-256-GCM)。</li>
                         </ul>
 
-                        <h4>給開發者的話：實作相容的 v4.0 解密器</h4>
+                        <h4>給開發者的話：實作相容的 v4.1 解密器</h4>
                         <p>
                             <strong>首選作法：</strong><br />
-                            我們強烈建議您使用一個成熟的 <strong>JOSE / JWE 函式庫</strong> (例如 Node.js 的 `jose`,
-                            Python 的 `jwcrypto` 等) 來處理解密。您只需要：
+                            我們強烈建議您使用一個成熟的 <strong>JOSE / JWE 函式庫</strong> (例如 Node.js 的 `jose`)
+                            來處理解密。
                         </p>
                         <ol>
-                            <li>從 JWE Protected Header 中解析出 KDF 參數 (kdf, salt, t, m, p, i)。</li>
-                            <li>使用這些參數與使用者密碼，重現出 32 位元組的金鑰。</li>
-                            <li>將金鑰與完整的 JWE Compact 字串傳入函式庫的 `compactDecrypt` 方法即可。</li>
+                            <li>首先解析 JWE Protected Header 以取得 <code>alg</code> 參數。</li>
+                            <li>
+                                <strong>若 <code>alg</code> 為 <code>"dir"</code></strong
+                                >: 從 Header 讀取 <code>kdf</code>, <code>salt</code> 等參數，使用 Argon2id 重現出 32
+                                位元組金鑰，再將**金鑰**傳入解密函式。
+                            </li>
+                            <li>
+                                <strong>若 <code>alg</code> 為 <code>"PBES2-HS512+A256KW"</code></strong
+                                >:
+                                直接將**原始密碼**傳入解密函式，並在選項中明確允許此演算法。函式庫會自動處理所有流程。
+                            </li>
                         </ol>
-
-                        <p>
-                            <strong>手動實作的陷阱 (進階)：</strong><br />
-                            若您必須手動實作，請務必注意 AAD (附加驗證資料) 的正確處理方式：
-                        </p>
-                        <pre><code style="font-family: monospace; white-space: pre-wrap; word-break: break-all;">
-// JWE Compact 格式的 AAD 是 Protected Header Base64URL 字串本身的 US-ASCII 位元組。
-// 絕非對該字串進行 UTF-8 編碼後的結果！
-
-const jweParts = jweString.split('.');
-const protectedHeaderB64Url = jweParts[0];
-
-// ❌ 錯誤的作法 (會導致認證失敗)
-// const aad = new TextEncoder().encode(protectedHeaderB64Url);
-
-// ✅ 正確的作法：直接將字串轉為 ASCII/Binary Bytes
-const aad = new Uint8Array(protectedHeaderB64Url.length);
-for (let i = 0; i &lt; protectedHeaderB64Url.length; i++) {
-    aad[i] = protectedHeaderB64Url.charCodeAt(i);
-}
-
-// 接著呼叫 crypto.subtle.decrypt(..., { ..., additionalData: aad }, ...)
-                        </code></pre>
 
                         <h4>標準測試向量 (Test Vector)</h4>
                         <p>為了協助第三方開發者驗證其解密實作的正確性，特提供以下測試案例。</p>
                         <pre><code style="font-family: monospace; white-space: pre-wrap; word-break: break-all;">
-// 測試案例: Argon2id + JWE (dir, A256GCM)
+// ----------
+// 測試案例 1: Argon2id (最高安全模式)
+// ----------
 
 // -- 輸入 --
 明文 (Plaintext): "This is a JWE test vector."
@@ -109,8 +99,24 @@ IV (Base64URL): AAAAAAAAAAAAAAAAAA (12 zero bytes)
 f3987f6dd2f02a632276e0a490f402f327916962077180556209cf556149021a
 
 // -- 最終輸出 (JWE Compact Serialization) --
-eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiQXJnb24yaWQiLCJzYWx0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUEiLCJ0Ijo0LCJtIjo2NTUzNiwicCI6NH0
-                        </code></pre>
+eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiQXJnb24yaWQiLCJzYWx0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUEiLCJ0Ijo0LCJtIjo2NTUzNiwicCI6NH0..AAAAAAAAAAAAAAAAAA.R0bX3te25EuQJt1pfr14M32aV4pYl8jYgQ.P2I-gn_Jtcf67Vso-3qPkw
+
+// ----------
+// 測試案例 2: PBES2 (最高相容模式)
+// ----------
+
+// -- 輸入 --
+明文 (Plaintext): "This is a test for PBES2 compatibility."
+密碼短語 (Passphrase): "standard-compatible-password"
+
+// -- JWE 參數 (由 jose 函式庫自動產生) --
+p2s (Salt, Base64URL): pbjh5yW-bCa52erToj-2_A
+p2c (Count, Iterations): 4096
+IV (Base64URL): cN_t-stxEAx2jY4I
+
+// -- 最終輸出 (JWE Compact Serialization) --
+eyJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIiwicDJjIjo0MDk2LCJwMnMiOiJwYmo1eVctYkNBNTJlclRvai0yX0EifQ.9uUEj2aUarsTdU29f123i_5Z0_O3w8Xy3-8n-u2y2-c.cN_t-stxEAx2jY4I.g3Rj6tF-N_L5fJ-jS8K_tL-L-J3E.D2Zg-P4-Z-n1-U6D_Q
+            </code></pre>
                     </div>
                 </div>
             </div>
@@ -155,10 +161,18 @@ eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiQXJnb24yaWQiLCJzYWx0IjoiQUFBQUFB
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>密鑰衍生演算法 (KDF)</label>
+                                    <label>金鑰管理模式</label>
                                     <div id="kdfSelectionGroup" class="option-group">
-                                        <div class="option selected" data-value="Argon2id">Argon2id</div>
-                                        <div class="option" data-value="PBKDF2">PBKDF2</div>
+                                        <div class="option selected" data-value="Argon2id" title="最高安全模式 (建議)">
+                                            Argon2id
+                                        </div>
+                                        <div
+                                            class="option"
+                                            data-value="PBES2-HS512+A256KW"
+                                            title="最高相容模式 (符合 RFC 7518)"
+                                        >
+                                            PBES2
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="kdf-params-section" data-kdf="Argon2id">
@@ -192,25 +206,6 @@ eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiQXJnb24yaWQiLCJzYWx0IjoiQUFBQUFB
                                     </div>
                                 </div>
 
-                                <div class="kdf-params-section" data-kdf="PBKDF2" hidden>
-                                    <div class="message-block hint-note" style="margin-top: 0; margin-bottom: 1rem">
-                                        ℹ️ PBKDF2
-                                        的核心安全參數是迭代次數。越高的次數能越有效抵抗暴力破解，但也會消耗更多運算時間。
-                                    </div>
-                                    <div class="param-grid">
-                                        <div class="form-group">
-                                            <label for="pbkdf2-iterations">迭代次數 (Iterations)</label>
-                                            <input
-                                                type="number"
-                                                id="pbkdf2-iterations"
-                                                value="2000000"
-                                                min="600000"
-                                                max="10000000"
-                                                step="100000"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
                                 <div class="form-group">
                                     <label for="passphrase-encrypt">密碼短語 (Passphrase)</label>
                                     <div class="password-wrapper">
