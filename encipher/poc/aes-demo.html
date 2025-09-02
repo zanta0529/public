@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant" data-theme="dark">
     <head>
         <meta charset="UTF-8" />
@@ -75,7 +75,14 @@
 
             /* --- 基礎 & 佈局樣式 --- */
             body {
-                font-family: Arial, sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue";
+                font-family:
+                    Arial,
+                    sans-serif,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    "Helvetica Neue";
                 margin: 0;
                 padding: 2rem;
                 background-color: var(--bg-color);
@@ -86,7 +93,9 @@
                 align-items: center;
                 min-height: 100vh;
                 box-sizing: border-box;
-                transition: background-color 0.3s, color 0.3s;
+                transition:
+                    background-color 0.3s,
+                    color 0.3s;
             }
 
             .container {
@@ -98,7 +107,9 @@
                 max-width: 80%;
                 margin-bottom: 2rem;
                 border: 1px solid var(--border-color);
-                transition: background-color 0.3s, border-color 0.3s;
+                transition:
+                    background-color 0.3s,
+                    border-color 0.3s;
             }
 
             h1,
@@ -141,7 +152,11 @@
                 cursor: pointer;
                 font-size: 1.1em;
                 font-weight: 600;
-                transition: background-color 0.3s, transform 0.1s, color 0.3s, border-color 0.3s;
+                transition:
+                    background-color 0.3s,
+                    transform 0.1s,
+                    color 0.3s,
+                    border-color 0.3s;
             }
             button:hover:not(:disabled) {
                 transform: translateY(-1px);
@@ -204,7 +219,11 @@
                 font-size: 1.2em;
                 background-color: var(--input-bg);
                 color: var(--text-color);
-                transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s, color 0.3s;
+                transition:
+                    border-color 0.3s,
+                    box-shadow 0.3s,
+                    background-color 0.3s,
+                    color 0.3s;
             }
             input[type="text"]:focus,
             input[type="file"]:focus,
@@ -230,7 +249,10 @@
                 border-radius: 5px;
                 cursor: pointer;
                 user-select: none;
-                transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+                transition:
+                    background-color 0.3s,
+                    border-color 0.3s,
+                    color 0.3s;
                 font-size: 1.1em;
             }
             .option.selected {
@@ -341,7 +363,10 @@
                 font-size: 1.2em;
                 margin-left: 0.5rem;
                 vertical-align: middle;
-                transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+                transition:
+                    background-color 0.3s,
+                    color 0.3s,
+                    border-color 0.3s;
             }
             #themeToggleBtn:hover {
                 background-color: var(--border-color);
@@ -810,8 +835,8 @@
                                 ? "base64"
                                 : "binaryfile"
                             : inputSource === "text"
-                            ? "plaintext"
-                            : "binaryfile";
+                              ? "plaintext"
+                              : "binaryfile";
                         AppState.currentSettings.outputFormat = newDefault;
                         saveSettings();
                     }
@@ -1051,8 +1076,8 @@
                                 outputFormat === "plaintext"
                                     ? EncodingUtils.bytesToString(resultBytes)
                                     : outputFormat === "base64"
-                                    ? EncodingUtils.bytesToBase64(resultBytes)
-                                    : EncodingUtils.bytesToHex(resultBytes);
+                                      ? EncodingUtils.bytesToBase64(resultBytes)
+                                      : EncodingUtils.bytesToHex(resultBytes);
                         }
                         StatusModule.update(`${functionMode === "encrypt" ? "加密" : "解密"}成功`, false);
                     } catch (error) {

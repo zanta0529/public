@@ -1,11 +1,235 @@
-<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>AES-GCM (v3.0) 聯合解密器</title><script src="https://cdn.jsdelivr.net/npm/argon2-browser@1.18.0/dist/argon2-bundled.min.js"></script><style>body{font-family:sans-serif;background:#667eea;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}*{box-sizing:border-box}.c{background:#fff;padding:20px;border-radius:10px;width:100%;max-width:800px}.h{text-align:center;margin-bottom:15px}.g{margin-bottom:10px}label{display:block;margin-bottom:5px;font-weight:600}textarea,input,select{width:100%;padding:8px;border:1px solid #ccc;border-radius:5px;font-family:monospace;font-size:12px}textarea{min-height:70px}button{width:100%;padding:10px;margin-top:10px;border:none;border-radius:5px;background:#667eea;color:#fff;font-size:16px;cursor:pointer}button:hover{opacity:.9}.r{margin-top:15px}.rb{background:#f8f9fa;border:1px solid #ccc;border-radius:5px;padding:10px;word-wrap:break-word;max-height:200px;overflow:auto}.success{border-color:#28a745;background:#d4edda;color:#155724}.error{border-color:#dc3545;background:#f8d7da;color:#721c24}.status{padding:5px;border-radius:5px;margin-bottom:10px;font-weight:600}.loading{animation:pulse 1.5s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}</style></head><body><div class="c"><div class="h"><h1>🔓 AES-GCM (v3.0) 聯合解密器</h1></div><div class="g"><label for="kdf">KDF 演算法：</label><select id="kdf"><option value="Argon2id" selected>Argon2id</option><option value="PBKDF2">PBKDF2</option></select></div><div class="g"><label for="ct">加密資料 (v3.0 格式)：</label><textarea id="ct" placeholder="貼上 v3.0 格式的加密資料..." rows="8"></textarea></div><div class="g"><label for="pw">密碼短語：</label><input id="pw" type="password" placeholder="密碼..."></div><button onclick="D()">解密</button><div class="r"><div id="st"></div><div id="rs"></div></div></div><script>
-function S(m,t){let e=document.getElementById('st');e.className='status '+t;e.textContent=m}
-function R(c,t){let e=document.getElementById('rs');e.className='rb '+t;e.textContent=c}
-function B(s){s=s.replace(/-/g,'+').replace(/_/g,'/');let t=atob(s),a=new Uint8Array(t.length);for(let e=0;e<t.length;e++)a[e]=t.charCodeAt(e);return a}
-function C(t){if(null===t||"object"!=typeof t||Array.isArray(t))return t;const a={};return Object.keys(t).sort().forEach(e=>{a[e]=C(t[e])}),a}
-function A(t){const a={version:t.version,keyDerivation:{},encryptionName:t.encryption.name};let e=a.keyDerivation,r=t.keyDerivation;return['name','iterations','memory','parallelism','hash'].forEach(t=>{void 0!==r[t]&&(e[t]=r[t])}),new TextEncoder().encode(JSON.stringify(C(a)))}
-async function KA(t,a,e,r,n){return(await argon2.hash({pass:t,salt:a,time:e,mem:r,parallelism:n,hashLen:32,type:argon2.ArgonType.Argon2id})).hash}
-async function KP(t,a,e){let r=new TextEncoder().encode(t),n=await crypto.subtle.importKey("raw",r,{name:"PBKDF2"},!1,["deriveBits"]);return new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",salt:a,iterations:e,hash:"SHA-256"},n,256))}
-async function G(t,a,e,r,n){let i=await crypto.subtle.importKey("raw",t,{name:"AES-GCM"},!1,["decrypt"]),o=new Uint8Array(e.length+r.length);return o.set(e),o.set(r,e.length),new Uint8Array(await crypto.subtle.decrypt({name:"AES-GCM",iv:a,additionalData:n,tagLength:128},i,o))}
-async function D(){const t=document.getElementById("ct").value.trim(),a=document.getElementById("pw").value,e=document.getElementById("kdf").value;if(R("",""),!t)return S("請輸入加密資料","error");if(!a)return S("請輸入密碼短語","error");S("解碼中...","loading");try{const r=JSON.parse(new TextDecoder().decode(B(t)));if(3!==r.version)return S("解密失敗: 僅支援 v3.0 格式","error");if("AES-GCM"!==r.encryption.name)return S("解密失敗: 僅支援 AES-GCM","error");if(r.keyDerivation.name!==e)return S(`KDF不符! 密文為 ${r.keyDerivation.name}, 但您選擇了 ${e}`,"error");const n=B(r.keyDerivation.salt),i=r.keyDerivation.iterations;let o;o="Argon2id"===e?await KA(a,n,i,r.keyDerivation.memory,r.keyDerivation.parallelism):await KP(a,n,i);const c=B(r.encryption.nonce),d=B(r.encryption.ciphertext),l=B(r.encryption.tag),s=A(r),p=await G(o,c,d,l,s);S("解密成功!","success"),R(new TextDecoder().decode(p),"success")}catch(t){S("解密失敗: "+(t.message.includes("decrypt")?"密碼錯誤或資料損毀":t.message),"error")}}
-</script></body></html>
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <title>AES-GCM (v3.0) 聯合解密器</title>
+        <script src="https://cdn.jsdelivr.net/npm/argon2-browser@1.18.0/dist/argon2-bundled.min.js"></script>
+        <style>
+            body {
+                font-family: sans-serif;
+                background: #667eea;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            .c {
+                background: #fff;
+                padding: 20px;
+                border-radius: 10px;
+                width: 100%;
+                max-width: 800px;
+            }
+            .h {
+                text-align: center;
+                margin-bottom: 15px;
+            }
+            .g {
+                margin-bottom: 10px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: 600;
+            }
+            textarea,
+            input,
+            select {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                font-family: monospace;
+                font-size: 12px;
+            }
+            textarea {
+                min-height: 70px;
+            }
+            button {
+                width: 100%;
+                padding: 10px;
+                margin-top: 10px;
+                border: none;
+                border-radius: 5px;
+                background: #667eea;
+                color: #fff;
+                font-size: 16px;
+                cursor: pointer;
+            }
+            button:hover {
+                opacity: 0.9;
+            }
+            .r {
+                margin-top: 15px;
+            }
+            .rb {
+                background: #f8f9fa;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 10px;
+                word-wrap: break-word;
+                max-height: 200px;
+                overflow: auto;
+            }
+            .success {
+                border-color: #28a745;
+                background: #d4edda;
+                color: #155724;
+            }
+            .error {
+                border-color: #dc3545;
+                background: #f8d7da;
+                color: #721c24;
+            }
+            .status {
+                padding: 5px;
+                border-radius: 5px;
+                margin-bottom: 10px;
+                font-weight: 600;
+            }
+            .loading {
+                animation: pulse 1.5s infinite;
+            }
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.5;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="c">
+            <div class="h"><h1>🔓 AES-GCM (v3.0) 聯合解密器</h1></div>
+            <div class="g">
+                <label for="kdf">KDF 演算法：</label
+                ><select id="kdf">
+                    <option value="Argon2id" selected>Argon2id</option>
+                    <option value="PBKDF2">PBKDF2</option>
+                </select>
+            </div>
+            <div class="g">
+                <label for="ct">加密資料 (v3.0 格式)：</label
+                ><textarea id="ct" placeholder="貼上 v3.0 格式的加密資料..." rows="8"></textarea>
+            </div>
+            <div class="g">
+                <label for="pw">密碼短語：</label><input id="pw" type="password" placeholder="密碼..." />
+            </div>
+            <button onclick="D()">解密</button>
+            <div class="r">
+                <div id="st"></div>
+                <div id="rs"></div>
+            </div>
+        </div>
+        <script>
+            function S(m, t) {
+                let e = document.getElementById("st");
+                e.className = "status " + t;
+                e.textContent = m;
+            }
+            function R(c, t) {
+                let e = document.getElementById("rs");
+                e.className = "rb " + t;
+                e.textContent = c;
+            }
+            function B(s) {
+                s = s.replace(/-/g, "+").replace(/_/g, "/");
+                let t = atob(s),
+                    a = new Uint8Array(t.length);
+                for (let e = 0; e < t.length; e++) a[e] = t.charCodeAt(e);
+                return a;
+            }
+            function C(t) {
+                if (null === t || "object" != typeof t || Array.isArray(t)) return t;
+                const a = {};
+                return (
+                    Object.keys(t)
+                        .sort()
+                        .forEach((e) => {
+                            a[e] = C(t[e]);
+                        }),
+                    a
+                );
+            }
+            function A(t) {
+                const a = { version: t.version, keyDerivation: {}, encryptionName: t.encryption.name };
+                let e = a.keyDerivation,
+                    r = t.keyDerivation;
+                return (
+                    ["name", "iterations", "memory", "parallelism", "hash"].forEach((t) => {
+                        void 0 !== r[t] && (e[t] = r[t]);
+                    }),
+                    new TextEncoder().encode(JSON.stringify(C(a)))
+                );
+            }
+            async function KA(t, a, e, r, n) {
+                return (
+                    await argon2.hash({
+                        pass: t,
+                        salt: a,
+                        time: e,
+                        mem: r,
+                        parallelism: n,
+                        hashLen: 32,
+                        type: argon2.ArgonType.Argon2id,
+                    })
+                ).hash;
+            }
+            async function KP(t, a, e) {
+                let r = new TextEncoder().encode(t),
+                    n = await crypto.subtle.importKey("raw", r, { name: "PBKDF2" }, !1, ["deriveBits"]);
+                return new Uint8Array(
+                    await crypto.subtle.deriveBits({ name: "PBKDF2", salt: a, iterations: e, hash: "SHA-256" }, n, 256)
+                );
+            }
+            async function G(t, a, e, r, n) {
+                let i = await crypto.subtle.importKey("raw", t, { name: "AES-GCM" }, !1, ["decrypt"]),
+                    o = new Uint8Array(e.length + r.length);
+                return (
+                    o.set(e),
+                    o.set(r, e.length),
+                    new Uint8Array(
+                        await crypto.subtle.decrypt({ name: "AES-GCM", iv: a, additionalData: n, tagLength: 128 }, i, o)
+                    )
+                );
+            }
+            async function D() {
+                const t = document.getElementById("ct").value.trim(),
+                    a = document.getElementById("pw").value,
+                    e = document.getElementById("kdf").value;
+                if ((R("", ""), !t)) return S("請輸入加密資料", "error");
+                if (!a) return S("請輸入密碼短語", "error");
+                S("解碼中...", "loading");
+                try {
+                    const r = JSON.parse(new TextDecoder().decode(B(t)));
+                    if (3 !== r.version) return S("解密失敗: 僅支援 v3.0 格式", "error");
+                    if ("AES-GCM" !== r.encryption.name) return S("解密失敗: 僅支援 AES-GCM", "error");
+                    if (r.keyDerivation.name !== e)
+                        return S(`KDF不符! 密文為 ${r.keyDerivation.name}, 但您選擇了 ${e}`, "error");
+                    const n = B(r.keyDerivation.salt),
+                        i = r.keyDerivation.iterations;
+                    let o;
+                    o =
+                        "Argon2id" === e
+                            ? await KA(a, n, i, r.keyDerivation.memory, r.keyDerivation.parallelism)
+                            : await KP(a, n, i);
+                    const c = B(r.encryption.nonce),
+                        d = B(r.encryption.ciphertext),
+                        l = B(r.encryption.tag),
+                        s = A(r),
+                        p = await G(o, c, d, l, s);
+                    (S("解密成功!", "success"), R(new TextDecoder().decode(p), "success"));
+                } catch (t) {
+                    S("解密失敗: " + (t.message.includes("decrypt") ? "密碼錯誤或資料損毀" : t.message), "error");
+                }
+            }
+        </script>
+    </body>
+</html>
