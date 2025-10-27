@@ -1,418 +1,415 @@
 <!doctype html>
 
 <html lang="zh-TW">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>加密資料解碼器 v1</title>
-        <style>
-            body {
-                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-                max-width: 900px;
-                margin: 0 auto;
-                padding: 20px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                color: #333;
-            }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>加密資料解碼器 v1</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
 
-            .container {
-                background: white;
-                padding: 30px;
-                border-radius: 15px;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-                backdrop-filter: blur(10px);
-            }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+      }
 
-            h1 {
-                text-align: center;
-                color: #4a5568;
-                margin-bottom: 30px;
-                font-size: 2.2em;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            }
+      h1 {
+        text-align: center;
+        color: #4a5568;
+        margin-bottom: 30px;
+        font-size: 2.2em;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
 
-            .form-group {
-                margin-bottom: 25px;
-            }
+      .form-group {
+        margin-bottom: 25px;
+      }
 
-            label {
-                display: block;
-                margin-bottom: 8px;
-                font-weight: 600;
-                color: #2d3748;
-                font-size: 1.1em;
-            }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 1.1em;
+      }
 
-            textarea {
-                width: 100%;
-                padding: 15px;
-                border: 2px solid #e2e8f0;
-                border-radius: 8px;
-                font-size: 14px;
-                font-family: "Courier New", monospace;
-                resize: vertical;
-                transition: border-color 0.3s ease;
-            }
+      textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: 'Courier New', monospace;
+        resize: vertical;
+        transition: border-color 0.3s ease;
+      }
 
-            textarea:focus {
-                outline: none;
-                border-color: #667eea;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
 
-            input[type="password"] {
-                width: 100%;
-                padding: 15px;
-                border: 2px solid #e2e8f0;
-                border-radius: 8px;
-                font-size: 16px;
-                transition: border-color 0.3s ease;
-            }
+      input[type='password'] {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+      }
 
-            input[type="password"]:focus {
-                outline: none;
-                border-color: #667eea;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }
+      input[type='password']:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
 
-            button {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 16px;
-                font-weight: 600;
-                margin: 8px;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-            }
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        margin: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      }
 
-            button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-            }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      }
 
-            button:active {
-                transform: translateY(0);
-            }
+      button:active {
+        transform: translateY(0);
+      }
 
-            button:disabled {
-                background: #a0aec0;
-                cursor: not-allowed;
-                transform: none;
-                box-shadow: none;
-            }
+      button:disabled {
+        background: #a0aec0;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
 
-            .params-display {
-                background: #f7fafc;
-                padding: 20px;
-                border-radius: 8px;
-                border-left: 4px solid #667eea;
-                margin: 20px 0;
-                font-family: "Courier New", monospace;
-                white-space: pre-wrap;
-                word-break: break-all;
-            }
+      .params-display {
+        background: #f7fafc;
+        padding: 20px;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+        margin: 20px 0;
+        font-family: 'Courier New', monospace;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
 
-            .result {
-                background: #f0fff4;
-                padding: 20px;
-                border-radius: 8px;
-                border-left: 4px solid #38a169;
-                margin: 20px 0;
-                font-family: "Courier New", monospace;
-                white-space: pre-wrap;
-                word-break: break-all;
-            }
+      .result {
+        background: #f0fff4;
+        padding: 20px;
+        border-radius: 8px;
+        border-left: 4px solid #38a169;
+        margin: 20px 0;
+        font-family: 'Courier New', monospace;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
 
-            .error {
-                background: #fed7d7;
-                color: #c53030;
-                padding: 15px;
-                border-radius: 8px;
-                border-left: 4px solid #e53e3e;
-                margin: 20px 0;
-            }
+      .error {
+        background: #fed7d7;
+        color: #c53030;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #e53e3e;
+        margin: 20px 0;
+      }
 
-            .status {
-                margin: 10px 0;
-                padding: 10px;
-                border-radius: 6px;
-                font-weight: 500;
-            }
+      .status {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: 500;
+      }
 
-            .status.success {
-                background: #c6f6d5;
-                color: #22543d;
-            }
+      .status.success {
+        background: #c6f6d5;
+        color: #22543d;
+      }
 
-            .status.info {
-                background: #bee3f8;
-                color: #2a4365;
-            }
+      .status.info {
+        background: #bee3f8;
+        color: #2a4365;
+      }
 
-            .button-group {
-                text-align: center;
-                margin: 20px 0;
-            }
+      .button-group {
+        text-align: center;
+        margin: 20px 0;
+      }
 
-            .param-item {
-                margin: 8px 0;
-                padding: 8px 12px;
-                background: white;
-                border-radius: 6px;
-                border: 1px solid #e2e8f0;
-            }
+      .param-item {
+        margin: 8px 0;
+        padding: 8px 12px;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+      }
 
-            .param-label {
-                font-weight: 600;
-                color: #2d3748;
-                margin-right: 10px;
-            }
+      .param-label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-right: 10px;
+      }
 
-            .param-value {
-                color: #4a5568;
-                word-break: break-all;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🔐 加密資料解碼器 v1</h1>
-            <div class="form-group">
-                <label for="ciphertext">加密資料 (Base64)：</label>
-                <textarea id="ciphertext" rows="8" placeholder="請輸入Base64加密資料..."></textarea>
-            </div>
+      .param-value {
+        color: #4a5568;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔐 加密資料解碼器 v1</h1>
+      <div class="form-group">
+        <label for="ciphertext">加密資料 (Base64)：</label>
+        <textarea id="ciphertext" rows="8" placeholder="請輸入Base64加密資料..."></textarea>
+      </div>
 
-            <div class="button-group">
-                <button onclick="parseParameters()">🔍 解析參數</button>
-            </div>
+      <div class="button-group">
+        <button onclick="parseParameters()">🔍 解析參數</button>
+      </div>
 
-            <div id="paramsDisplay" class="params-display" style="display: none"></div>
+      <div id="paramsDisplay" class="params-display" style="display: none"></div>
 
-            <div class="form-group">
-                <label for="password">解密密碼：</label>
-                <input type="password" id="password" placeholder="請輸入密碼" />
-            </div>
+      <div class="form-group">
+        <label for="password">解密密碼：</label>
+        <input type="password" id="password" placeholder="請輸入密碼" />
+      </div>
 
-            <div class="button-group">
-                <button id="decryptBtn" onclick="decrypt()" disabled>🔓 解密</button>
-                <button onclick="clearAll()">🗑️ 清除</button>
-            </div>
+      <div class="button-group">
+        <button id="decryptBtn" onclick="decrypt()" disabled>🔓 解密</button>
+        <button onclick="clearAll()">🗑️ 清除</button>
+      </div>
 
-            <div id="status"></div>
-            <div id="result" class="result" style="display: none"></div>
-        </div>
+      <div id="status"></div>
+      <div id="result" class="result" style="display: none"></div>
+    </div>
 
-        <script>
-            let parsedData = null;
+    <script>
+      let parsedData = null;
 
-            function showStatus(message, type = "info") {
-                const statusDiv = document.getElementById("status");
-                statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
-                setTimeout(() => {
-                    if (statusDiv.innerHTML.includes(message)) {
-                        statusDiv.innerHTML = "";
-                    }
-                }, 5000);
-            }
+      function showStatus(message, type = 'info') {
+        const statusDiv = document.getElementById('status');
+        statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        setTimeout(() => {
+          if (statusDiv.innerHTML.includes(message)) {
+            statusDiv.innerHTML = '';
+          }
+        }, 5000);
+      }
 
-            function showError(message) {
-                const statusDiv = document.getElementById("status");
-                statusDiv.innerHTML = `<div class="error">${message}</div>`;
-            }
+      function showError(message) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.innerHTML = `<div class="error">${message}</div>`;
+      }
 
-            function parseParameters() {
-                const ciphertext = document.getElementById("ciphertext").value.trim();
+      function parseParameters() {
+        const ciphertext = document.getElementById('ciphertext').value.trim();
 
-                if (!ciphertext) {
-                    showError("請輸入加密資料");
-                    return;
-                }
+        if (!ciphertext) {
+          showError('請輸入加密資料');
+          return;
+        }
 
-                try {
-                    // 解碼Base64
-                    const decodedData = atob(ciphertext);
-                    parsedData = JSON.parse(decodedData);
+        try {
+          // 解碼Base64
+          const decodedData = atob(ciphertext);
+          parsedData = JSON.parse(decodedData);
 
-                    // 顯示解析結果
-                    const paramsDiv = document.getElementById("paramsDisplay");
-                    let html = "<h3>📋 解析參數結果：</h3>";
+          // 顯示解析結果
+          const paramsDiv = document.getElementById('paramsDisplay');
+          let html = '<h3>📋 解析參數結果：</h3>';
 
-                    // 金鑰派生參數
-                    html += '<div class="param-item">';
-                    html += '<div class="param-label">金鑰派生方法：</div>';
-                    html += '<div class="param-value">' + parsedData.keyDerivation.name + "</div>";
-                    html += "</div>";
+          // 金鑰派生參數
+          html += '<div class="param-item">';
+          html += '<div class="param-label">金鑰派生方法：</div>';
+          html += '<div class="param-value">' + parsedData.keyDerivation.name + '</div>';
+          html += '</div>';
 
-                    html += '<div class="param-item">';
-                    html += '<div class="param-label">鹽值 (Salt)：</div>';
-                    html += '<div class="param-value">' + parsedData.keyDerivation.salt + "</div>";
-                    html += "</div>";
+          html += '<div class="param-item">';
+          html += '<div class="param-label">鹽值 (Salt)：</div>';
+          html += '<div class="param-value">' + parsedData.keyDerivation.salt + '</div>';
+          html += '</div>';
 
-                    html += '<div class="param-item">';
-                    html += '<div class="param-label">迭代次數：</div>';
-                    html +=
-                        '<div class="param-value">' +
-                        parsedData.keyDerivation.iterations.toLocaleString() +
-                        " 次</div>";
-                    html += "</div>";
+          html += '<div class="param-item">';
+          html += '<div class="param-label">迭代次數：</div>';
+          html += '<div class="param-value">' + parsedData.keyDerivation.iterations.toLocaleString() + ' 次</div>';
+          html += '</div>';
 
-                    html += '<div class="param-item">';
-                    html += '<div class="param-label">雜湊算法：</div>';
-                    html += '<div class="param-value">' + parsedData.keyDerivation.hash + "</div>";
-                    html += "</div>";
+          html += '<div class="param-item">';
+          html += '<div class="param-label">雜湊算法：</div>';
+          html += '<div class="param-value">' + parsedData.keyDerivation.hash + '</div>';
+          html += '</div>';
 
-                    // 加密參數
-                    html += '<div class="param-item">';
-                    html += '<div class="param-label">加密方法：</div>';
-                    html += '<div class="param-value">' + parsedData.encryption.name + "</div>";
-                    html += "</div>";
+          // 加密參數
+          html += '<div class="param-item">';
+          html += '<div class="param-label">加密方法：</div>';
+          html += '<div class="param-value">' + parsedData.encryption.name + '</div>';
+          html += '</div>';
 
-                    html += '<div class="param-item">';
-                    html += '<div class="param-label">初始向量 (IV)：</div>';
-                    html += '<div class="param-value">' + parsedData.encryption.iv + "</div>";
-                    html += "</div>";
+          html += '<div class="param-item">';
+          html += '<div class="param-label">初始向量 (IV)：</div>';
+          html += '<div class="param-value">' + parsedData.encryption.iv + '</div>';
+          html += '</div>';
 
-                    html += '<div class="param-item">';
-                    html += '<div class="param-label">密文：</div>';
-                    html += '<div class="param-value">' + parsedData.encryption.ciphertext + "</div>";
-                    html += "</div>";
+          html += '<div class="param-item">';
+          html += '<div class="param-label">密文：</div>';
+          html += '<div class="param-value">' + parsedData.encryption.ciphertext + '</div>';
+          html += '</div>';
 
-                    html += '<div class="param-item">';
-                    html += '<div class="param-label">驗證標籤：</div>';
-                    html += '<div class="param-value">' + parsedData.encryption.tag + "</div>";
-                    html += "</div>";
+          html += '<div class="param-item">';
+          html += '<div class="param-label">驗證標籤：</div>';
+          html += '<div class="param-value">' + parsedData.encryption.tag + '</div>';
+          html += '</div>';
 
-                    html += '<div class="param-item">';
-                    html += '<div class="param-label">標籤長度：</div>';
-                    html += '<div class="param-value">' + parsedData.encryption.tagLength + " 位元</div>";
-                    html += "</div>";
+          html += '<div class="param-item">';
+          html += '<div class="param-label">標籤長度：</div>';
+          html += '<div class="param-value">' + parsedData.encryption.tagLength + ' 位元</div>';
+          html += '</div>';
 
-                    paramsDiv.innerHTML = html;
-                    paramsDiv.style.display = "block";
+          paramsDiv.innerHTML = html;
+          paramsDiv.style.display = 'block';
 
-                    // 啟用解密按鈕
-                    document.getElementById("decryptBtn").disabled = false;
-                    showStatus("參數解析成功！", "success");
-                } catch (error) {
-                    showError("解析失敗：" + error.message);
-                    parsedData = null;
-                    document.getElementById("decryptBtn").disabled = true;
-                }
-            }
+          // 啟用解密按鈕
+          document.getElementById('decryptBtn').disabled = false;
+          showStatus('參數解析成功！', 'success');
+        } catch (error) {
+          showError('解析失敗：' + error.message);
+          parsedData = null;
+          document.getElementById('decryptBtn').disabled = true;
+        }
+      }
 
-            async function decrypt() {
-                if (!parsedData) {
-                    showError("請先解析參數");
-                    return;
-                }
+      async function decrypt() {
+        if (!parsedData) {
+          showError('請先解析參數');
+          return;
+        }
 
-                const password = document.getElementById("password").value;
-                if (!password) {
-                    showError("請輸入密碼");
-                    return;
-                }
+        const password = document.getElementById('password').value;
+        if (!password) {
+          showError('請輸入密碼');
+          return;
+        }
 
-                try {
-                    showStatus("正在解密中...", "info");
+        try {
+          showStatus('正在解密中...', 'info');
 
-                    // 將Base64字串轉換為Uint8Array
-                    const salt = Uint8Array.from(atob(parsedData.keyDerivation.salt), (c) => c.charCodeAt(0));
-                    const iv = Uint8Array.from(atob(parsedData.encryption.iv), (c) => c.charCodeAt(0));
-                    const ciphertext = Uint8Array.from(atob(parsedData.encryption.ciphertext), (c) => c.charCodeAt(0));
-                    const tag = Uint8Array.from(atob(parsedData.encryption.tag), (c) => c.charCodeAt(0));
+          // 將Base64字串轉換為Uint8Array
+          const salt = Uint8Array.from(atob(parsedData.keyDerivation.salt), (c) => c.charCodeAt(0));
+          const iv = Uint8Array.from(atob(parsedData.encryption.iv), (c) => c.charCodeAt(0));
+          const ciphertext = Uint8Array.from(atob(parsedData.encryption.ciphertext), (c) => c.charCodeAt(0));
+          const tag = Uint8Array.from(atob(parsedData.encryption.tag), (c) => c.charCodeAt(0));
 
-                    // 將密碼轉為ArrayBuffer
-                    const passwordBuffer = new TextEncoder().encode(password);
+          // 將密碼轉為ArrayBuffer
+          const passwordBuffer = new TextEncoder().encode(password);
 
-                    // 匯入密碼作為基礎金鑰
-                    const baseKey = await crypto.subtle.importKey("raw", passwordBuffer, "PBKDF2", false, [
-                        "deriveBits",
-                        "deriveKey",
-                    ]);
+          // 匯入密碼作為基礎金鑰
+          const baseKey = await crypto.subtle.importKey('raw', passwordBuffer, 'PBKDF2', false, [
+            'deriveBits',
+            'deriveKey',
+          ]);
 
-                    // 使用PBKDF2派生金鑰
-                    const derivedKey = await crypto.subtle.deriveKey(
-                        {
-                            name: "PBKDF2",
-                            salt: salt,
-                            iterations: parsedData.keyDerivation.iterations,
-                            hash: parsedData.keyDerivation.hash,
-                        },
-                        baseKey,
-                        { name: "AES-GCM", length: 256 },
-                        false,
-                        ["decrypt"]
-                    );
+          // 使用PBKDF2派生金鑰
+          const derivedKey = await crypto.subtle.deriveKey(
+            {
+              name: 'PBKDF2',
+              salt: salt,
+              iterations: parsedData.keyDerivation.iterations,
+              hash: parsedData.keyDerivation.hash,
+            },
+            baseKey,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['decrypt']
+          );
 
-                    // 合併密文和標籤
-                    const encryptedData = new Uint8Array(ciphertext.length + tag.length);
-                    encryptedData.set(ciphertext, 0);
-                    encryptedData.set(tag, ciphertext.length);
+          // 合併密文和標籤
+          const encryptedData = new Uint8Array(ciphertext.length + tag.length);
+          encryptedData.set(ciphertext, 0);
+          encryptedData.set(tag, ciphertext.length);
 
-                    // 使用AES-GCM解密
-                    const decryptedData = await crypto.subtle.decrypt(
-                        {
-                            name: "AES-GCM",
-                            iv: iv,
-                            tagLength: parsedData.encryption.tagLength,
-                        },
-                        derivedKey,
-                        encryptedData
-                    );
+          // 使用AES-GCM解密
+          const decryptedData = await crypto.subtle.decrypt(
+            {
+              name: 'AES-GCM',
+              iv: iv,
+              tagLength: parsedData.encryption.tagLength,
+            },
+            derivedKey,
+            encryptedData
+          );
 
-                    // 將解密結果轉為字串
-                    const decryptedText = new TextDecoder("utf-8").decode(decryptedData);
+          // 將解密結果轉為字串
+          const decryptedText = new TextDecoder('utf-8').decode(decryptedData);
 
-                    // 顯示結果
-                    const resultDiv = document.getElementById("result");
-                    resultDiv.innerHTML =
-                        '<h3>✅ 解密成功！</h3><div class="param-value">' + escapeHtml(decryptedText) + "</div>";
-                    resultDiv.style.display = "block";
+          // 顯示結果
+          const resultDiv = document.getElementById('result');
+          resultDiv.innerHTML =
+            '<h3>✅ 解密成功！</h3><div class="param-value">' + escapeHtml(decryptedText) + '</div>';
+          resultDiv.style.display = 'block';
 
-                    showStatus("解密完成！", "success");
-                } catch (error) {
-                    showError("解密失敗：" + error.message + "（請檢查密碼是否正確）");
-                }
-            }
+          showStatus('解密完成！', 'success');
+        } catch (error) {
+          showError('解密失敗：' + error.message + '（請檢查密碼是否正確）');
+        }
+      }
 
-            function escapeHtml(text) {
-                const div = document.createElement("div");
-                div.textContent = text;
-                return div.innerHTML;
-            }
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
 
-            function clearAll() {
-                document.getElementById("ciphertext").value = "";
-                document.getElementById("password").value = "";
-                document.getElementById("paramsDisplay").style.display = "none";
-                document.getElementById("result").style.display = "none";
-                document.getElementById("status").innerHTML = "";
-                document.getElementById("decryptBtn").disabled = true;
-                parsedData = null;
-            }
+      function clearAll() {
+        document.getElementById('ciphertext').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('paramsDisplay').style.display = 'none';
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('status').innerHTML = '';
+        document.getElementById('decryptBtn').disabled = true;
+        parsedData = null;
+      }
 
-            // 監聽密碼輸入框的Enter鍵
-            document.getElementById("password").addEventListener("keypress", function (e) {
-                if (e.key === "Enter" && !document.getElementById("decryptBtn").disabled) {
-                    decrypt();
-                }
-            });
+      // 監聽密碼輸入框的Enter鍵
+      document.getElementById('password').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && !document.getElementById('decryptBtn').disabled) {
+          decrypt();
+        }
+      });
 
-            // 監聽密文輸入框變化，自動清除解析結果
-            document.getElementById("ciphertext").addEventListener("input", function () {
-                if (parsedData) {
-                    document.getElementById("paramsDisplay").style.display = "none";
-                    document.getElementById("result").style.display = "none";
-                    document.getElementById("decryptBtn").disabled = true;
-                    parsedData = null;
-                }
-            });
-        </script>
-        ```
-    </body>
+      // 監聽密文輸入框變化，自動清除解析結果
+      document.getElementById('ciphertext').addEventListener('input', function () {
+        if (parsedData) {
+          document.getElementById('paramsDisplay').style.display = 'none';
+          document.getElementById('result').style.display = 'none';
+          document.getElementById('decryptBtn').disabled = true;
+          parsedData = null;
+        }
+      });
+    </script>
+    ```
+  </body>
 </html>

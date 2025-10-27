@@ -1,190 +1,190 @@
 <!doctype html>
 <html lang="zh-TW">
-    <head>
-        <meta charset="UTF-8" />
-        <title>JWE 解密 C</title>
-        <style>
-            body {
-                font-family: "Noto Sans TC", sans-serif;
-                margin: 20px;
+  <head>
+    <meta charset="UTF-8" />
+    <title>JWE 解密 C</title>
+    <style>
+      body {
+        font-family: 'Noto Sans TC', sans-serif;
+        margin: 20px;
+      }
+      label {
+        display: block;
+        margin: 10px 0 5px;
+        font-weight: bold;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
+      button {
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        margin: 10px 10px 0 0;
+        border-radius: 4px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      #params,
+      #output {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border: 1px solid#ddd;
+        border-radius: 4px;
+      }
+      #params p {
+        margin: 8px 0;
+        font-size: 14px;
+      }
+      #params strong,
+      #output strong {
+        color: #333;
+      }
+      .error {
+        color: #d32f2f;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Grok JWE 解密工具 v6.1</h1>
+    <p>輸入 JWE 密文和密碼，點「解析」看參數，點「解密」得明文！全客戶端，超隱私～</p>
+    <label for="jwe">JWE Compact 字串：</label
+    ><textarea
+      id="jwe"
+      rows="5"
+      placeholder="例如：eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiUEJLREYyIiwic2FsdCI6IjROTGhteG9XM1FjRGlhakwzdnd5OUEiLCJpIjo5MDAwMDAwfQ..qgQsqq_urZcnbNKW.utgX9ise1hG7hB74UzStLf9D9EWMxIJISk3t.RW3FU0urPLCBp0fJUgysMA"
+    ></textarea
+    ><button id="parseBtn">解析</button><button id="decryptBtn">解密！</button>
+    <div id="params"></div>
+    <label for="passphrase">密碼短語：</label><input type="text" id="passphrase" placeholder="輸入你的密碼" />
+    <div id="output"></div>
+    <script type="module">
+      import { compactDecrypt, decodeProtectedHeader } from 'https://esm.sh/jose@5.6.3';
+      let argon2Loaded = false;
+      const argon2Script = document.createElement('script');
+      argon2Script.src = 'https://unpkg.com/argon2-browser/dist/argon2-bundled.min.js';
+      argon2Script.onload = () => {
+        argon2Loaded = true;
+      };
+      argon2Script.onerror = () => {
+        console.error('Argon2 載入失敗！');
+      };
+      document.head.appendChild(argon2Script);
+      async function parseJWE() {
+        const paramsDiv = document.getElementById('params');
+        paramsDiv.innerHTML = '解析中... 鍵盤柯南火速掃描！';
+        try {
+          const jwe = document.getElementById('jwe').value.trim();
+          if (!jwe) {
+            throw new Error('喂，JWE 欄位別留白啊！是要我幫你腦補嗎？');
+          }
+          if (jwe.split('.').length !== 5) {
+            throw new Error('這 JWE 格式怪怪的，應該是五段式（header..iv.ciphertext.tag）！');
+          }
+          const header = decodeProtectedHeader(jwe);
+          let paramsHtml = '<strong>JWE Header 參數：</strong><br>';
+          paramsHtml += `<p>alg: ${header.alg || 'N/A'}</p>`;
+          paramsHtml += `<p>enc: ${header.enc || 'N/A'}</p>`;
+          paramsHtml += `<p>kdf: ${header.kdf || 'N/A'}</p>`;
+          paramsHtml += `<p>salt: ${header.salt || 'N/A'}</p>`;
+          if (header.kdf === 'Argon2id') {
+            paramsHtml += `<p>t (iterations): ${header.t || 'N/A'}</p>`;
+            paramsHtml += `<p>m (memory, KiB): ${header.m || 'N/A'}</p>`;
+            paramsHtml += `<p>p (parallelism): ${header.p || 'N/A'}</p>`;
+          } else if (header.kdf === 'PBKDF2') {
+            paramsHtml += `<p>i (iterations): ${header.i || 'N/A'}</p>`;
+          } else {
+            paramsHtml += `<p class="error">警告：不支援的 kdf 類型！</p>`;
+          }
+          paramsDiv.innerHTML = paramsHtml;
+        } catch (error) {
+          paramsDiv.innerHTML = `<strong class="error">解析翻車！</strong> ${error.message}，檢查 JWE 格式！`;
+        }
+      }
+      async function decryptJWE() {
+        const output = document.getElementById('output');
+        output.innerHTML = '解密中... 鍵盤柯南火力全開，別催我！';
+        try {
+          const jwe = document.getElementById('jwe').value.trim();
+          const passphrase = document.getElementById('passphrase').value;
+          if (!jwe || !passphrase) {
+            throw new Error('喂，JWE 或密碼別留白啊！是要我幫你腦補嗎？');
+          }
+          if (jwe.split('.').length !== 5) {
+            throw new Error('這 JWE 格式怪怪的，應該是五段式（header..iv.ciphertext.tag）！');
+          }
+          const header = decodeProtectedHeader(jwe);
+          const kdf = header.kdf;
+          const saltBase64 = header.salt;
+          if (!kdf || !saltBase64) {
+            throw new Error('Header 參數不齊，kdf/salt 跑哪去了？');
+          }
+          let cryptoKey;
+          if (kdf === 'Argon2id') {
+            if (!argon2Loaded || !window.argon2) {
+              throw new Error('Argon2 還沒載好，網路 lag 了？稍等再試！');
             }
-            label {
-                display: block;
-                margin: 10px 0 5px;
-                font-weight: bold;
+            const iterations = header.t;
+            const memory = header.m;
+            const parallelism = header.p;
+            if (!iterations || !memory || !parallelism) {
+              throw new Error('Argon2id 參數不齊，t/m/p 跑哪去了？');
             }
-            input,
-            textarea {
-                width: 100%;
-                padding: 8px;
-                box-sizing: border-box;
-                font-size: 14px;
+            const saltBytes = base64UrlToBytes(saltBase64);
+            const argonResult = await window.argon2.hash({
+              pass: passphrase,
+              salt: saltBytes,
+              time: iterations,
+              mem: memory,
+              parallelism: parallelism,
+              type: window.argon2.ArgonType.Argon2id,
+              hashLen: 32,
+            });
+            cryptoKey = await crypto.subtle.importKey(
+              'raw',
+              argonResult.hash,
+              { name: 'AES-GCM', length: 256 },
+              false,
+              ['decrypt']
+            );
+          } else if (kdf === 'PBKDF2') {
+            const iterations = header.i;
+            if (!iterations) {
+              throw new Error('PBKDF2 參數不齊，i (iterations) 跑哪去了？');
             }
-            button {
-                padding: 10px 20px;
-                background: #007bff;
-                color: white;
-                border: none;
-                cursor: pointer;
-                margin: 10px 10px 0 0;
-                border-radius: 4px;
-            }
-            button:hover {
-                background: #0056b3;
-            }
-            #params,
-            #output {
-                margin-top: 20px;
-                padding: 15px;
-                background: #f8f9fa;
-                border: 1px solid#ddd;
-                border-radius: 4px;
-            }
-            #params p {
-                margin: 8px 0;
-                font-size: 14px;
-            }
-            #params strong,
-            #output strong {
-                color: #333;
-            }
-            .error {
-                color: #d32f2f;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Grok JWE 解密工具 v6.1</h1>
-        <p>輸入 JWE 密文和密碼，點「解析」看參數，點「解密」得明文！全客戶端，超隱私～</p>
-        <label for="jwe">JWE Compact 字串：</label
-        ><textarea
-            id="jwe"
-            rows="5"
-            placeholder="例如：eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiUEJLREYyIiwic2FsdCI6IjROTGhteG9XM1FjRGlhakwzdnd5OUEiLCJpIjo5MDAwMDAwfQ..qgQsqq_urZcnbNKW.utgX9ise1hG7hB74UzStLf9D9EWMxIJISk3t.RW3FU0urPLCBp0fJUgysMA"
-        ></textarea
-        ><button id="parseBtn">解析</button><button id="decryptBtn">解密！</button>
-        <div id="params"></div>
-        <label for="passphrase">密碼短語：</label><input type="text" id="passphrase" placeholder="輸入你的密碼" />
-        <div id="output"></div>
-        <script type="module">
-            import { compactDecrypt, decodeProtectedHeader } from "https://esm.sh/jose@5.6.3";
-            let argon2Loaded = false;
-            const argon2Script = document.createElement("script");
-            argon2Script.src = "https://unpkg.com/argon2-browser/dist/argon2-bundled.min.js";
-            argon2Script.onload = () => {
-                argon2Loaded = true;
-            };
-            argon2Script.onerror = () => {
-                console.error("Argon2 載入失敗！");
-            };
-            document.head.appendChild(argon2Script);
-            async function parseJWE() {
-                const paramsDiv = document.getElementById("params");
-                paramsDiv.innerHTML = "解析中... 鍵盤柯南火速掃描！";
-                try {
-                    const jwe = document.getElementById("jwe").value.trim();
-                    if (!jwe) {
-                        throw new Error("喂，JWE 欄位別留白啊！是要我幫你腦補嗎？");
-                    }
-                    if (jwe.split(".").length !== 5) {
-                        throw new Error("這 JWE 格式怪怪的，應該是五段式（header..iv.ciphertext.tag）！");
-                    }
-                    const header = decodeProtectedHeader(jwe);
-                    let paramsHtml = "<strong>JWE Header 參數：</strong><br>";
-                    paramsHtml += `<p>alg: ${header.alg || "N/A"}</p>`;
-                    paramsHtml += `<p>enc: ${header.enc || "N/A"}</p>`;
-                    paramsHtml += `<p>kdf: ${header.kdf || "N/A"}</p>`;
-                    paramsHtml += `<p>salt: ${header.salt || "N/A"}</p>`;
-                    if (header.kdf === "Argon2id") {
-                        paramsHtml += `<p>t (iterations): ${header.t || "N/A"}</p>`;
-                        paramsHtml += `<p>m (memory, KiB): ${header.m || "N/A"}</p>`;
-                        paramsHtml += `<p>p (parallelism): ${header.p || "N/A"}</p>`;
-                    } else if (header.kdf === "PBKDF2") {
-                        paramsHtml += `<p>i (iterations): ${header.i || "N/A"}</p>`;
-                    } else {
-                        paramsHtml += `<p class="error">警告：不支援的 kdf 類型！</p>`;
-                    }
-                    paramsDiv.innerHTML = paramsHtml;
-                } catch (error) {
-                    paramsDiv.innerHTML = `<strong class="error">解析翻車！</strong> ${error.message}，檢查 JWE 格式！`;
-                }
-            }
-            async function decryptJWE() {
-                const output = document.getElementById("output");
-                output.innerHTML = "解密中... 鍵盤柯南火力全開，別催我！";
-                try {
-                    const jwe = document.getElementById("jwe").value.trim();
-                    const passphrase = document.getElementById("passphrase").value;
-                    if (!jwe || !passphrase) {
-                        throw new Error("喂，JWE 或密碼別留白啊！是要我幫你腦補嗎？");
-                    }
-                    if (jwe.split(".").length !== 5) {
-                        throw new Error("這 JWE 格式怪怪的，應該是五段式（header..iv.ciphertext.tag）！");
-                    }
-                    const header = decodeProtectedHeader(jwe);
-                    const kdf = header.kdf;
-                    const saltBase64 = header.salt;
-                    if (!kdf || !saltBase64) {
-                        throw new Error("Header 參數不齊，kdf/salt 跑哪去了？");
-                    }
-                    let cryptoKey;
-                    if (kdf === "Argon2id") {
-                        if (!argon2Loaded || !window.argon2) {
-                            throw new Error("Argon2 還沒載好，網路 lag 了？稍等再試！");
-                        }
-                        const iterations = header.t;
-                        const memory = header.m;
-                        const parallelism = header.p;
-                        if (!iterations || !memory || !parallelism) {
-                            throw new Error("Argon2id 參數不齊，t/m/p 跑哪去了？");
-                        }
-                        const saltBytes = base64UrlToBytes(saltBase64);
-                        const argonResult = await window.argon2.hash({
-                            pass: passphrase,
-                            salt: saltBytes,
-                            time: iterations,
-                            mem: memory,
-                            parallelism: parallelism,
-                            type: window.argon2.ArgonType.Argon2id,
-                            hashLen: 32,
-                        });
-                        cryptoKey = await crypto.subtle.importKey(
-                            "raw",
-                            argonResult.hash,
-                            { name: "AES-GCM", length: 256 },
-                            false,
-                            ["decrypt"]
-                        );
-                    } else if (kdf === "PBKDF2") {
-                        const iterations = header.i;
-                        if (!iterations) {
-                            throw new Error("PBKDF2 參數不齊，i (iterations) 跑哪去了？");
-                        }
-                        const saltBytes = base64UrlToBytes(saltBase64);
-                        const keyMaterial = await crypto.subtle.importKey(
-                            "raw",
-                            new TextEncoder().encode(passphrase),
-                            { name: "PBKDF2" },
-                            false,
-                            ["deriveKey"]
-                        );
-                        cryptoKey = await crypto.subtle.deriveKey(
-                            { name: "PBKDF2", salt: saltBytes, iterations: iterations, hash: "SHA-256" },
-                            keyMaterial,
-                            { name: "AES-GCM", length: 256 },
-                            false,
-                            ["decrypt"]
-                        );
-                    } else {
-                        throw new Error(`不支援的 KDF：${kdf}，目前只支援 Argon2id 和 PBKDF2！`);
-                    }
-                    const { plaintext } = await compactDecrypt(jwe, cryptoKey, {
-                        contentEncryptionAlgorithms: ["A256GCM"],
-                        keyManagementAlgorithms: ["dir"],
-                    });
-                    const decodedText = new TextDecoder().decode(plaintext);
-                    const safeDecodedText = escapeHTML(decodedText);
-                    output.innerHTML = `
+            const saltBytes = base64UrlToBytes(saltBase64);
+            const keyMaterial = await crypto.subtle.importKey(
+              'raw',
+              new TextEncoder().encode(passphrase),
+              { name: 'PBKDF2' },
+              false,
+              ['deriveKey']
+            );
+            cryptoKey = await crypto.subtle.deriveKey(
+              { name: 'PBKDF2', salt: saltBytes, iterations: iterations, hash: 'SHA-256' },
+              keyMaterial,
+              { name: 'AES-GCM', length: 256 },
+              false,
+              ['decrypt']
+            );
+          } else {
+            throw new Error(`不支援的 KDF：${kdf}，目前只支援 Argon2id 和 PBKDF2！`);
+          }
+          const { plaintext } = await compactDecrypt(jwe, cryptoKey, {
+            contentEncryptionAlgorithms: ['A256GCM'],
+            keyManagementAlgorithms: ['dir'],
+          });
+          const decodedText = new TextDecoder().decode(plaintext);
+          const safeDecodedText = escapeHTML(decodedText);
+          output.innerHTML = `
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <strong>解密成功！</strong>                            
                         </div>
@@ -192,47 +192,47 @@
                         <pre style="white-space: pre-wrap; word-break: break-all; background: #eee; padding: 10px; border-radius: 4px; margin-top: 10px;">${safeDecodedText}</pre>
                     `;
 
-                    document.getElementById("copyBtn").addEventListener("click", function () {
-                        navigator.clipboard.writeText(decodedText).then(
-                            () => {
-                                this.textContent = "已複製！";
-                                this.disabled = true;
-                                setTimeout(() => {
-                                    this.textContent = "複製明文";
-                                    this.disabled = false;
-                                }, 2000);
-                            },
-                            (err) => {
-                                console.error("無法複製: ", err);
-                                alert("複製失敗！您的瀏覽器可能不支援或未授權。");
-                            }
-                        );
-                    });
-                } catch (error) {
-                    output.innerHTML = `<strong class="error">翻車啦！</strong> ${error.message}，快檢查輸入或叫我 debug！`;
-                }
-            }
-            function escapeHTML(str) {
-                if (typeof str !== "string") return "";
-                return str
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
-            }
-            function base64UrlToBytes(base64Url) {
-                const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-                const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
-                const binaryString = atob(padded);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                return bytes;
-            }
-            document.getElementById("parseBtn").addEventListener("click", parseJWE);
-            document.getElementById("decryptBtn").addEventListener("click", decryptJWE);
-        </script>
-    </body>
+          document.getElementById('copyBtn').addEventListener('click', function () {
+            navigator.clipboard.writeText(decodedText).then(
+              () => {
+                this.textContent = '已複製！';
+                this.disabled = true;
+                setTimeout(() => {
+                  this.textContent = '複製明文';
+                  this.disabled = false;
+                }, 2000);
+              },
+              (err) => {
+                console.error('無法複製: ', err);
+                alert('複製失敗！您的瀏覽器可能不支援或未授權。');
+              }
+            );
+          });
+        } catch (error) {
+          output.innerHTML = `<strong class="error">翻車啦！</strong> ${error.message}，快檢查輸入或叫我 debug！`;
+        }
+      }
+      function escapeHTML(str) {
+        if (typeof str !== 'string') return '';
+        return str
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+      function base64UrlToBytes(base64Url) {
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+        const binaryString = atob(padded);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes;
+      }
+      document.getElementById('parseBtn').addEventListener('click', parseJWE);
+      document.getElementById('decryptBtn').addEventListener('click', decryptJWE);
+    </script>
+  </body>
 </html>

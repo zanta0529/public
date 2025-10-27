@@ -1,1435 +1,1410 @@
 <!doctype html>
 <html lang="zh-Hant" data-theme="dark">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>加解密工具 (AES / ChaCha20) 示範程式</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-        <style>
-            /* --- CSS 變數定義 (淺色 & 深色主題) --- */
-            :root {
-                --primary-color: #007bff;
-                --primary-hover-color: #0056b3;
-                --secondary-color: #6c757d;
-                --secondary-hover-color: #5a6268;
-                --danger-color: #dc3545;
-                --danger-hover-color: #c82333;
-                --success-btn-color: #28a745;
-                --success-btn-hover-color: #218838;
-                --warning-btn-bg-color: #ffc107;
-                --warning-btn-text-color: #212529;
-                --warning-btn-hover-bg-color: #e0a800;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>加解密工具 (AES / ChaCha20) 示範程式</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <style>
+      /* --- CSS 變數定義 (淺色 & 深色主題) --- */
+      :root {
+        --primary-color: #007bff;
+        --primary-hover-color: #0056b3;
+        --secondary-color: #6c757d;
+        --secondary-hover-color: #5a6268;
+        --danger-color: #dc3545;
+        --danger-hover-color: #c82333;
+        --success-btn-color: #28a745;
+        --success-btn-hover-color: #218838;
+        --warning-btn-bg-color: #ffc107;
+        --warning-btn-text-color: #212529;
+        --warning-btn-hover-bg-color: #e0a800;
 
-                --bg-color: #f8f9fa;
-                --container-bg: #ffffff;
-                --text-color: #212529;
-                --border-color: #dee2e6;
-                --input-bg: #e9f5ff;
-                --input-focus-shadow: rgba(0, 123, 255, 0.25);
-                --button-disabled-bg: #ccc;
-                --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-                --error-color: #721c24;
-                --error-bg: #f8d7da;
-                --success-color: #155724;
-                --success-bg: #d4edda;
-                --warning-color: #856404;
-                --warning-bg: #fff3cd;
-                --note-color: #083b06;
-                --note-bg: #baf1ac;
-                --toast-bg: #323232;
-                --toast-color: #fff;
-            }
+        --bg-color: #f8f9fa;
+        --container-bg: #ffffff;
+        --text-color: #212529;
+        --border-color: #dee2e6;
+        --input-bg: #e9f5ff;
+        --input-focus-shadow: rgba(0, 123, 255, 0.25);
+        --button-disabled-bg: #ccc;
+        --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --error-color: #721c24;
+        --error-bg: #f8d7da;
+        --success-color: #155724;
+        --success-bg: #d4edda;
+        --warning-color: #856404;
+        --warning-bg: #fff3cd;
+        --note-color: #083b06;
+        --note-bg: #baf1ac;
+        --toast-bg: #323232;
+        --toast-color: #fff;
+      }
 
-            :root[data-theme="dark"] {
-                --primary-color: #1e90ff;
-                --primary-hover-color: #4ca8ff;
-                --secondary-color: #778899;
-                --secondary-hover-color: #90a0b1;
-                --danger-color: #c82333;
-                --danger-hover-color: #a71d2a;
-                --success-btn-color: #20c997;
-                --success-btn-hover-color: #1baa80;
-                --warning-btn-bg-color: #fd7e14;
-                --warning-btn-text-color: #ffffff;
-                --warning-btn-hover-bg-color: #e66b04;
+      :root[data-theme='dark'] {
+        --primary-color: #1e90ff;
+        --primary-hover-color: #4ca8ff;
+        --secondary-color: #778899;
+        --secondary-hover-color: #90a0b1;
+        --danger-color: #c82333;
+        --danger-hover-color: #a71d2a;
+        --success-btn-color: #20c997;
+        --success-btn-hover-color: #1baa80;
+        --warning-btn-bg-color: #fd7e14;
+        --warning-btn-text-color: #ffffff;
+        --warning-btn-hover-bg-color: #e66b04;
 
-                --bg-color: #1e1e2f;
-                --container-bg: #2f2f4f;
-                --text-color: #e8e8f0;
-                --border-color: #4a4a5f;
-                --input-bg: #444;
-                --input-focus-shadow: rgba(30, 144, 255, 0.4);
-                --button-disabled-bg: #5a5a70;
-                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-                --error-color: #f5c6cb;
-                --error-bg: #58282d;
-                --success-color: #c3e6cb;
-                --success-bg: #224029;
-                --warning-color: #ffeeba;
-                --warning-bg: #66512c;
-                --note-color: #a2f58d;
-                --note-bg: #2a5028;
-                --toast-bg: #eaec6e;
-                --toast-color: #1e1e2f;
-            }
+        --bg-color: #1e1e2f;
+        --container-bg: #2f2f4f;
+        --text-color: #e8e8f0;
+        --border-color: #4a4a5f;
+        --input-bg: #444;
+        --input-focus-shadow: rgba(30, 144, 255, 0.4);
+        --button-disabled-bg: #5a5a70;
+        --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        --error-color: #f5c6cb;
+        --error-bg: #58282d;
+        --success-color: #c3e6cb;
+        --success-bg: #224029;
+        --warning-color: #ffeeba;
+        --warning-bg: #66512c;
+        --note-color: #a2f58d;
+        --note-bg: #2a5028;
+        --toast-bg: #eaec6e;
+        --toast-color: #1e1e2f;
+      }
 
-            /* --- 基礎 & 佈局樣式 --- */
-            body {
-                font-family:
-                    Arial,
-                    sans-serif,
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    Roboto,
-                    "Helvetica Neue";
-                margin: 0;
-                padding: 2rem;
-                background-color: var(--bg-color);
-                color: var(--text-color);
-                line-height: 1.6;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                min-height: 100vh;
-                box-sizing: border-box;
-                transition:
-                    background-color 0.3s,
-                    color 0.3s;
-            }
+      /* --- 基礎 & 佈局樣式 --- */
+      body {
+        font-family:
+          Arial,
+          sans-serif,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue';
+        margin: 0;
+        padding: 2rem;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+      }
 
-            .container {
-                background-color: var(--container-bg);
-                padding: 2rem;
-                border-radius: 8px;
-                box-shadow: var(--box-shadow);
-                width: 100%;
-                max-width: 80%;
-                margin-bottom: 2rem;
-                border: 1px solid var(--border-color);
-                transition:
-                    background-color 0.3s,
-                    border-color 0.3s;
-            }
+      .container {
+        background-color: var(--container-bg);
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: var(--box-shadow);
+        width: 100%;
+        max-width: 80%;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-color);
+        transition:
+          background-color 0.3s,
+          border-color 0.3s;
+      }
 
-            h1,
-            h2,
-            h3 {
-                margin-top: 0;
-            }
-            h1 {
-                text-align: center;
-                margin-bottom: 1.5rem;
-            }
-            section,
-            .input-group {
-                margin-bottom: 1.5rem;
-                padding-top: 1rem;
-            }
-            label,
-            .label-text {
-                font-weight: 600;
-                display: block;
-                margin-bottom: 0.5rem;
-            }
-            hr {
-                border: none;
-                border-top: 1px solid var(--border-color);
-                margin: 2rem 0;
-            }
+      h1,
+      h2,
+      h3 {
+        margin-top: 0;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 1.5rem;
+      }
+      section,
+      .input-group {
+        margin-bottom: 1.5rem;
+        padding-top: 1rem;
+      }
+      label,
+      .label-text {
+        font-weight: 600;
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+      hr {
+        border: none;
+        border-top: 1px solid var(--border-color);
+        margin: 2rem 0;
+      }
 
-            /* --- 組件：按鈕 --- */
-            .button-group {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 1rem;
-            }
-            button {
-                padding: 0.6rem 1rem;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 1.1em;
-                font-weight: 600;
-                transition:
-                    background-color 0.3s,
-                    transform 0.1s,
-                    color 0.3s,
-                    border-color 0.3s;
-            }
-            button:hover:not(:disabled) {
-                transform: translateY(-1px);
-            }
-            button:disabled {
-                background-color: var(--button-disabled-bg);
-                cursor: not-allowed;
-                opacity: 0.7;
-            }
-            button:not([data-type]) {
-                background-color: var(--primary-color);
-            }
-            button:not([data-type]):hover:not(:disabled) {
-                background-color: var(--primary-hover-color);
-            }
-            button[data-type="secondary"] {
-                background-color: var(--secondary-color);
-            }
-            button[data-type="secondary"]:hover:not(:disabled) {
-                background-color: var(--secondary-hover-color);
-            }
-            button[data-type="danger"] {
-                background-color: var(--danger-color);
-            }
-            button[data-type="danger"]:hover:not(:disabled) {
-                background-color: var(--danger-hover-color);
-            }
-            button[data-type="success"] {
-                background-color: var(--success-btn-color);
-            }
-            button[data-type="success"]:hover:not(:disabled) {
-                background-color: var(--success-btn-hover-color);
-            }
-            button[data-type="warning"] {
-                background-color: var(--warning-btn-bg-color);
-                color: var(--warning-btn-text-color);
-            }
-            button[data-type="warning"]:hover:not(:disabled) {
-                background-color: var(--warning-btn-hover-bg-color);
-            }
-            #generateIvButton {
-                width: 200px;
-            }
-            #btnExecute {
-                width: 100%;
-                padding: 0.8rem 1.5rem;
-                font-size: 1.2em;
-                margin: 1rem 0;
-            }
+      /* --- 組件：按鈕 --- */
+      .button-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      button {
+        padding: 0.6rem 1rem;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: 600;
+        transition:
+          background-color 0.3s,
+          transform 0.1s,
+          color 0.3s,
+          border-color 0.3s;
+      }
+      button:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+      button:disabled {
+        background-color: var(--button-disabled-bg);
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      button:not([data-type]) {
+        background-color: var(--primary-color);
+      }
+      button:not([data-type]):hover:not(:disabled) {
+        background-color: var(--primary-hover-color);
+      }
+      button[data-type='secondary'] {
+        background-color: var(--secondary-color);
+      }
+      button[data-type='secondary']:hover:not(:disabled) {
+        background-color: var(--secondary-hover-color);
+      }
+      button[data-type='danger'] {
+        background-color: var(--danger-color);
+      }
+      button[data-type='danger']:hover:not(:disabled) {
+        background-color: var(--danger-hover-color);
+      }
+      button[data-type='success'] {
+        background-color: var(--success-btn-color);
+      }
+      button[data-type='success']:hover:not(:disabled) {
+        background-color: var(--success-btn-hover-color);
+      }
+      button[data-type='warning'] {
+        background-color: var(--warning-btn-bg-color);
+        color: var(--warning-btn-text-color);
+      }
+      button[data-type='warning']:hover:not(:disabled) {
+        background-color: var(--warning-btn-hover-bg-color);
+      }
+      #generateIvButton {
+        width: 200px;
+      }
+      #btnExecute {
+        width: 100%;
+        padding: 0.8rem 1.5rem;
+        font-size: 1.2em;
+        margin: 1rem 0;
+      }
 
-            /* --- 組件：表單輸入 --- */
-            input[type="text"],
-            input[type="file"],
-            textarea {
-                width: 100%;
-                padding: 0.75rem;
-                border: 1px solid var(--border-color);
-                border-radius: 5px;
-                box-sizing: border-box;
-                font-size: 1.2em;
-                background-color: var(--input-bg);
-                color: var(--text-color);
-                transition:
-                    border-color 0.3s,
-                    box-shadow 0.3s,
-                    background-color 0.3s,
-                    color 0.3s;
-            }
-            input[type="text"]:focus,
-            input[type="file"]:focus,
-            textarea:focus {
-                outline: none;
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
-            }
-            textarea {
-                min-height: 120px;
-                resize: vertical;
-            }
+      /* --- 組件：表單輸入 --- */
+      input[type='text'],
+      input[type='file'],
+      textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 1.2em;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        transition:
+          border-color 0.3s,
+          box-shadow 0.3s,
+          background-color 0.3s,
+          color 0.3s;
+      }
+      input[type='text']:focus,
+      input[type='file']:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
+      }
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
 
-            /* --- 組件：選項/頁籤組 --- */
-            .option-group {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 1rem;
-            }
-            .option {
-                padding: 0.6rem 1rem;
-                border: 1px solid var(--border-color);
-                border-radius: 5px;
-                cursor: pointer;
-                user-select: none;
-                transition:
-                    background-color 0.3s,
-                    border-color 0.3s,
-                    color 0.3s;
-                font-size: 1.1em;
-            }
-            .option.selected {
-                background-color: var(--primary-color);
-                color: white;
-                border-color: var(--primary-color);
-            }
-            .option:not(.selected):hover {
-                background-color: var(--input-bg);
-                border-color: var(--primary-color);
-            }
-            .option.disabled {
-                pointer-events: none;
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
+      /* --- 組件：選項/頁籤組 --- */
+      .option-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .option {
+        padding: 0.6rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        cursor: pointer;
+        user-select: none;
+        transition:
+          background-color 0.3s,
+          border-color 0.3s,
+          color 0.3s;
+        font-size: 1.1em;
+      }
+      .option.selected {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+      }
+      .option:not(.selected):hover {
+        background-color: var(--input-bg);
+        border-color: var(--primary-color);
+      }
+      .option.disabled {
+        pointer-events: none;
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
-            /* --- 組件：訊息與提示 --- */
-            .status-message {
-                padding: 1rem;
-                border-radius: 5px;
-                border: 1px solid transparent;
-                display: none;
-                margin-top: 1rem;
-            }
-            .status-message.active {
-                display: block;
-            }
-            .status-success {
-                background-color: var(--success-bg);
-                color: var(--success-color);
-                border-color: var(--success-color);
-            }
-            .status-error {
-                background-color: var(--error-bg);
-                color: var(--error-color);
-                border-color: var(--error-color);
-            }
-            .error-message {
-                color: var(--error-color);
-                font-size: 0.9em;
-                min-height: 1.2em;
-                display: block;
-                margin-top: 0.25rem;
-            }
-            .alert {
-                font-size: 0.9em;
-                padding: 1rem;
-                border-radius: 5px;
-                margin: 1rem 0;
-                border: 1px solid;
-            }
-            .alert-note {
-                background-color: var(--note-bg);
-                color: var(--note-color);
-                border-color: var(--note-color);
-            }
-            .alert-danger {
-                background-color: var(--error-bg);
-                color: var(--error-color);
-                border-color: var(--error-color);
-            }
-            .alert-warning {
-                background-color: var(--warning-bg);
-                color: var(--warning-color);
-                border-color: var(--warning-color);
-            }
-            details > summary {
-                cursor: pointer;
-                font-weight: bold;
-                padding: 0.5rem 0;
-            }
-            .alert ul {
-                margin: 0.5rem 0 0.25rem 1.25rem;
-                padding: 0;
-            }
-            .alert li {
-                margin-bottom: 0.5rem;
-            }
-            .alert .pass {
-                color: var(--success-color);
-            }
-            .alert .fail {
-                color: var(--error-color);
-                font-weight: bold;
-            }
-            .text-only-note {
-                color: var(--warning-color);
-                font-weight: bold;
-                padding-left: 1rem;
-            }
+      /* --- 組件：訊息與提示 --- */
+      .status-message {
+        padding: 1rem;
+        border-radius: 5px;
+        border: 1px solid transparent;
+        display: none;
+        margin-top: 1rem;
+      }
+      .status-message.active {
+        display: block;
+      }
+      .status-success {
+        background-color: var(--success-bg);
+        color: var(--success-color);
+        border-color: var(--success-color);
+      }
+      .status-error {
+        background-color: var(--error-bg);
+        color: var(--error-color);
+        border-color: var(--error-color);
+      }
+      .error-message {
+        color: var(--error-color);
+        font-size: 0.9em;
+        min-height: 1.2em;
+        display: block;
+        margin-top: 0.25rem;
+      }
+      .alert {
+        font-size: 0.9em;
+        padding: 1rem;
+        border-radius: 5px;
+        margin: 1rem 0;
+        border: 1px solid;
+      }
+      .alert-note {
+        background-color: var(--note-bg);
+        color: var(--note-color);
+        border-color: var(--note-color);
+      }
+      .alert-danger {
+        background-color: var(--error-bg);
+        color: var(--error-color);
+        border-color: var(--error-color);
+      }
+      .alert-warning {
+        background-color: var(--warning-bg);
+        color: var(--warning-color);
+        border-color: var(--warning-color);
+      }
+      details > summary {
+        cursor: pointer;
+        font-weight: bold;
+        padding: 0.5rem 0;
+      }
+      .alert ul {
+        margin: 0.5rem 0 0.25rem 1.25rem;
+        padding: 0;
+      }
+      .alert li {
+        margin-bottom: 0.5rem;
+      }
+      .alert .pass {
+        color: var(--success-color);
+      }
+      .alert .fail {
+        color: var(--error-color);
+        font-weight: bold;
+      }
+      .text-only-note {
+        color: var(--warning-color);
+        font-weight: bold;
+        padding-left: 1rem;
+      }
 
-            /* --- 組件：頁尾 --- */
-            footer {
-                text-align: center;
-                margin-top: auto;
-                padding-top: 1rem;
-                font-size: 0.9em;
-                color: var(--secondary-color);
-            }
-            #themeToggleBtn {
-                background: none;
-                border: 1px solid var(--border-color);
-                color: var(--text-color);
-                padding: 0.25rem;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 1.2em;
-                margin-left: 0.5rem;
-                vertical-align: middle;
-                transition:
-                    background-color 0.3s,
-                    color 0.3s,
-                    border-color 0.3s;
-            }
-            #themeToggleBtn:hover {
-                background-color: var(--border-color);
-            }
+      /* --- 組件：頁尾 --- */
+      footer {
+        text-align: center;
+        margin-top: auto;
+        padding-top: 1rem;
+        font-size: 0.9em;
+        color: var(--secondary-color);
+      }
+      #themeToggleBtn {
+        background: none;
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        padding: 0.25rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1.2em;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+        transition:
+          background-color 0.3s,
+          color 0.3s,
+          border-color 0.3s;
+      }
+      #themeToggleBtn:hover {
+        background-color: var(--border-color);
+      }
 
-            /* --- 響應式設計 --- */
-            @media (max-width: 768px) {
-                body {
-                    padding: 1rem;
-                }
-                .container {
-                    padding: 1.5rem;
-                    max-width: 95%;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>加解密工具 (AES / ChaCha20) 示範程式</h1>
+      /* --- 響應式設計 --- */
+      @media (max-width: 768px) {
+        body {
+          padding: 1rem;
+        }
+        .container {
+          padding: 1.5rem;
+          max-width: 95%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>加解密工具 (AES / ChaCha20) 示範程式</h1>
 
-            <details class="alert alert-warning">
-                <summary>🔐 <strong>安全性與最佳實踐（點擊展開）</strong></summary>
-                <ul>
-                    <li><strong>前端加密：</strong>所有操作均在您的瀏覽器中進行。請確保您的電腦與瀏覽器環境安全。</li>
-                    <li>
-                        <strong>金鑰 (Key) 與 Nonce/IV：</strong>請永遠使用由密碼學安全隨機數產生器 (CSPRNG)
-                        產生的金鑰與 IV/Nonce。請勿在不安全的環境中儲存或傳輸。
-                    </li>
-                    <li id="securityNote-AES">
-                        <strong>AES 模式：</strong>
-                        <ul>
-                            <li>
-                                <strong>IV (初始向量):</strong> 對於 GCM/CTR 模式，IV 在同一金鑰下絕不可重複使用。對於
-                                CBC 模式，IV 必須是不可預測的 (隨機)。建議長度為 16 位元組。
-                            </li>
-                            <li>
-                                <strong>AAD (附加驗證資料):</strong> 僅 GCM 模式使用，用於驗證資料完整性但不會被加密。
-                            </li>
-                        </ul>
-                    </li>
-                    <li id="securityNote-ChaCha20" style="display: none">
-                        <strong>ChaCha20-Poly1305 模式：</strong>
-                        <ul>
-                            <li><strong>金鑰 (Key):</strong> 長度必須是 32 位元組 (256 位元)。</li>
-                            <li>
-                                <strong>Nonce (一次性數值):</strong> 長度必須是 12 位元組 (96 位元)。在同一金鑰下，Nonce
-                                絕對禁止重複使用，否則會導致災難性安全後果。
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
-            </details>
+      <details class="alert alert-warning">
+        <summary>🔐 <strong>安全性與最佳實踐（點擊展開）</strong></summary>
+        <ul>
+          <li><strong>前端加密：</strong>所有操作均在您的瀏覽器中進行。請確保您的電腦與瀏覽器環境安全。</li>
+          <li>
+            <strong>金鑰 (Key) 與 Nonce/IV：</strong>請永遠使用由密碼學安全隨機數產生器 (CSPRNG) 產生的金鑰與
+            IV/Nonce。請勿在不安全的環境中儲存或傳輸。
+          </li>
+          <li id="securityNote-AES">
+            <strong>AES 模式：</strong>
+            <ul>
+              <li>
+                <strong>IV (初始向量):</strong> 對於 GCM/CTR 模式，IV 在同一金鑰下絕不可重複使用。對於 CBC 模式，IV
+                必須是不可預測的 (隨機)。建議長度為 16 位元組。
+              </li>
+              <li><strong>AAD (附加驗證資料):</strong> 僅 GCM 模式使用，用於驗證資料完整性但不會被加密。</li>
+            </ul>
+          </li>
+          <li id="securityNote-ChaCha20" style="display: none">
+            <strong>ChaCha20-Poly1305 模式：</strong>
+            <ul>
+              <li><strong>金鑰 (Key):</strong> 長度必須是 32 位元組 (256 位元)。</li>
+              <li>
+                <strong>Nonce (一次性數值):</strong> 長度必須是 12 位元組 (96 位元)。在同一金鑰下，Nonce
+                絕對禁止重複使用，否則會導致災難性安全後果。
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </details>
 
-            <div id="functionMode" class="option-group">
-                <div class="option selected" data-value="encrypt">加密功能【Encrypt】</div>
-                <div class="option" data-value="decrypt">解密功能【Decrypt】</div>
-            </div>
+      <div id="functionMode" class="option-group">
+        <div class="option selected" data-value="encrypt">加密功能【Encrypt】</div>
+        <div class="option" data-value="decrypt">解密功能【Decrypt】</div>
+      </div>
 
-            <div class="input-group">
-                <label class="label-text">輸入來源</label>
-                <div id="inputSource" class="option-group">
-                    <div class="option selected" data-value="text">文字輸入</div>
-                    <div class="option" data-value="file">檔案輸入</div>
-                </div>
-            </div>
-
-            <div id="textInputGroup" class="input-group">
-                <label for="text">原始文字 / 密文</label>
-                <textarea id="text" rows="5" placeholder="在此輸入要加密的明文或要解密的密文（Base64/Hex）"></textarea>
-                <div class="button-group" style="margin-top: 10px">
-                    <button id="copyTextButton" data-type="secondary">複製</button>
-                    <button id="pasteTextButton" data-type="secondary">貼上</button>
-                    <button id="clearTextButton" data-type="secondary">清除</button>
-                </div>
-            </div>
-
-            <div id="fileInputGroup" class="input-group" style="display: none">
-                <label for="fileInput">選擇檔案</label>
-                <input type="file" id="fileInput" />
-                <div
-                    id="fileNameDisplay"
-                    class="alert alert-note"
-                    style="margin-top: 10px; display: none; padding: 0.5rem 1rem"
-                ></div>
-            </div>
-
-            <div class="input-group">
-                <label class="label-text">加解密演算法</label>
-                <div id="algorithmFamily" class="option-group">
-                    <div class="option selected" data-value="AES">AES</div>
-                    <div class="option" data-value="ChaCha20">ChaCha20</div>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label class="label-text">模式</label>
-                <div id="encryptionMode" class="option-group"></div>
-                <div class="alert alert-danger" id="ecbWarning" style="display: none">
-                    <strong>注意：</strong>ECB
-                    模式通常不安全，因為相同的明文塊會加密成相同的密文塊。建議僅在特殊情況下使用。
-                </div>
-            </div>
-
-            <div id="paddingGroup" class="input-group" style="display: none">
-                <label class="label-text">填充模式 (Padding)</label>
-                <div id="padding" class="option-group">
-                    <div class="option selected" data-value="Pkcs7">PKCS7</div>
-                    <div class="option" data-value="NoPadding">NoPadding</div>
-                </div>
-                <div class="alert alert-note" id="noPaddingNote" style="display: none">
-                    使用 NoPadding 時，CBC/ECB 模式的明文長度（UTF-8 編碼後的位元組）必須是 16 的倍數。
-                </div>
-            </div>
-
-            <div id="keySizeGroup" class="input-group">
-                <label class="label-text">金鑰長度 (Bits)</label>
-                <div id="keySize" class="option-group">
-                    <div class="option selected" data-value="128">128</div>
-                    <div class="option" data-value="192">192</div>
-                    <div class="option" data-value="256">256</div>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label for="secretKey">金鑰<span class="text-only-note">⚠️【僅支援純文字】</span></label>
-                <input type="text" id="secretKey" placeholder="輸入金鑰文字" />
-                <div id="keyNote" class="alert alert-note">
-                    金鑰文字將以 UTF-8 編碼。編碼後的「位元組長度」需符合所選演算法要求。
-                </div>
-                <div id="msgKeyError" class="error-message"></div>
-            </div>
-
-            <div id="ivGroup" class="input-group">
-                <label for="iv"
-                    ><span id="ivLabel"></span>
-                    <span class="text-only-note">⚠️【僅支援純文字】</span>
-                </label>
-                <div style="display: flex; gap: 10px; align-items: center">
-                    <input type="text" id="iv" placeholder="輸入 IV / Nonce 文字" style="flex-grow: 1" />
-                    <button id="generateIvButton" data-type="secondary">產生隨機值</button>
-                </div>
-                <div id="ivNote" class="alert alert-note"></div>
-                <div id="msgIVError" class="error-message"></div>
-            </div>
-
-            <div id="aadGroup" class="input-group" style="display: none">
-                <label for="aad">附加驗證資料（AAD）<span class="text-only-note">⚠️【僅支援純文字】</span></label>
-                <textarea id="aad" rows="2" placeholder="輸入 AAD 文字（可選）"></textarea>
-                <div class="alert alert-note">此資料不會被加密，但會影響 GCM / ChaCha20 模式的認證標籤。</div>
-            </div>
-
-            <div id="tagLengthGroup" class="input-group" style="display: none">
-                <label class="label-text">認證標籤長度（Bits）</label>
-                <div id="tagLength" class="option-group">
-                    <div class="option selected" data-value="128">128</div>
-                    <div class="option" data-value="120">120</div>
-                    <div class="option" data-value="112">112</div>
-                    <div class="option" data-value="104">104</div>
-                    <div class="option" data-value="96">96</div>
-                </div>
-                <div class="alert alert-note">僅 GCM 模式須指定。</div>
-            </div>
-
-            <div id="inputCiphertextFormatGroup" class="input-group" style="display: none">
-                <label class="label-text">輸入密文格式</label>
-                <div id="inputCiphertextFormat" class="option-group">
-                    <div class="option selected" data-value="base64">Base64</div>
-                    <div class="option" data-value="hex">Hex</div>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label class="label-text">輸出格式</label>
-                <div id="outputFormat" class="option-group">
-                    <div id="optTextFormat" class="option" data-value="plaintext">明文</div>
-                    <div id="optBase64Format" class="option selected" data-value="base64">Base64</div>
-                    <div id="optHexFormat" class="option" data-value="hex">Hex</div>
-                    <div id="optBinaryFileFormat" class="option" data-value="binaryfile" style="display: none">
-                        二進位檔案
-                    </div>
-                </div>
-            </div>
-
-            <button id="btnExecute" data-type="success">加密 (Encrypt)</button>
-            <div id="status" class="status-message"></div>
-            <div class="input-group">
-                <label for="result">結果</label>
-                <textarea id="result" rows="5" readonly placeholder="加解密結果將顯示於此"></textarea>
-                <div class="button-group" style="margin-top: 10px">
-                    <button id="copyResultButton" data-type="secondary">複製結果</button>
-                    <button id="swapTextResultButton" data-type="secondary">交換輸入/輸出</button>
-                    <button id="clearResultButton" data-type="secondary">清除結果</button>
-                </div>
-            </div>
-
-            <hr />
-
-            <div class="button-group" style="justify-content: center">
-                <button id="resetFormButton" data-type="danger">🔁 重置所有設定</button>
-                <button id="runTestsButton" data-type="warning">執行單元測試</button>
-            </div>
-            <div id="testResults" class="alert alert-warning" style="display: none"><h4>測試結果：</h4></div>
+      <div class="input-group">
+        <label class="label-text">輸入來源</label>
+        <div id="inputSource" class="option-group">
+          <div class="option selected" data-value="text">文字輸入</div>
+          <div class="option" data-value="file">檔案輸入</div>
         </div>
+      </div>
 
-        <footer>
-            <p>
-                &copy; <span id="currentYear"></span> Zanta's Utilities
-                <button id="themeToggleBtn" title="切換主題">🌙</button>
-            </p>
-        </footer>
+      <div id="textInputGroup" class="input-group">
+        <label for="text">原始文字 / 密文</label>
+        <textarea id="text" rows="5" placeholder="在此輸入要加密的明文或要解密的密文（Base64/Hex）"></textarea>
+        <div class="button-group" style="margin-top: 10px">
+          <button id="copyTextButton" data-type="secondary">複製</button>
+          <button id="pasteTextButton" data-type="secondary">貼上</button>
+          <button id="clearTextButton" data-type="secondary">清除</button>
+        </div>
+      </div>
 
-        <script type="module">
-            // ---- Library Import ----
-            import { chacha20poly1305 } from "https://cdn.jsdelivr.net/npm/@noble/ciphers/esm/chacha.js";
+      <div id="fileInputGroup" class="input-group" style="display: none">
+        <label for="fileInput">選擇檔案</label>
+        <input type="file" id="fileInput" />
+        <div
+          id="fileNameDisplay"
+          class="alert alert-note"
+          style="margin-top: 10px; display: none; padding: 0.5rem 1rem"
+        ></div>
+      </div>
 
-            // ---- Constants & Configuration ----
-            const APP_NAME_SETTINGS = "unifiedCryptoToolSettings_v2";
-            const AES_IV_BYTE_LENGTH = 16;
-            const CHACHA_KEY_BYTE_LENGTH = 32;
-            const CHACHA_NONCE_BYTE_LENGTH = 12;
+      <div class="input-group">
+        <label class="label-text">加解密演算法</label>
+        <div id="algorithmFamily" class="option-group">
+          <div class="option selected" data-value="AES">AES</div>
+          <div class="option" data-value="ChaCha20">ChaCha20</div>
+        </div>
+      </div>
 
-            const ALGORITHM_MODES = {
-                AES: ["GCM", "CTR", "CBC", "ECB"],
-                ChaCha20: ["Poly1305"],
-            };
+      <div class="input-group">
+        <label class="label-text">模式</label>
+        <div id="encryptionMode" class="option-group"></div>
+        <div class="alert alert-danger" id="ecbWarning" style="display: none">
+          <strong>注意：</strong>ECB 模式通常不安全，因為相同的明文塊會加密成相同的密文塊。建議僅在特殊情況下使用。
+        </div>
+      </div>
 
-            const UI_CONFIG = {
-                GCM: { padding: 0, keySize: 1, iv: 1, tagLength: 1, aad: 1 },
-                CTR: { padding: 0, keySize: 1, iv: 1, tagLength: 0, aad: 0 },
-                CBC: { padding: 1, keySize: 1, iv: 1, tagLength: 0, aad: 0 },
-                ECB: { padding: 1, keySize: 1, iv: 0, tagLength: 0, aad: 0 },
-                Poly1305: { padding: 0, keySize: 0, iv: 1, tagLength: 0, aad: 1 },
-            };
+      <div id="paddingGroup" class="input-group" style="display: none">
+        <label class="label-text">填充模式 (Padding)</label>
+        <div id="padding" class="option-group">
+          <div class="option selected" data-value="Pkcs7">PKCS7</div>
+          <div class="option" data-value="NoPadding">NoPadding</div>
+        </div>
+        <div class="alert alert-note" id="noPaddingNote" style="display: none">
+          使用 NoPadding 時，CBC/ECB 模式的明文長度（UTF-8 編碼後的位元組）必須是 16 的倍數。
+        </div>
+      </div>
 
-            // ---- DOM Element Cache ----
-            const DOMElements = {};
+      <div id="keySizeGroup" class="input-group">
+        <label class="label-text">金鑰長度 (Bits)</label>
+        <div id="keySize" class="option-group">
+          <div class="option selected" data-value="128">128</div>
+          <div class="option" data-value="192">192</div>
+          <div class="option" data-value="256">256</div>
+        </div>
+      </div>
 
-            // --- App State Management ---
-            const AppState = {
-                currentSettings: {},
-                isProcessing: false,
-                loadedFileName: null,
-                loadedFileBuffer: null,
-            };
+      <div class="input-group">
+        <label for="secretKey">金鑰<span class="text-only-note">⚠️【僅支援純文字】</span></label>
+        <input type="text" id="secretKey" placeholder="輸入金鑰文字" />
+        <div id="keyNote" class="alert alert-note">
+          金鑰文字將以 UTF-8 編碼。編碼後的「位元組長度」需符合所選演算法要求。
+        </div>
+        <div id="msgKeyError" class="error-message"></div>
+      </div>
 
-            // ---- Initialization on DOMContentLoaded ----
-            document.addEventListener("DOMContentLoaded", () => {
-                if (typeof CryptoJS === "undefined" || typeof chacha20poly1305 !== "function") {
-                    alert("錯誤：核心加密函式庫未能成功載入！請檢查網路連線或瀏覽器設定。");
-                    return;
-                }
-                cacheDOMElements();
-                loadSettings();
-                TestModule.init();
-                bindEventListeners();
-                UIModule.updateModeOptions(); // First, set up the mode options based on the family
-                UIModule.toggleUI(); // Then, set up the rest of the UI
-                StatusModule.update("工具已就緒。", false);
-                const initialTheme = localStorage.getItem("my-app-theme") || "dark";
-                applyTheme(initialTheme);
+      <div id="ivGroup" class="input-group">
+        <label for="iv"
+          ><span id="ivLabel"></span>
+          <span class="text-only-note">⚠️【僅支援純文字】</span>
+        </label>
+        <div style="display: flex; gap: 10px; align-items: center">
+          <input type="text" id="iv" placeholder="輸入 IV / Nonce 文字" style="flex-grow: 1" />
+          <button id="generateIvButton" data-type="secondary">產生隨機值</button>
+        </div>
+        <div id="ivNote" class="alert alert-note"></div>
+        <div id="msgIVError" class="error-message"></div>
+      </div>
+
+      <div id="aadGroup" class="input-group" style="display: none">
+        <label for="aad">附加驗證資料（AAD）<span class="text-only-note">⚠️【僅支援純文字】</span></label>
+        <textarea id="aad" rows="2" placeholder="輸入 AAD 文字（可選）"></textarea>
+        <div class="alert alert-note">此資料不會被加密，但會影響 GCM / ChaCha20 模式的認證標籤。</div>
+      </div>
+
+      <div id="tagLengthGroup" class="input-group" style="display: none">
+        <label class="label-text">認證標籤長度（Bits）</label>
+        <div id="tagLength" class="option-group">
+          <div class="option selected" data-value="128">128</div>
+          <div class="option" data-value="120">120</div>
+          <div class="option" data-value="112">112</div>
+          <div class="option" data-value="104">104</div>
+          <div class="option" data-value="96">96</div>
+        </div>
+        <div class="alert alert-note">僅 GCM 模式須指定。</div>
+      </div>
+
+      <div id="inputCiphertextFormatGroup" class="input-group" style="display: none">
+        <label class="label-text">輸入密文格式</label>
+        <div id="inputCiphertextFormat" class="option-group">
+          <div class="option selected" data-value="base64">Base64</div>
+          <div class="option" data-value="hex">Hex</div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="label-text">輸出格式</label>
+        <div id="outputFormat" class="option-group">
+          <div id="optTextFormat" class="option" data-value="plaintext">明文</div>
+          <div id="optBase64Format" class="option selected" data-value="base64">Base64</div>
+          <div id="optHexFormat" class="option" data-value="hex">Hex</div>
+          <div id="optBinaryFileFormat" class="option" data-value="binaryfile" style="display: none">二進位檔案</div>
+        </div>
+      </div>
+
+      <button id="btnExecute" data-type="success">加密 (Encrypt)</button>
+      <div id="status" class="status-message"></div>
+      <div class="input-group">
+        <label for="result">結果</label>
+        <textarea id="result" rows="5" readonly placeholder="加解密結果將顯示於此"></textarea>
+        <div class="button-group" style="margin-top: 10px">
+          <button id="copyResultButton" data-type="secondary">複製結果</button>
+          <button id="swapTextResultButton" data-type="secondary">交換輸入/輸出</button>
+          <button id="clearResultButton" data-type="secondary">清除結果</button>
+        </div>
+      </div>
+
+      <hr />
+
+      <div class="button-group" style="justify-content: center">
+        <button id="resetFormButton" data-type="danger">🔁 重置所有設定</button>
+        <button id="runTestsButton" data-type="warning">執行單元測試</button>
+      </div>
+      <div id="testResults" class="alert alert-warning" style="display: none"><h4>測試結果：</h4></div>
+    </div>
+
+    <footer>
+      <p>
+        &copy; <span id="currentYear"></span> Zanta's Utilities
+        <button id="themeToggleBtn" title="切換主題">🌙</button>
+      </p>
+    </footer>
+
+    <script type="module">
+      // ---- Library Import ----
+      import { chacha20poly1305 } from 'https://cdn.jsdelivr.net/npm/@noble/ciphers/esm/chacha.js';
+
+      // ---- Constants & Configuration ----
+      const APP_NAME_SETTINGS = 'unifiedCryptoToolSettings_v2';
+      const AES_IV_BYTE_LENGTH = 16;
+      const CHACHA_KEY_BYTE_LENGTH = 32;
+      const CHACHA_NONCE_BYTE_LENGTH = 12;
+
+      const ALGORITHM_MODES = {
+        AES: ['GCM', 'CTR', 'CBC', 'ECB'],
+        ChaCha20: ['Poly1305'],
+      };
+
+      const UI_CONFIG = {
+        GCM: { padding: 0, keySize: 1, iv: 1, tagLength: 1, aad: 1 },
+        CTR: { padding: 0, keySize: 1, iv: 1, tagLength: 0, aad: 0 },
+        CBC: { padding: 1, keySize: 1, iv: 1, tagLength: 0, aad: 0 },
+        ECB: { padding: 1, keySize: 1, iv: 0, tagLength: 0, aad: 0 },
+        Poly1305: { padding: 0, keySize: 0, iv: 1, tagLength: 0, aad: 1 },
+      };
+
+      // ---- DOM Element Cache ----
+      const DOMElements = {};
+
+      // --- App State Management ---
+      const AppState = {
+        currentSettings: {},
+        isProcessing: false,
+        loadedFileName: null,
+        loadedFileBuffer: null,
+      };
+
+      // ---- Initialization on DOMContentLoaded ----
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof CryptoJS === 'undefined' || typeof chacha20poly1305 !== 'function') {
+          alert('錯誤：核心加密函式庫未能成功載入！請檢查網路連線或瀏覽器設定。');
+          return;
+        }
+        cacheDOMElements();
+        loadSettings();
+        TestModule.init();
+        bindEventListeners();
+        UIModule.updateModeOptions(); // First, set up the mode options based on the family
+        UIModule.toggleUI(); // Then, set up the rest of the UI
+        StatusModule.update('工具已就緒。', false);
+        const initialTheme = localStorage.getItem('my-app-theme') || 'dark';
+        applyTheme(initialTheme);
+      });
+
+      function cacheDOMElements() {
+        const ids = [
+          'functionMode',
+          'inputSource',
+          'textInputGroup',
+          'fileInputGroup',
+          'text',
+          'fileInput',
+          'fileNameDisplay',
+          'algorithmFamily',
+          'encryptionMode',
+          'ecbWarning',
+          'paddingGroup',
+          'padding',
+          'noPaddingNote',
+          'keySizeGroup',
+          'keySize',
+          'secretKey',
+          'keyNote',
+          'msgKeyError',
+          'ivGroup',
+          'iv',
+          'ivLabel',
+          'ivNote',
+          'generateIvButton',
+          'msgIVError',
+          'aadGroup',
+          'aad',
+          'tagLengthGroup',
+          'tagLength',
+          'inputCiphertextFormatGroup',
+          'inputCiphertextFormat',
+          'outputFormat',
+          'optTextFormat',
+          'optBase64Format',
+          'optHexFormat',
+          'optBinaryFileFormat',
+          'btnExecute',
+          'result',
+          'status',
+          'copyTextButton',
+          'pasteTextButton',
+          'clearTextButton',
+          'copyResultButton',
+          'clearResultButton',
+          'swapTextResultButton',
+          'resetFormButton',
+          'runTestsButton',
+          'testResults',
+          'themeToggleBtn',
+          'currentYear',
+          'securityNote-AES',
+          'securityNote-ChaCha20',
+        ];
+        ids.forEach((id) => (DOMElements[id] = document.getElementById(id)));
+      }
+
+      // ---- Settings (localStorage) ----
+      function saveSettings() {
+        try {
+          localStorage.setItem(APP_NAME_SETTINGS, JSON.stringify(AppState.currentSettings));
+        } catch (e) {
+          console.warn('無法儲存設定:', e);
+        }
+      }
+
+      function loadSettings() {
+        const defaultSettings = {
+          functionMode: 'encrypt',
+          inputSource: 'text',
+          algorithmFamily: 'AES',
+          encryptionMode: 'GCM',
+          padding: 'Pkcs7',
+          keySize: '128',
+          tagLength: '128',
+          inputCiphertextFormat: 'base64',
+          outputFormat: 'base64',
+        };
+        AppState.currentSettings = { ...defaultSettings };
+        try {
+          const saved = localStorage.getItem(APP_NAME_SETTINGS);
+          if (saved) Object.assign(AppState.currentSettings, JSON.parse(saved));
+        } catch (e) {
+          console.warn('無法載入設定:', e);
+          AppState.currentSettings = { ...defaultSettings };
+        }
+        applySettingsToUI();
+      }
+
+      function applySettingsToUI() {
+        selectOptionByValue(DOMElements.functionMode, AppState.currentSettings.functionMode);
+        selectOptionByValue(DOMElements.inputSource, AppState.currentSettings.inputSource);
+        selectOptionByValue(DOMElements.algorithmFamily, AppState.currentSettings.algorithmFamily);
+        // Mode options depend on family, will be set by updateModeOptions
+        selectOptionByValue(DOMElements.padding, AppState.currentSettings.padding);
+        selectOptionByValue(DOMElements.keySize, AppState.currentSettings.keySize);
+        selectOptionByValue(DOMElements.tagLength, AppState.currentSettings.tagLength);
+        selectOptionByValue(DOMElements.inputCiphertextFormat, AppState.currentSettings.inputCiphertextFormat);
+      }
+
+      function updateCurrentSetting(key, value) {
+        if (AppState.currentSettings.hasOwnProperty(key)) {
+          AppState.currentSettings[key] = value;
+          saveSettings();
+        }
+      }
+
+      // ---- Theme Module ----
+      function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        DOMElements.themeToggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+        localStorage.setItem('my-app-theme', theme);
+      }
+
+      // ---- UI Module ----
+      const UIModule = {
+        updateModeOptions: function () {
+          const { algorithmFamily, encryptionMode } = AppState.currentSettings;
+          const modes = ALGORITHM_MODES[algorithmFamily];
+          DOMElements.encryptionMode.innerHTML = modes
+            .map((mode) => `<div class="option" data-value="${mode}">${mode}</div>`)
+            .join('');
+
+          // Reselect current or default mode
+          const currentModeIsValid = modes.includes(encryptionMode);
+          const newMode = currentModeIsValid ? encryptionMode : modes[0];
+          updateCurrentSetting('encryptionMode', newMode);
+          selectOptionByValue(DOMElements.encryptionMode, newMode);
+        },
+
+        toggleUI: function () {
+          const { functionMode, algorithmFamily, encryptionMode, inputSource, padding } = AppState.currentSettings;
+          const config = UI_CONFIG[encryptionMode];
+          if (!config) return;
+
+          const isEncrypt = functionMode === 'encrypt';
+
+          // Toggle visibility of sections based on config
+          DOMElements.textInputGroup.style.display = inputSource === 'text' ? 'block' : 'none';
+          DOMElements.fileInputGroup.style.display = inputSource === 'file' ? 'block' : 'none';
+          DOMElements.paddingGroup.style.display = config.padding ? 'block' : 'none';
+          DOMElements.keySizeGroup.style.display = config.keySize ? 'block' : 'none';
+          DOMElements.ivGroup.style.display = config.iv ? 'block' : 'none';
+          DOMElements.aadGroup.style.display = config.aad ? 'block' : 'none';
+          DOMElements.tagLengthGroup.style.display = config.tagLength ? 'block' : 'none';
+          DOMElements.noPaddingNote.style.display = config.padding && padding === 'NoPadding' ? 'block' : 'none';
+          DOMElements.ecbWarning.style.display = encryptionMode === 'ECB' ? 'block' : 'none';
+
+          // Update dynamic labels and notes
+          const isChaCha = algorithmFamily === 'ChaCha20';
+
+          DOMElements.ivLabel.textContent = isChaCha ? 'Nonce' : '初始向量 (IV)';
+          DOMElements.iv.placeholder = isChaCha
+            ? `需 ${CHACHA_NONCE_BYTE_LENGTH} 位元組`
+            : `需 ${AES_IV_BYTE_LENGTH} 位元組`;
+          DOMElements.keyNote.innerHTML = isChaCha
+            ? `金鑰文字將以 UTF-8 編碼。編碼後的「位元組長度」<strong>必須</strong>是 <strong>${CHACHA_KEY_BYTE_LENGTH}</strong> 位元組。`
+            : `金鑰文字將以 UTF-8 編碼。編碼後的「位元組長度」需符合上方所選金鑰長度。`;
+
+          let baseNote,
+            warningNote = '';
+          if (isChaCha) {
+            baseNote = `Nonce 為必填，UTF-8 編碼後<strong>必須</strong>為 <strong>${CHACHA_NONCE_BYTE_LENGTH}</strong> 位元組。`;
+            warningNote = `<strong>重要：</strong>同一金鑰每次加密的 Nonce 必須唯一！`;
+          } else {
+            // AES
+            baseNote = `IV 為必填，UTF-8 編碼後應為 <strong>${AES_IV_BYTE_LENGTH}</strong> 位元組。`;
+            if (['GCM', 'CTR'].includes(encryptionMode)) {
+              warningNote = `<strong>重要：</strong>同一金鑰每次加密的 IV 必須唯一！`;
+            } else if (encryptionMode === 'CBC') {
+              warningNote = `為達安全性，IV 必須是不可預測的（隨機產生）。`;
+            }
+          }
+          DOMElements.ivNote.innerHTML = baseNote + (warningNote ? `<br/>${warningNote}` : '');
+
+          // Update security notes
+          DOMElements['securityNote-AES'].style.display = !isChaCha ? 'list-item' : 'none';
+          DOMElements['securityNote-ChaCha20'].style.display = isChaCha ? 'list-item' : 'none';
+
+          // Update main execute button
+          DOMElements.btnExecute.textContent = isEncrypt ? '加密 (Encrypt)' : '解密 (Decrypt)';
+          DOMElements.btnExecute.dataset.type = isEncrypt ? 'success' : 'danger';
+          DOMElements.inputCiphertextFormatGroup.style.display = isEncrypt ? 'none' : 'block';
+          DOMElements.text.placeholder = isEncrypt ? '在此輸入要加密的明文' : '在此輸入要解密的密文（Base64/Hex）';
+
+          // Control visibility of output format options
+          DOMElements.optTextFormat.style.display = isEncrypt ? 'none' : 'block';
+          DOMElements.optBase64Format.style.display = 'block';
+          DOMElements.optHexFormat.style.display = 'block';
+          DOMElements.optBinaryFileFormat.style.display = inputSource === 'file' ? 'block' : 'none';
+
+          // Ensure a valid output format is selected
+          const currentOutputOptionEl = DOMElements.outputFormat.querySelector(
+            `.option[data-value='${AppState.currentSettings.outputFormat}']`
+          );
+          if (!currentOutputOptionEl || currentOutputOptionEl.style.display === 'none') {
+            let newDefault = isEncrypt
+              ? inputSource === 'text'
+                ? 'base64'
+                : 'binaryfile'
+              : inputSource === 'text'
+                ? 'plaintext'
+                : 'binaryfile';
+            AppState.currentSettings.outputFormat = newDefault;
+            saveSettings();
+          }
+          selectOptionByValue(DOMElements.outputFormat, AppState.currentSettings.outputFormat);
+        },
+
+        resetForm: function () {
+          const fieldsToClear = [
+            DOMElements.text,
+            DOMElements.secretKey,
+            DOMElements.iv,
+            DOMElements.aad,
+            DOMElements.result,
+          ];
+          fieldsToClear.forEach((el) => (el.value = ''));
+          DOMElements.fileInput.value = '';
+          AppState.loadedFileName = null;
+          AppState.loadedFileBuffer = null;
+          DOMElements.fileNameDisplay.style.display = 'none';
+          [DOMElements.msgKeyError, DOMElements.msgIVError].forEach((el) => (el.textContent = ''));
+          StatusModule.clear();
+          loadSettings();
+          UIModule.updateModeOptions();
+          UIModule.toggleUI();
+        },
+
+        handleFileUpload: function (event) {
+          const file = event.target.files[0];
+          if (!file) {
+            AppState.loadedFileName = null;
+            AppState.loadedFileBuffer = null;
+            DOMElements.fileNameDisplay.style.display = 'none';
+            return;
+          }
+          AppState.loadedFileName = file.name;
+          DOMElements.fileNameDisplay.textContent = `已選擇檔案: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+          DOMElements.fileNameDisplay.style.display = 'block';
+          const reader = new FileReader();
+          reader.onload = (e) => (AppState.loadedFileBuffer = e.target.result);
+          reader.onerror = () => StatusModule.update('讀取檔案失敗。', true);
+          reader.readAsArrayBuffer(file);
+        },
+      };
+
+      // ---- Encoding & Helper Utilities ----
+      const EncodingUtils = {
+        toUint8Array: (data) => {
+          if (typeof data === 'string') return new TextEncoder().encode(data);
+          if (data instanceof ArrayBuffer) return new Uint8Array(data);
+          if (data instanceof Uint8Array) return data;
+          throw new Error('不支援的轉換來源資料型別');
+        },
+        base64ToBytes: (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
+        bytesToBase64: (bytes) => btoa(String.fromCharCode.apply(null, bytes)),
+        hexToBytes: (hex) => {
+          if (!/^[0-9a-fA-F]+$/.test(hex) || hex.length % 2 !== 0) throw new Error('無效的 Hex 字串格式。');
+          return Uint8Array.from(hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+        },
+        bytesToHex: (bytes) => bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), ''),
+        bytesToString: (bytes) => new TextDecoder().decode(bytes),
+        generateRandomBytes: (byteLength) => window.crypto.getRandomValues(new Uint8Array(byteLength)),
+        bytesToRandomAscii: (bytes) => {
+          const PURE_ASCII = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          return Array.from(bytes)
+            .map((byte) => PURE_ASCII[byte % PURE_ASCII.length])
+            .join('');
+        },
+      };
+
+      const HelperUtils = {
+        copyToClipboard: (elementId) => {
+          const el = DOMElements[elementId];
+          if (!el || !el.value) return StatusModule.update('沒有內容可複製。', true);
+          navigator.clipboard.writeText(el.value).then(
+            () => StatusModule.update('已複製到剪貼簿。', false),
+            () => StatusModule.update('複製失敗。請檢查瀏覽器權限或手動複製。', true)
+          );
+        },
+        pasteFromClipboard: async (elementId) => {
+          try {
+            DOMElements[elementId].value = await navigator.clipboard.readText();
+            StatusModule.update('已貼上內容。', false);
+          } catch (e) {
+            StatusModule.update('貼上失敗。請檢查瀏覽器權限或手動貼上。', true);
+          }
+        },
+        clearValue: (elementId) => {
+          DOMElements[elementId].value = '';
+        },
+        swapTextAndResult: () => {
+          [DOMElements.text.value, DOMElements.result.value] = [DOMElements.result.value, DOMElements.text.value];
+          StatusModule.update('輸入與結果已交換。', false);
+        },
+        downloadBytes: (bytes, fname) => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(new Blob([bytes]));
+          a.download = fname || 'download.bin';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(a.href);
+        },
+        generateOutputFileName: (originalName, operation) => {
+          const prefix = operation === 'encrypt' ? 'encrypted_' : 'decrypted_';
+          if (!originalName) return `${prefix}output.bin`;
+          const extIndex = originalName.lastIndexOf('.');
+          const baseName = extIndex > 0 ? originalName.substring(0, extIndex) : originalName;
+          const ext = extIndex > 0 ? originalName.substring(extIndex) : '.bin';
+          return `${prefix}${baseName.replace(/^(encrypted_|decrypted_)/i, '')}${ext}`;
+        },
+      };
+
+      // ---- Validation & Status Modules ----
+      const ValidationModule = {
+        validateAllInputs: function () {
+          DOMElements.msgKeyError.textContent = '';
+          DOMElements.msgIVError.textContent = '';
+          let isValid = true;
+
+          const { algorithmFamily, encryptionMode, keySize } = AppState.currentSettings;
+          const config = UI_CONFIG[encryptionMode];
+
+          const keyErr = this.validateKey(DOMElements.secretKey.value, algorithmFamily, keySize);
+          if (keyErr) {
+            StatusModule.displayError(keyErr, DOMElements.msgKeyError);
+            isValid = false;
+          }
+
+          if (config && config.iv) {
+            const ivErr = this.validateIv(DOMElements.iv.value, algorithmFamily);
+            if (ivErr) {
+              StatusModule.displayError(ivErr, DOMElements.msgIVError);
+              isValid = false;
+            }
+          }
+          return isValid;
+        },
+        validateKey: (key, family, aesKeySize) => {
+          if (!key) return '* 金鑰為必填。';
+          const keyBytes = EncodingUtils.toUint8Array(key);
+          if (family === 'ChaCha20') {
+            if (keyBytes.length !== CHACHA_KEY_BYTE_LENGTH)
+              return `* ChaCha20 金鑰 UTF-8 編碼後為 ${keyBytes.length} 位元組，應為 ${CHACHA_KEY_BYTE_LENGTH} 位元組。`;
+          } else {
+            // AES modes
+            const reqBytes = parseInt(aesKeySize) / 8;
+            if (keyBytes.length !== reqBytes)
+              return `* AES 金鑰 UTF-8 編碼後為 ${keyBytes.length} 位元組，應為 ${reqBytes} 位元組。`;
+          }
+          return null;
+        },
+        validateIv: (iv, family) => {
+          if (!iv) return '* IV/Nonce 為必填。';
+          const ivBytes = EncodingUtils.toUint8Array(iv);
+          if (family === 'ChaCha20') {
+            if (ivBytes.length !== CHACHA_NONCE_BYTE_LENGTH)
+              return `* ChaCha20 Nonce UTF-8 編碼後為 ${ivBytes.length} 位元組，應為 ${CHACHA_NONCE_BYTE_LENGTH} 位元組。`;
+          } else {
+            // AES modes (GCM, CTR, CBC)
+            if (ivBytes.length !== AES_IV_BYTE_LENGTH)
+              return `* AES IV UTF-8 編碼後為 ${ivBytes.length} 位元組，應為 ${AES_IV_BYTE_LENGTH} 位元組。`;
+          }
+          return null;
+        },
+      };
+
+      const StatusModule = {
+        update: (msg, isErr, mode = 'normal') => {
+          const el = DOMElements.status;
+          if (mode === 'append' && el.innerHTML) {
+            el.innerHTML += `<br>${msg}`;
+          } else {
+            el.textContent = msg;
+          }
+          el.className = `status-message ${isErr ? 'status-error' : 'status-success'} active`;
+        },
+        clear: () => {
+          DOMElements.status.className = 'status-message';
+          DOMElements.status.textContent = '';
+        },
+        displayError: (msg, el) => {
+          if (el) el.textContent = msg;
+          StatusModule.update('輸入驗證失敗。請檢查下方提示。', true);
+        },
+      };
+
+      // ---- Crypto Module (The Core) ----
+      const CryptoModule = {
+        processData: async function () {
+          if (AppState.isProcessing) return;
+          AppState.isProcessing = true;
+          DOMElements.btnExecute.disabled = true;
+          StatusModule.clear();
+
+          if (!ValidationModule.validateAllInputs()) {
+            AppState.isProcessing = false;
+            DOMElements.btnExecute.disabled = false;
+            return;
+          }
+
+          const { functionMode, outputFormat, inputSource } = AppState.currentSettings;
+          let dataToProcess = inputSource === 'text' ? DOMElements.text.value : AppState.loadedFileBuffer;
+
+          if (!dataToProcess) {
+            StatusModule.update('錯誤：沒有輸入內容。', true);
+            AppState.isProcessing = false;
+            DOMElements.btnExecute.disabled = false;
+            return;
+          }
+
+          const opParams = {
+            settings: { ...AppState.currentSettings },
+            key: DOMElements.secretKey.value,
+            iv: DOMElements.iv.value,
+            aad: DOMElements.aad.value,
+          };
+
+          try {
+            let resultBytes;
+            if (functionMode === 'encrypt') {
+              resultBytes = await this.performEncryption(dataToProcess, opParams);
+            } else {
+              resultBytes = await this.performDecryption(dataToProcess, opParams);
+            }
+
+            if (outputFormat === 'binaryfile') {
+              const fname = HelperUtils.generateOutputFileName(AppState.loadedFileName, functionMode);
+              HelperUtils.downloadBytes(resultBytes, fname);
+              DOMElements.result.value = `檔案 "${fname}" 已開始下載。`;
+            } else {
+              DOMElements.result.value =
+                outputFormat === 'plaintext'
+                  ? EncodingUtils.bytesToString(resultBytes)
+                  : outputFormat === 'base64'
+                    ? EncodingUtils.bytesToBase64(resultBytes)
+                    : EncodingUtils.bytesToHex(resultBytes);
+            }
+            StatusModule.update(`${functionMode === 'encrypt' ? '加密' : '解密'}成功`, false);
+          } catch (error) {
+            console.error('處理錯誤:', error);
+            StatusModule.update(`錯誤: ${error.message || error}`, true);
+            if (
+              error.message?.toLowerCase().includes('decryption failed') ||
+              error.name === 'OperationError' ||
+              error.message?.toLowerCase().includes('bad decrypt') ||
+              error.message?.toLowerCase().includes('tag')
+            ) {
+              StatusModule.update(
+                ' (這通常表示金鑰、IV/Nonce、密文或 AAD 不匹配，或密文已被篡改。CBC/ECB模式下，也可能是填充問題)',
+                true,
+                'append'
+              );
+            }
+          } finally {
+            AppState.isProcessing = false;
+            DOMElements.btnExecute.disabled = false;
+          }
+        },
+
+        performEncryption: async function (plainData, opParams) {
+          const { settings, key, iv, aad } = opParams;
+          const { algorithmFamily, encryptionMode, padding, tagLength } = settings;
+
+          const keyBytes = EncodingUtils.toUint8Array(key);
+          const ivBytes = EncodingUtils.toUint8Array(iv);
+          const aadBytes = EncodingUtils.toUint8Array(aad);
+          const plainBytes = EncodingUtils.toUint8Array(plainData);
+
+          if (algorithmFamily === 'ChaCha20') {
+            const aead = chacha20poly1305(keyBytes, ivBytes, aadBytes);
+            return aead.encrypt(plainBytes);
+          }
+
+          // --- AES Modes ---
+          const apiMode = `AES-${encryptionMode}`;
+          if (encryptionMode === 'GCM' || encryptionMode === 'CTR') {
+            const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, { name: apiMode }, false, ['encrypt']);
+            const alg = { name: apiMode, iv: ivBytes };
+            if (encryptionMode === 'GCM') {
+              alg.tagLength = parseInt(tagLength);
+              if (aadBytes.length > 0) alg.additionalData = aadBytes;
+            }
+            if (encryptionMode === 'CTR') {
+              alg.counter = ivBytes;
+              alg.length = 64;
+            }
+            return new Uint8Array(await crypto.subtle.encrypt(alg, cryptoKey, plainBytes));
+          } else {
+            // CBC, ECB via CryptoJS
+            const keyC = CryptoJS.enc.Utf8.parse(key);
+            const ivC = encryptionMode === 'CBC' ? CryptoJS.enc.Utf8.parse(iv) : undefined;
+            const dataC = CryptoJS.lib.WordArray.create(plainBytes);
+            const encrypted = CryptoJS.AES.encrypt(dataC, keyC, {
+              mode: encryptionMode === 'CBC' ? CryptoJS.mode.CBC : CryptoJS.mode.ECB,
+              padding: padding === 'Pkcs7' ? CryptoJS.pad.Pkcs7 : CryptoJS.pad.NoPadding,
+              iv: ivC,
             });
+            return EncodingUtils.hexToBytes(encrypted.ciphertext.toString(CryptoJS.enc.Hex));
+          }
+        },
 
-            function cacheDOMElements() {
-                const ids = [
-                    "functionMode",
-                    "inputSource",
-                    "textInputGroup",
-                    "fileInputGroup",
-                    "text",
-                    "fileInput",
-                    "fileNameDisplay",
-                    "algorithmFamily",
-                    "encryptionMode",
-                    "ecbWarning",
-                    "paddingGroup",
-                    "padding",
-                    "noPaddingNote",
-                    "keySizeGroup",
-                    "keySize",
-                    "secretKey",
-                    "keyNote",
-                    "msgKeyError",
-                    "ivGroup",
-                    "iv",
-                    "ivLabel",
-                    "ivNote",
-                    "generateIvButton",
-                    "msgIVError",
-                    "aadGroup",
-                    "aad",
-                    "tagLengthGroup",
-                    "tagLength",
-                    "inputCiphertextFormatGroup",
-                    "inputCiphertextFormat",
-                    "outputFormat",
-                    "optTextFormat",
-                    "optBase64Format",
-                    "optHexFormat",
-                    "optBinaryFileFormat",
-                    "btnExecute",
-                    "result",
-                    "status",
-                    "copyTextButton",
-                    "pasteTextButton",
-                    "clearTextButton",
-                    "copyResultButton",
-                    "clearResultButton",
-                    "swapTextResultButton",
-                    "resetFormButton",
-                    "runTestsButton",
-                    "testResults",
-                    "themeToggleBtn",
-                    "currentYear",
-                    "securityNote-AES",
-                    "securityNote-ChaCha20",
-                ];
-                ids.forEach((id) => (DOMElements[id] = document.getElementById(id)));
+        performDecryption: async function (cipherData, opParams) {
+          const { settings, key, iv, aad } = opParams;
+          const { algorithmFamily, encryptionMode, padding, tagLength, inputCiphertextFormat } = settings;
+
+          const keyBytes = EncodingUtils.toUint8Array(key);
+          const ivBytes = EncodingUtils.toUint8Array(iv);
+          const aadBytes = EncodingUtils.toUint8Array(aad);
+          const cipherBytes =
+            typeof cipherData === 'string'
+              ? inputCiphertextFormat === 'base64'
+                ? EncodingUtils.base64ToBytes(cipherData)
+                : EncodingUtils.hexToBytes(cipherData)
+              : EncodingUtils.toUint8Array(cipherData);
+
+          if (algorithmFamily === 'ChaCha20') {
+            const aead = chacha20poly1305(keyBytes, ivBytes, aadBytes);
+            return aead.decrypt(cipherBytes);
+          }
+
+          // --- AES Modes ---
+          const apiMode = `AES-${encryptionMode}`;
+          if (encryptionMode === 'GCM' || encryptionMode === 'CTR') {
+            const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, { name: apiMode }, false, ['decrypt']);
+            const alg = { name: apiMode, iv: ivBytes };
+            if (encryptionMode === 'GCM') {
+              alg.tagLength = parseInt(tagLength);
+              if (aadBytes.length > 0) alg.additionalData = aadBytes;
             }
-
-            // ---- Settings (localStorage) ----
-            function saveSettings() {
-                try {
-                    localStorage.setItem(APP_NAME_SETTINGS, JSON.stringify(AppState.currentSettings));
-                } catch (e) {
-                    console.warn("無法儲存設定:", e);
-                }
+            if (encryptionMode === 'CTR') {
+              alg.counter = ivBytes;
+              alg.length = 64;
             }
-
-            function loadSettings() {
-                const defaultSettings = {
-                    functionMode: "encrypt",
-                    inputSource: "text",
-                    algorithmFamily: "AES",
-                    encryptionMode: "GCM",
-                    padding: "Pkcs7",
-                    keySize: "128",
-                    tagLength: "128",
-                    inputCiphertextFormat: "base64",
-                    outputFormat: "base64",
-                };
-                AppState.currentSettings = { ...defaultSettings };
-                try {
-                    const saved = localStorage.getItem(APP_NAME_SETTINGS);
-                    if (saved) Object.assign(AppState.currentSettings, JSON.parse(saved));
-                } catch (e) {
-                    console.warn("無法載入設定:", e);
-                    AppState.currentSettings = { ...defaultSettings };
-                }
-                applySettingsToUI();
+            return new Uint8Array(await crypto.subtle.decrypt(alg, cryptoKey, cipherBytes));
+          } else {
+            // CBC, ECB via CryptoJS
+            const keyC = CryptoJS.enc.Utf8.parse(key);
+            const ivC = encryptionMode === 'CBC' ? CryptoJS.enc.Utf8.parse(iv) : undefined;
+            const cipherTextForCryptoJS = CryptoJS.enc.Base64.parse(EncodingUtils.bytesToBase64(cipherBytes));
+            const decrypted = CryptoJS.AES.decrypt({ ciphertext: cipherTextForCryptoJS }, keyC, {
+              mode: encryptionMode === 'CBC' ? CryptoJS.mode.CBC : CryptoJS.mode.ECB,
+              padding: padding === 'Pkcs7' ? CryptoJS.pad.Pkcs7 : CryptoJS.pad.NoPadding,
+              iv: ivC,
+            });
+            if (decrypted.sigBytes <= 0 && cipherBytes.length > 0) {
+              throw new Error('解密失敗。請檢查金鑰、IV、密文格式或填充模式。');
             }
+            return EncodingUtils.hexToBytes(decrypted.toString(CryptoJS.enc.Hex));
+          }
+        },
+      };
 
-            function applySettingsToUI() {
-                selectOptionByValue(DOMElements.functionMode, AppState.currentSettings.functionMode);
-                selectOptionByValue(DOMElements.inputSource, AppState.currentSettings.inputSource);
-                selectOptionByValue(DOMElements.algorithmFamily, AppState.currentSettings.algorithmFamily);
-                // Mode options depend on family, will be set by updateModeOptions
-                selectOptionByValue(DOMElements.padding, AppState.currentSettings.padding);
-                selectOptionByValue(DOMElements.keySize, AppState.currentSettings.keySize);
-                selectOptionByValue(DOMElements.tagLength, AppState.currentSettings.tagLength);
-                selectOptionByValue(DOMElements.inputCiphertextFormat, AppState.currentSettings.inputCiphertextFormat);
+      // ---- Unit Test Module ----
+      const TestModule = {
+        testResultsContainer: null,
+        tests: [],
+        init: function () {
+          this.testResultsContainer = DOMElements.testResults;
+          this.tests = [];
+
+          const add = (name, fn) => this.tests.push({ name, fn });
+          const assert = (cond, msg) => {
+            if (!cond) throw new Error(msg || 'Assertion failed');
+          };
+          const assertEqual = (actual, expected, msg) => {
+            if (actual !== expected) throw new Error(msg || `預期 "${expected}" 但得到 "${actual}"`);
+          };
+          const assertThrows = async (func, expectedErrorMsg) => {
+            try {
+              await func();
+              throw new Error('預期函式會拋出錯誤，但它沒有。');
+            } catch (e) {
+              if (!e.message.toLowerCase().includes(expectedErrorMsg.toLowerCase())) {
+                throw new Error(`函式拋出了錯誤，但訊息不符。預期包含 '${expectedErrorMsg}'，但收到 '${e.message}'`);
+              }
             }
+          };
 
-            function updateCurrentSetting(key, value) {
-                if (AppState.currentSettings.hasOwnProperty(key)) {
-                    AppState.currentSettings[key] = value;
-                    saveSettings();
-                }
-            }
+          const runTest = async (testParams) => {
+            const { p, settings } = testParams;
+            const enc = await CryptoModule.performEncryption(p, testParams);
+            assert(enc && enc.length > 0, `${settings.encryptionMode} 加密未產生輸出`);
+            const dec = await CryptoModule.performDecryption(enc, testParams);
+            assertEqual(EncodingUtils.bytesToString(dec), p, `${settings.encryptionMode} 解密不匹配`);
+          };
 
-            // ---- Theme Module ----
-            function applyTheme(theme) {
-                document.documentElement.setAttribute("data-theme", theme);
-                DOMElements.themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
-                localStorage.setItem("my-app-theme", theme);
-            }
+          add('AES-GCM (WebCrypto)', async () => {
+            await runTest({
+              p: 'GCM test!',
+              key: 'mygcmtestkey1234',
+              iv: 'mygcmivtext12345',
+              aad: 'gcmAADdata',
+              settings: { algorithmFamily: 'AES', encryptionMode: 'GCM', tagLength: '128' },
+            });
+          });
 
-            // ---- UI Module ----
-            const UIModule = {
-                updateModeOptions: function () {
-                    const { algorithmFamily, encryptionMode } = AppState.currentSettings;
-                    const modes = ALGORITHM_MODES[algorithmFamily];
-                    DOMElements.encryptionMode.innerHTML = modes
-                        .map((mode) => `<div class="option" data-value="${mode}">${mode}</div>`)
-                        .join("");
+          add('AES-CBC-PKCS7 (CryptoJS)', async () => {
+            await runTest({
+              p: 'CBC test with padding.',
+              key: 'mycbckeyis16byte',
+              iv: 'mycbcivtextis16b',
+              aad: '',
+              settings: { algorithmFamily: 'AES', encryptionMode: 'CBC', padding: 'Pkcs7' },
+            });
+          });
 
-                    // Reselect current or default mode
-                    const currentModeIsValid = modes.includes(encryptionMode);
-                    const newMode = currentModeIsValid ? encryptionMode : modes[0];
-                    updateCurrentSetting("encryptionMode", newMode);
-                    selectOptionByValue(DOMElements.encryptionMode, newMode);
-                },
+          add('AES-CTR (WebCrypto)', async () => {
+            await runTest({
+              p: 'CTR test message here!',
+              key: 'myctrtestkey1234',
+              iv: 'myctrivtext12345',
+              aad: '',
+              settings: { algorithmFamily: 'AES', encryptionMode: 'CTR' },
+            });
+          });
 
-                toggleUI: function () {
-                    const { functionMode, algorithmFamily, encryptionMode, inputSource, padding } =
-                        AppState.currentSettings;
-                    const config = UI_CONFIG[encryptionMode];
-                    if (!config) return;
+          add('ChaCha20-Poly1305 (@noble/ciphers)', async () => {
+            await runTest({
+              p: 'ChaCha20 test message!',
+              key: '12345678901234567890123456789012',
+              iv: '123456789012',
+              aad: 'Some AAD',
+              settings: { algorithmFamily: 'ChaCha20', encryptionMode: 'Poly1305' },
+            });
+          });
 
-                    const isEncrypt = functionMode === "encrypt";
-
-                    // Toggle visibility of sections based on config
-                    DOMElements.textInputGroup.style.display = inputSource === "text" ? "block" : "none";
-                    DOMElements.fileInputGroup.style.display = inputSource === "file" ? "block" : "none";
-                    DOMElements.paddingGroup.style.display = config.padding ? "block" : "none";
-                    DOMElements.keySizeGroup.style.display = config.keySize ? "block" : "none";
-                    DOMElements.ivGroup.style.display = config.iv ? "block" : "none";
-                    DOMElements.aadGroup.style.display = config.aad ? "block" : "none";
-                    DOMElements.tagLengthGroup.style.display = config.tagLength ? "block" : "none";
-                    DOMElements.noPaddingNote.style.display =
-                        config.padding && padding === "NoPadding" ? "block" : "none";
-                    DOMElements.ecbWarning.style.display = encryptionMode === "ECB" ? "block" : "none";
-
-                    // Update dynamic labels and notes
-                    const isChaCha = algorithmFamily === "ChaCha20";
-
-                    DOMElements.ivLabel.textContent = isChaCha ? "Nonce" : "初始向量 (IV)";
-                    DOMElements.iv.placeholder = isChaCha
-                        ? `需 ${CHACHA_NONCE_BYTE_LENGTH} 位元組`
-                        : `需 ${AES_IV_BYTE_LENGTH} 位元組`;
-                    DOMElements.keyNote.innerHTML = isChaCha
-                        ? `金鑰文字將以 UTF-8 編碼。編碼後的「位元組長度」<strong>必須</strong>是 <strong>${CHACHA_KEY_BYTE_LENGTH}</strong> 位元組。`
-                        : `金鑰文字將以 UTF-8 編碼。編碼後的「位元組長度」需符合上方所選金鑰長度。`;
-
-                    let baseNote,
-                        warningNote = "";
-                    if (isChaCha) {
-                        baseNote = `Nonce 為必填，UTF-8 編碼後<strong>必須</strong>為 <strong>${CHACHA_NONCE_BYTE_LENGTH}</strong> 位元組。`;
-                        warningNote = `<strong>重要：</strong>同一金鑰每次加密的 Nonce 必須唯一！`;
-                    } else {
-                        // AES
-                        baseNote = `IV 為必填，UTF-8 編碼後應為 <strong>${AES_IV_BYTE_LENGTH}</strong> 位元組。`;
-                        if (["GCM", "CTR"].includes(encryptionMode)) {
-                            warningNote = `<strong>重要：</strong>同一金鑰每次加密的 IV 必須唯一！`;
-                        } else if (encryptionMode === "CBC") {
-                            warningNote = `為達安全性，IV 必須是不可預測的（隨機產生）。`;
-                        }
-                    }
-                    DOMElements.ivNote.innerHTML = baseNote + (warningNote ? `<br/>${warningNote}` : "");
-
-                    // Update security notes
-                    DOMElements["securityNote-AES"].style.display = !isChaCha ? "list-item" : "none";
-                    DOMElements["securityNote-ChaCha20"].style.display = isChaCha ? "list-item" : "none";
-
-                    // Update main execute button
-                    DOMElements.btnExecute.textContent = isEncrypt ? "加密 (Encrypt)" : "解密 (Decrypt)";
-                    DOMElements.btnExecute.dataset.type = isEncrypt ? "success" : "danger";
-                    DOMElements.inputCiphertextFormatGroup.style.display = isEncrypt ? "none" : "block";
-                    DOMElements.text.placeholder = isEncrypt
-                        ? "在此輸入要加密的明文"
-                        : "在此輸入要解密的密文（Base64/Hex）";
-
-                    // Control visibility of output format options
-                    DOMElements.optTextFormat.style.display = isEncrypt ? "none" : "block";
-                    DOMElements.optBase64Format.style.display = "block";
-                    DOMElements.optHexFormat.style.display = "block";
-                    DOMElements.optBinaryFileFormat.style.display = inputSource === "file" ? "block" : "none";
-
-                    // Ensure a valid output format is selected
-                    const currentOutputOptionEl = DOMElements.outputFormat.querySelector(
-                        `.option[data-value='${AppState.currentSettings.outputFormat}']`
-                    );
-                    if (!currentOutputOptionEl || currentOutputOptionEl.style.display === "none") {
-                        let newDefault = isEncrypt
-                            ? inputSource === "text"
-                                ? "base64"
-                                : "binaryfile"
-                            : inputSource === "text"
-                              ? "plaintext"
-                              : "binaryfile";
-                        AppState.currentSettings.outputFormat = newDefault;
-                        saveSettings();
-                    }
-                    selectOptionByValue(DOMElements.outputFormat, AppState.currentSettings.outputFormat);
-                },
-
-                resetForm: function () {
-                    const fieldsToClear = [
-                        DOMElements.text,
-                        DOMElements.secretKey,
-                        DOMElements.iv,
-                        DOMElements.aad,
-                        DOMElements.result,
-                    ];
-                    fieldsToClear.forEach((el) => (el.value = ""));
-                    DOMElements.fileInput.value = "";
-                    AppState.loadedFileName = null;
-                    AppState.loadedFileBuffer = null;
-                    DOMElements.fileNameDisplay.style.display = "none";
-                    [DOMElements.msgKeyError, DOMElements.msgIVError].forEach((el) => (el.textContent = ""));
-                    StatusModule.clear();
-                    loadSettings();
-                    UIModule.updateModeOptions();
-                    UIModule.toggleUI();
-                },
-
-                handleFileUpload: function (event) {
-                    const file = event.target.files[0];
-                    if (!file) {
-                        AppState.loadedFileName = null;
-                        AppState.loadedFileBuffer = null;
-                        DOMElements.fileNameDisplay.style.display = "none";
-                        return;
-                    }
-                    AppState.loadedFileName = file.name;
-                    DOMElements.fileNameDisplay.textContent = `已選擇檔案: ${file.name} (${(file.size / 1024).toFixed(
-                        2
-                    )} KB)`;
-                    DOMElements.fileNameDisplay.style.display = "block";
-                    const reader = new FileReader();
-                    reader.onload = (e) => (AppState.loadedFileBuffer = e.target.result);
-                    reader.onerror = () => StatusModule.update("讀取檔案失敗。", true);
-                    reader.readAsArrayBuffer(file);
-                },
+          add('ChaCha20-Poly1305 (Bad Tag)', async () => {
+            const testParams = {
+              p: 'Data to be encrypted',
+              key: 'anotherkeythatisexactly32bytes!!',
+              iv: 'anothernonce',
+              aad: '',
+              settings: { algorithmFamily: 'ChaCha20', encryptionMode: 'Poly1305' },
             };
-
-            // ---- Encoding & Helper Utilities ----
-            const EncodingUtils = {
-                toUint8Array: (data) => {
-                    if (typeof data === "string") return new TextEncoder().encode(data);
-                    if (data instanceof ArrayBuffer) return new Uint8Array(data);
-                    if (data instanceof Uint8Array) return data;
-                    throw new Error("不支援的轉換來源資料型別");
-                },
-                base64ToBytes: (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
-                bytesToBase64: (bytes) => btoa(String.fromCharCode.apply(null, bytes)),
-                hexToBytes: (hex) => {
-                    if (!/^[0-9a-fA-F]+$/.test(hex) || hex.length % 2 !== 0) throw new Error("無效的 Hex 字串格式。");
-                    return Uint8Array.from(hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
-                },
-                bytesToHex: (bytes) => bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), ""),
-                bytesToString: (bytes) => new TextDecoder().decode(bytes),
-                generateRandomBytes: (byteLength) => window.crypto.getRandomValues(new Uint8Array(byteLength)),
-                bytesToRandomAscii: (bytes) => {
-                    const PURE_ASCII = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-                    return Array.from(bytes)
-                        .map((byte) => PURE_ASCII[byte % PURE_ASCII.length])
-                        .join("");
-                },
-            };
-
-            const HelperUtils = {
-                copyToClipboard: (elementId) => {
-                    const el = DOMElements[elementId];
-                    if (!el || !el.value) return StatusModule.update("沒有內容可複製。", true);
-                    navigator.clipboard.writeText(el.value).then(
-                        () => StatusModule.update("已複製到剪貼簿。", false),
-                        () => StatusModule.update("複製失敗。請檢查瀏覽器權限或手動複製。", true)
-                    );
-                },
-                pasteFromClipboard: async (elementId) => {
-                    try {
-                        DOMElements[elementId].value = await navigator.clipboard.readText();
-                        StatusModule.update("已貼上內容。", false);
-                    } catch (e) {
-                        StatusModule.update("貼上失敗。請檢查瀏覽器權限或手動貼上。", true);
-                    }
-                },
-                clearValue: (elementId) => {
-                    DOMElements[elementId].value = "";
-                },
-                swapTextAndResult: () => {
-                    [DOMElements.text.value, DOMElements.result.value] = [
-                        DOMElements.result.value,
-                        DOMElements.text.value,
-                    ];
-                    StatusModule.update("輸入與結果已交換。", false);
-                },
-                downloadBytes: (bytes, fname) => {
-                    const a = document.createElement("a");
-                    a.href = URL.createObjectURL(new Blob([bytes]));
-                    a.download = fname || "download.bin";
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(a.href);
-                },
-                generateOutputFileName: (originalName, operation) => {
-                    const prefix = operation === "encrypt" ? "encrypted_" : "decrypted_";
-                    if (!originalName) return `${prefix}output.bin`;
-                    const extIndex = originalName.lastIndexOf(".");
-                    const baseName = extIndex > 0 ? originalName.substring(0, extIndex) : originalName;
-                    const ext = extIndex > 0 ? originalName.substring(extIndex) : ".bin";
-                    return `${prefix}${baseName.replace(/^(encrypted_|decrypted_)/i, "")}${ext}`;
-                },
-            };
-
-            // ---- Validation & Status Modules ----
-            const ValidationModule = {
-                validateAllInputs: function () {
-                    DOMElements.msgKeyError.textContent = "";
-                    DOMElements.msgIVError.textContent = "";
-                    let isValid = true;
-
-                    const { algorithmFamily, encryptionMode, keySize } = AppState.currentSettings;
-                    const config = UI_CONFIG[encryptionMode];
-
-                    const keyErr = this.validateKey(DOMElements.secretKey.value, algorithmFamily, keySize);
-                    if (keyErr) {
-                        StatusModule.displayError(keyErr, DOMElements.msgKeyError);
-                        isValid = false;
-                    }
-
-                    if (config && config.iv) {
-                        const ivErr = this.validateIv(DOMElements.iv.value, algorithmFamily);
-                        if (ivErr) {
-                            StatusModule.displayError(ivErr, DOMElements.msgIVError);
-                            isValid = false;
-                        }
-                    }
-                    return isValid;
-                },
-                validateKey: (key, family, aesKeySize) => {
-                    if (!key) return "* 金鑰為必填。";
-                    const keyBytes = EncodingUtils.toUint8Array(key);
-                    if (family === "ChaCha20") {
-                        if (keyBytes.length !== CHACHA_KEY_BYTE_LENGTH)
-                            return `* ChaCha20 金鑰 UTF-8 編碼後為 ${keyBytes.length} 位元組，應為 ${CHACHA_KEY_BYTE_LENGTH} 位元組。`;
-                    } else {
-                        // AES modes
-                        const reqBytes = parseInt(aesKeySize) / 8;
-                        if (keyBytes.length !== reqBytes)
-                            return `* AES 金鑰 UTF-8 編碼後為 ${keyBytes.length} 位元組，應為 ${reqBytes} 位元組。`;
-                    }
-                    return null;
-                },
-                validateIv: (iv, family) => {
-                    if (!iv) return "* IV/Nonce 為必填。";
-                    const ivBytes = EncodingUtils.toUint8Array(iv);
-                    if (family === "ChaCha20") {
-                        if (ivBytes.length !== CHACHA_NONCE_BYTE_LENGTH)
-                            return `* ChaCha20 Nonce UTF-8 編碼後為 ${ivBytes.length} 位元組，應為 ${CHACHA_NONCE_BYTE_LENGTH} 位元組。`;
-                    } else {
-                        // AES modes (GCM, CTR, CBC)
-                        if (ivBytes.length !== AES_IV_BYTE_LENGTH)
-                            return `* AES IV UTF-8 編碼後為 ${ivBytes.length} 位元組，應為 ${AES_IV_BYTE_LENGTH} 位元組。`;
-                    }
-                    return null;
-                },
-            };
-
-            const StatusModule = {
-                update: (msg, isErr, mode = "normal") => {
-                    const el = DOMElements.status;
-                    if (mode === "append" && el.innerHTML) {
-                        el.innerHTML += `<br>${msg}`;
-                    } else {
-                        el.textContent = msg;
-                    }
-                    el.className = `status-message ${isErr ? "status-error" : "status-success"} active`;
-                },
-                clear: () => {
-                    DOMElements.status.className = "status-message";
-                    DOMElements.status.textContent = "";
-                },
-                displayError: (msg, el) => {
-                    if (el) el.textContent = msg;
-                    StatusModule.update("輸入驗證失敗。請檢查下方提示。", true);
-                },
-            };
-
-            // ---- Crypto Module (The Core) ----
-            const CryptoModule = {
-                processData: async function () {
-                    if (AppState.isProcessing) return;
-                    AppState.isProcessing = true;
-                    DOMElements.btnExecute.disabled = true;
-                    StatusModule.clear();
-
-                    if (!ValidationModule.validateAllInputs()) {
-                        AppState.isProcessing = false;
-                        DOMElements.btnExecute.disabled = false;
-                        return;
-                    }
-
-                    const { functionMode, outputFormat, inputSource } = AppState.currentSettings;
-                    let dataToProcess = inputSource === "text" ? DOMElements.text.value : AppState.loadedFileBuffer;
-
-                    if (!dataToProcess) {
-                        StatusModule.update("錯誤：沒有輸入內容。", true);
-                        AppState.isProcessing = false;
-                        DOMElements.btnExecute.disabled = false;
-                        return;
-                    }
-
-                    const opParams = {
-                        settings: { ...AppState.currentSettings },
-                        key: DOMElements.secretKey.value,
-                        iv: DOMElements.iv.value,
-                        aad: DOMElements.aad.value,
-                    };
-
-                    try {
-                        let resultBytes;
-                        if (functionMode === "encrypt") {
-                            resultBytes = await this.performEncryption(dataToProcess, opParams);
-                        } else {
-                            resultBytes = await this.performDecryption(dataToProcess, opParams);
-                        }
-
-                        if (outputFormat === "binaryfile") {
-                            const fname = HelperUtils.generateOutputFileName(AppState.loadedFileName, functionMode);
-                            HelperUtils.downloadBytes(resultBytes, fname);
-                            DOMElements.result.value = `檔案 "${fname}" 已開始下載。`;
-                        } else {
-                            DOMElements.result.value =
-                                outputFormat === "plaintext"
-                                    ? EncodingUtils.bytesToString(resultBytes)
-                                    : outputFormat === "base64"
-                                      ? EncodingUtils.bytesToBase64(resultBytes)
-                                      : EncodingUtils.bytesToHex(resultBytes);
-                        }
-                        StatusModule.update(`${functionMode === "encrypt" ? "加密" : "解密"}成功`, false);
-                    } catch (error) {
-                        console.error("處理錯誤:", error);
-                        StatusModule.update(`錯誤: ${error.message || error}`, true);
-                        if (
-                            error.message?.toLowerCase().includes("decryption failed") ||
-                            error.name === "OperationError" ||
-                            error.message?.toLowerCase().includes("bad decrypt") ||
-                            error.message?.toLowerCase().includes("tag")
-                        ) {
-                            StatusModule.update(
-                                " (這通常表示金鑰、IV/Nonce、密文或 AAD 不匹配，或密文已被篡改。CBC/ECB模式下，也可能是填充問題)",
-                                true,
-                                "append"
-                            );
-                        }
-                    } finally {
-                        AppState.isProcessing = false;
-                        DOMElements.btnExecute.disabled = false;
-                    }
-                },
-
-                performEncryption: async function (plainData, opParams) {
-                    const { settings, key, iv, aad } = opParams;
-                    const { algorithmFamily, encryptionMode, padding, tagLength } = settings;
-
-                    const keyBytes = EncodingUtils.toUint8Array(key);
-                    const ivBytes = EncodingUtils.toUint8Array(iv);
-                    const aadBytes = EncodingUtils.toUint8Array(aad);
-                    const plainBytes = EncodingUtils.toUint8Array(plainData);
-
-                    if (algorithmFamily === "ChaCha20") {
-                        const aead = chacha20poly1305(keyBytes, ivBytes, aadBytes);
-                        return aead.encrypt(plainBytes);
-                    }
-
-                    // --- AES Modes ---
-                    const apiMode = `AES-${encryptionMode}`;
-                    if (encryptionMode === "GCM" || encryptionMode === "CTR") {
-                        const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, { name: apiMode }, false, [
-                            "encrypt",
-                        ]);
-                        const alg = { name: apiMode, iv: ivBytes };
-                        if (encryptionMode === "GCM") {
-                            alg.tagLength = parseInt(tagLength);
-                            if (aadBytes.length > 0) alg.additionalData = aadBytes;
-                        }
-                        if (encryptionMode === "CTR") {
-                            alg.counter = ivBytes;
-                            alg.length = 64;
-                        }
-                        return new Uint8Array(await crypto.subtle.encrypt(alg, cryptoKey, plainBytes));
-                    } else {
-                        // CBC, ECB via CryptoJS
-                        const keyC = CryptoJS.enc.Utf8.parse(key);
-                        const ivC = encryptionMode === "CBC" ? CryptoJS.enc.Utf8.parse(iv) : undefined;
-                        const dataC = CryptoJS.lib.WordArray.create(plainBytes);
-                        const encrypted = CryptoJS.AES.encrypt(dataC, keyC, {
-                            mode: encryptionMode === "CBC" ? CryptoJS.mode.CBC : CryptoJS.mode.ECB,
-                            padding: padding === "Pkcs7" ? CryptoJS.pad.Pkcs7 : CryptoJS.pad.NoPadding,
-                            iv: ivC,
-                        });
-                        return EncodingUtils.hexToBytes(encrypted.ciphertext.toString(CryptoJS.enc.Hex));
-                    }
-                },
-
-                performDecryption: async function (cipherData, opParams) {
-                    const { settings, key, iv, aad } = opParams;
-                    const { algorithmFamily, encryptionMode, padding, tagLength, inputCiphertextFormat } = settings;
-
-                    const keyBytes = EncodingUtils.toUint8Array(key);
-                    const ivBytes = EncodingUtils.toUint8Array(iv);
-                    const aadBytes = EncodingUtils.toUint8Array(aad);
-                    const cipherBytes =
-                        typeof cipherData === "string"
-                            ? inputCiphertextFormat === "base64"
-                                ? EncodingUtils.base64ToBytes(cipherData)
-                                : EncodingUtils.hexToBytes(cipherData)
-                            : EncodingUtils.toUint8Array(cipherData);
-
-                    if (algorithmFamily === "ChaCha20") {
-                        const aead = chacha20poly1305(keyBytes, ivBytes, aadBytes);
-                        return aead.decrypt(cipherBytes);
-                    }
-
-                    // --- AES Modes ---
-                    const apiMode = `AES-${encryptionMode}`;
-                    if (encryptionMode === "GCM" || encryptionMode === "CTR") {
-                        const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, { name: apiMode }, false, [
-                            "decrypt",
-                        ]);
-                        const alg = { name: apiMode, iv: ivBytes };
-                        if (encryptionMode === "GCM") {
-                            alg.tagLength = parseInt(tagLength);
-                            if (aadBytes.length > 0) alg.additionalData = aadBytes;
-                        }
-                        if (encryptionMode === "CTR") {
-                            alg.counter = ivBytes;
-                            alg.length = 64;
-                        }
-                        return new Uint8Array(await crypto.subtle.decrypt(alg, cryptoKey, cipherBytes));
-                    } else {
-                        // CBC, ECB via CryptoJS
-                        const keyC = CryptoJS.enc.Utf8.parse(key);
-                        const ivC = encryptionMode === "CBC" ? CryptoJS.enc.Utf8.parse(iv) : undefined;
-                        const cipherTextForCryptoJS = CryptoJS.enc.Base64.parse(
-                            EncodingUtils.bytesToBase64(cipherBytes)
-                        );
-                        const decrypted = CryptoJS.AES.decrypt({ ciphertext: cipherTextForCryptoJS }, keyC, {
-                            mode: encryptionMode === "CBC" ? CryptoJS.mode.CBC : CryptoJS.mode.ECB,
-                            padding: padding === "Pkcs7" ? CryptoJS.pad.Pkcs7 : CryptoJS.pad.NoPadding,
-                            iv: ivC,
-                        });
-                        if (decrypted.sigBytes <= 0 && cipherBytes.length > 0) {
-                            throw new Error("解密失敗。請檢查金鑰、IV、密文格式或填充模式。");
-                        }
-                        return EncodingUtils.hexToBytes(decrypted.toString(CryptoJS.enc.Hex));
-                    }
-                },
-            };
-
-            // ---- Unit Test Module ----
-            const TestModule = {
-                testResultsContainer: null,
-                tests: [],
-                init: function () {
-                    this.testResultsContainer = DOMElements.testResults;
-                    this.tests = [];
-
-                    const add = (name, fn) => this.tests.push({ name, fn });
-                    const assert = (cond, msg) => {
-                        if (!cond) throw new Error(msg || "Assertion failed");
-                    };
-                    const assertEqual = (actual, expected, msg) => {
-                        if (actual !== expected) throw new Error(msg || `預期 "${expected}" 但得到 "${actual}"`);
-                    };
-                    const assertThrows = async (func, expectedErrorMsg) => {
-                        try {
-                            await func();
-                            throw new Error("預期函式會拋出錯誤，但它沒有。");
-                        } catch (e) {
-                            if (!e.message.toLowerCase().includes(expectedErrorMsg.toLowerCase())) {
-                                throw new Error(
-                                    `函式拋出了錯誤，但訊息不符。預期包含 '${expectedErrorMsg}'，但收到 '${e.message}'`
-                                );
-                            }
-                        }
-                    };
-
-                    const runTest = async (testParams) => {
-                        const { p, settings } = testParams;
-                        const enc = await CryptoModule.performEncryption(p, testParams);
-                        assert(enc && enc.length > 0, `${settings.encryptionMode} 加密未產生輸出`);
-                        const dec = await CryptoModule.performDecryption(enc, testParams);
-                        assertEqual(EncodingUtils.bytesToString(dec), p, `${settings.encryptionMode} 解密不匹配`);
-                    };
-
-                    add("AES-GCM (WebCrypto)", async () => {
-                        await runTest({
-                            p: "GCM test!",
-                            key: "mygcmtestkey1234",
-                            iv: "mygcmivtext12345",
-                            aad: "gcmAADdata",
-                            settings: { algorithmFamily: "AES", encryptionMode: "GCM", tagLength: "128" },
-                        });
-                    });
-
-                    add("AES-CBC-PKCS7 (CryptoJS)", async () => {
-                        await runTest({
-                            p: "CBC test with padding.",
-                            key: "mycbckeyis16byte",
-                            iv: "mycbcivtextis16b",
-                            aad: "",
-                            settings: { algorithmFamily: "AES", encryptionMode: "CBC", padding: "Pkcs7" },
-                        });
-                    });
-
-                    add("AES-CTR (WebCrypto)", async () => {
-                        await runTest({
-                            p: "CTR test message here!",
-                            key: "myctrtestkey1234",
-                            iv: "myctrivtext12345",
-                            aad: "",
-                            settings: { algorithmFamily: "AES", encryptionMode: "CTR" },
-                        });
-                    });
-
-                    add("ChaCha20-Poly1305 (@noble/ciphers)", async () => {
-                        await runTest({
-                            p: "ChaCha20 test message!",
-                            key: "12345678901234567890123456789012",
-                            iv: "123456789012",
-                            aad: "Some AAD",
-                            settings: { algorithmFamily: "ChaCha20", encryptionMode: "Poly1305" },
-                        });
-                    });
-
-                    add("ChaCha20-Poly1305 (Bad Tag)", async () => {
-                        const testParams = {
-                            p: "Data to be encrypted",
-                            key: "anotherkeythatisexactly32bytes!!",
-                            iv: "anothernonce",
-                            aad: "",
-                            settings: { algorithmFamily: "ChaCha20", encryptionMode: "Poly1305" },
-                        };
-                        const enc = await CryptoModule.performEncryption(testParams.p, testParams);
-                        const badCiphertext = new Uint8Array(enc);
-                        badCiphertext[badCiphertext.length - 1] ^= 0xff; // Tamper with tag
-                        await assertThrows(
-                            async () => CryptoModule.performDecryption(badCiphertext, testParams),
-                            "tag"
-                        );
-                    });
-                },
-                runAllTests: async function () {
-                    this.testResultsContainer.innerHTML = "<h4>測試結果:</h4>";
-                    this.testResultsContainer.style.display = "block";
-                    StatusModule.update("正在執行測試...", false);
-                    let passes = 0,
-                        failures = 0;
-                    for (const test of this.tests) {
-                        const resultP = document.createElement("p");
-                        try {
-                            await test.fn();
-                            resultP.innerHTML = `PASS: ${test.name}`;
-                            resultP.className = "pass";
-                            passes++;
-                        } catch (e) {
-                            resultP.innerHTML = `FAIL: ${
-                                test.name
-                            } <br/>&nbsp;&nbsp;<span style="font-size:0.9em; color: var(--error-color);">訊息: ${
-                                e.message || e
-                            }</span>`;
-                            resultP.className = "fail";
-                            failures++;
-                            console.error(`Test failed: ${test.name}`, e);
-                        }
-                        this.testResultsContainer.appendChild(resultP);
-                    }
-                    const summaryP = document.createElement("p");
-                    summaryP.innerHTML = `<strong>總結: ${passes} 通過, ${failures} 失敗.</strong>`;
-                    this.testResultsContainer.appendChild(summaryP);
-                    StatusModule.update(failures > 0 ? "部分測試失敗。" : "所有測試通過。", failures > 0);
-                },
-            };
-
-            // ---- Event Binding ----
-            function bindEventListeners() {
-                DOMElements.currentYear.textContent = new Date().getFullYear();
-                DOMElements.themeToggleBtn.addEventListener("click", () => {
-                    const newTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-                    applyTheme(newTheme);
-                });
-
-                const optionGroupIds = [
-                    "functionMode",
-                    "inputSource",
-                    "algorithmFamily",
-                    "encryptionMode",
-                    "padding",
-                    "keySize",
-                    "tagLength",
-                    "inputCiphertextFormat",
-                    "outputFormat",
-                ];
-                optionGroupIds.forEach((id) => DOMElements[id]?.addEventListener("click", handleOptionGroupClick));
-
-                DOMElements.btnExecute.addEventListener("click", CryptoModule.processData.bind(CryptoModule));
-                DOMElements.resetFormButton.addEventListener("click", UIModule.resetForm);
-                DOMElements.copyTextButton.addEventListener("click", () => HelperUtils.copyToClipboard("text"));
-                DOMElements.pasteTextButton.addEventListener("click", () => HelperUtils.pasteFromClipboard("text"));
-                DOMElements.clearTextButton.addEventListener("click", () => HelperUtils.clearValue("text"));
-                DOMElements.copyResultButton.addEventListener("click", () => HelperUtils.copyToClipboard("result"));
-                DOMElements.clearResultButton.addEventListener("click", () => HelperUtils.clearValue("result"));
-                DOMElements.swapTextResultButton.addEventListener("click", HelperUtils.swapTextAndResult);
-
-                DOMElements.generateIvButton.addEventListener("click", () => {
-                    const isChaCha = AppState.currentSettings.algorithmFamily === "ChaCha20";
-                    const byteLength = isChaCha ? CHACHA_NONCE_BYTE_LENGTH : AES_IV_BYTE_LENGTH;
-                    const randomBytes = EncodingUtils.generateRandomBytes(byteLength);
-                    DOMElements.iv.value = EncodingUtils.bytesToRandomAscii(randomBytes);
-                    const inputEvent = new Event("input", { bubbles: true, cancelable: true });
-                    DOMElements.iv.dispatchEvent(inputEvent);
-                });
-
-                DOMElements.fileInput.addEventListener("change", UIModule.handleFileUpload);
-                DOMElements.runTestsButton.addEventListener("click", TestModule.runAllTests.bind(TestModule));
-
-                // Live validation
-                DOMElements.secretKey.addEventListener("input", (e) => {
-                    const { algorithmFamily, keySize } = AppState.currentSettings;
-                    DOMElements.msgKeyError.textContent =
-                        ValidationModule.validateKey(e.target.value, algorithmFamily, keySize) || "";
-                });
-                DOMElements.iv.addEventListener("input", (e) => {
-                    const config = UI_CONFIG[AppState.currentSettings.encryptionMode];
-                    if (config && config.iv) {
-                        DOMElements.msgIVError.textContent =
-                            ValidationModule.validateIv(e.target.value, AppState.currentSettings.algorithmFamily) || "";
-                    } else {
-                        DOMElements.msgIVError.textContent = "";
-                    }
-                });
+            const enc = await CryptoModule.performEncryption(testParams.p, testParams);
+            const badCiphertext = new Uint8Array(enc);
+            badCiphertext[badCiphertext.length - 1] ^= 0xff; // Tamper with tag
+            await assertThrows(async () => CryptoModule.performDecryption(badCiphertext, testParams), 'tag');
+          });
+        },
+        runAllTests: async function () {
+          this.testResultsContainer.innerHTML = '<h4>測試結果:</h4>';
+          this.testResultsContainer.style.display = 'block';
+          StatusModule.update('正在執行測試...', false);
+          let passes = 0,
+            failures = 0;
+          for (const test of this.tests) {
+            const resultP = document.createElement('p');
+            try {
+              await test.fn();
+              resultP.innerHTML = `PASS: ${test.name}`;
+              resultP.className = 'pass';
+              passes++;
+            } catch (e) {
+              resultP.innerHTML = `FAIL: ${
+                test.name
+              } <br/>&nbsp;&nbsp;<span style="font-size:0.9em; color: var(--error-color);">訊息: ${
+                e.message || e
+              }</span>`;
+              resultP.className = 'fail';
+              failures++;
+              console.error(`Test failed: ${test.name}`, e);
             }
+            this.testResultsContainer.appendChild(resultP);
+          }
+          const summaryP = document.createElement('p');
+          summaryP.innerHTML = `<strong>總結: ${passes} 通過, ${failures} 失敗.</strong>`;
+          this.testResultsContainer.appendChild(summaryP);
+          StatusModule.update(failures > 0 ? '部分測試失敗。' : '所有測試通過。', failures > 0);
+        },
+      };
 
-            function handleOptionGroupClick(event) {
-                const selectedOption = event.target.closest(".option");
-                if (selectedOption && !selectedOption.classList.contains("disabled")) {
-                    const groupElement = this;
-                    const groupId = groupElement.id;
-                    const selectedValue = selectedOption.dataset.value;
+      // ---- Event Binding ----
+      function bindEventListeners() {
+        DOMElements.currentYear.textContent = new Date().getFullYear();
+        DOMElements.themeToggleBtn.addEventListener('click', () => {
+          const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+          applyTheme(newTheme);
+        });
 
-                    groupElement.querySelectorAll(".option").forEach((opt) => opt.classList.remove("selected"));
-                    selectedOption.classList.add("selected");
-                    updateCurrentSetting(groupId, selectedValue);
+        const optionGroupIds = [
+          'functionMode',
+          'inputSource',
+          'algorithmFamily',
+          'encryptionMode',
+          'padding',
+          'keySize',
+          'tagLength',
+          'inputCiphertextFormat',
+          'outputFormat',
+        ];
+        optionGroupIds.forEach((id) => DOMElements[id]?.addEventListener('click', handleOptionGroupClick));
 
-                    if (groupId === "algorithmFamily") {
-                        UIModule.updateModeOptions();
-                    }
+        DOMElements.btnExecute.addEventListener('click', CryptoModule.processData.bind(CryptoModule));
+        DOMElements.resetFormButton.addEventListener('click', UIModule.resetForm);
+        DOMElements.copyTextButton.addEventListener('click', () => HelperUtils.copyToClipboard('text'));
+        DOMElements.pasteTextButton.addEventListener('click', () => HelperUtils.pasteFromClipboard('text'));
+        DOMElements.clearTextButton.addEventListener('click', () => HelperUtils.clearValue('text'));
+        DOMElements.copyResultButton.addEventListener('click', () => HelperUtils.copyToClipboard('result'));
+        DOMElements.clearResultButton.addEventListener('click', () => HelperUtils.clearValue('result'));
+        DOMElements.swapTextResultButton.addEventListener('click', HelperUtils.swapTextAndResult);
 
-                    UIModule.toggleUI();
-                    DOMElements.msgKeyError.textContent = "";
-                    DOMElements.msgIVError.textContent = "";
-                }
+        DOMElements.generateIvButton.addEventListener('click', () => {
+          const isChaCha = AppState.currentSettings.algorithmFamily === 'ChaCha20';
+          const byteLength = isChaCha ? CHACHA_NONCE_BYTE_LENGTH : AES_IV_BYTE_LENGTH;
+          const randomBytes = EncodingUtils.generateRandomBytes(byteLength);
+          DOMElements.iv.value = EncodingUtils.bytesToRandomAscii(randomBytes);
+          const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+          DOMElements.iv.dispatchEvent(inputEvent);
+        });
+
+        DOMElements.fileInput.addEventListener('change', UIModule.handleFileUpload);
+        DOMElements.runTestsButton.addEventListener('click', TestModule.runAllTests.bind(TestModule));
+
+        // Live validation
+        DOMElements.secretKey.addEventListener('input', (e) => {
+          const { algorithmFamily, keySize } = AppState.currentSettings;
+          DOMElements.msgKeyError.textContent =
+            ValidationModule.validateKey(e.target.value, algorithmFamily, keySize) || '';
+        });
+        DOMElements.iv.addEventListener('input', (e) => {
+          const config = UI_CONFIG[AppState.currentSettings.encryptionMode];
+          if (config && config.iv) {
+            DOMElements.msgIVError.textContent =
+              ValidationModule.validateIv(e.target.value, AppState.currentSettings.algorithmFamily) || '';
+          } else {
+            DOMElements.msgIVError.textContent = '';
+          }
+        });
+      }
+
+      function handleOptionGroupClick(event) {
+        const selectedOption = event.target.closest('.option');
+        if (selectedOption && !selectedOption.classList.contains('disabled')) {
+          const groupElement = this;
+          const groupId = groupElement.id;
+          const selectedValue = selectedOption.dataset.value;
+
+          groupElement.querySelectorAll('.option').forEach((opt) => opt.classList.remove('selected'));
+          selectedOption.classList.add('selected');
+          updateCurrentSetting(groupId, selectedValue);
+
+          if (groupId === 'algorithmFamily') {
+            UIModule.updateModeOptions();
+          }
+
+          UIModule.toggleUI();
+          DOMElements.msgKeyError.textContent = '';
+          DOMElements.msgIVError.textContent = '';
+        }
+      }
+
+      // ---- Generic Helper ----
+      function selectOptionByValue(groupElement, valueToSelect) {
+        if (!groupElement) return;
+        let optionFoundAndVisible = false;
+        groupElement.querySelectorAll('.option').forEach((opt) => {
+          const isMatch = opt.dataset.value === valueToSelect;
+          const isVisible = opt.style.display !== 'none';
+          if (isMatch && isVisible) {
+            opt.classList.add('selected');
+            optionFoundAndVisible = true;
+          } else {
+            opt.classList.remove('selected');
+          }
+        });
+        if (!optionFoundAndVisible) {
+          const firstVisibleOption = groupElement.querySelector(".option:not([style*='display: none'])");
+          if (firstVisibleOption) {
+            firstVisibleOption.classList.add('selected');
+            const groupId = groupElement.id;
+            if (AppState.currentSettings[groupId] === valueToSelect) {
+              updateCurrentSetting(groupId, firstVisibleOption.dataset.value);
             }
-
-            // ---- Generic Helper ----
-            function selectOptionByValue(groupElement, valueToSelect) {
-                if (!groupElement) return;
-                let optionFoundAndVisible = false;
-                groupElement.querySelectorAll(".option").forEach((opt) => {
-                    const isMatch = opt.dataset.value === valueToSelect;
-                    const isVisible = opt.style.display !== "none";
-                    if (isMatch && isVisible) {
-                        opt.classList.add("selected");
-                        optionFoundAndVisible = true;
-                    } else {
-                        opt.classList.remove("selected");
-                    }
-                });
-                if (!optionFoundAndVisible) {
-                    const firstVisibleOption = groupElement.querySelector(".option:not([style*='display: none'])");
-                    if (firstVisibleOption) {
-                        firstVisibleOption.classList.add("selected");
-                        const groupId = groupElement.id;
-                        if (AppState.currentSettings[groupId] === valueToSelect) {
-                            updateCurrentSetting(groupId, firstVisibleOption.dataset.value);
-                        }
-                    }
-                }
-            }
-        </script>
-    </body>
+          }
+        }
+      }
+    </script>
+  </body>
 </html>

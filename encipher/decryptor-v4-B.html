@@ -1,316 +1,315 @@
 <!doctype html>
 <html lang="zh-TW">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>JWE 解密 B</title>
-        <style>
-            :root {
-                --primary-color: #4f46e5;
-                --bg-color: #f1f5f9;
-                --container-bg: #ffffff;
-                --text-color: #1f2937;
-                --border-color: #e5e7eb;
-                --error-color: #dc2626;
-                --error-bg: #fee2e2;
-                --success-color: #059669;
-                --success-bg: #d1fae5;
-            }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                background: var(--bg-color);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                min-height: 100vh;
-                margin: 0;
-                padding: 20px;
-                color: var(--text-color);
-            }
-            .container {
-                background: var(--container-bg);
-                border-radius: 12px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-                padding: 40px;
-                width: 100%;
-                max-width: 600px;
-            }
-            h1 {
-                text-align: center;
-                color: var(--primary-color);
-                margin-top: 0;
-            }
-            .form-group {
-                margin-bottom: 25px;
-            }
-            label {
-                display: block;
-                margin-bottom: 8px;
-                font-weight: 600;
-            }
-            textarea,
-            input[type="password"] {
-                width: 100%;
-                padding: 12px;
-                border: 1px solid var(--border-color);
-                border-radius: 5px;
-                font-family: "Courier New", monospace;
-                font-size: 14px;
-                box-sizing: border-box;
-            }
-            button {
-                width: 100%;
-                padding: 12px;
-                background: var(--primary-color);
-                color: white;
-                border: none;
-                border-radius: 5px;
-                font-size: 1.1em;
-                font-weight: 600;
-                cursor: pointer;
-                transition: background-color 0.3s;
-            }
-            button:hover:not(:disabled) {
-                background-color: #4338ca;
-            }
-            button:disabled {
-                background-color: #ccc;
-                cursor: not-allowed;
-            }
-            .result-section {
-                margin-top: 20px;
-                padding: 15px;
-                border-radius: 5px;
-                font-family: "Courier New", monospace;
-            }
-            .result-section.error {
-                background-color: var(--error-bg);
-                color: var(--error-color);
-                white-space: pre-wrap;
-                word-break: break-all;
-            }
-            .result-section.success {
-                background-color: var(--success-bg);
-                color: var(--success-color);
-            }
-            .result-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 10px;
-            }
-            .result-header strong {
-                font-weight: 600;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                font-size: 1.1em;
-            }
-            .btn-copy {
-                background: var(--primary-color);
-                color: white;
-                border: none;
-                padding: 6px 12px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 14px;
-                transition: background-color 0.3s;
-            }
-            .btn-copy:hover:not(:disabled) {
-                background-color: #4338ca;
-            }
-            .btn-copy:disabled {
-                background-color: #9ca3af;
-                cursor: not-allowed;
-            }
-            .plaintext-content {
-                white-space: pre-wrap;
-                word-break: break-all;
-                background: rgba(0, 0, 0, 0.05);
-                padding: 10px;
-                border-radius: 5px;
-                color: var(--text-color);
-            }
-            .debug-info {
-                margin-top: 15px;
-                padding-top: 10px;
-                border-top: 1px dashed var(--border-color);
-            }
-            .debug-info strong {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                font-weight: 600;
-                display: block;
-                margin-bottom: 5px;
-                color: var(--text-color);
-            }
-            .header-content {
-                white-space: pre;
-                word-break: break-all;
-                background: rgba(0, 0, 0, 0.05);
-                padding: 10px;
-                border-radius: 5px;
-                color: var(--text-color);
-                font-size: 12px;
-                overflow-x: auto;
-            }
-            .loader {
-                display: inline-block;
-                width: 1em;
-                height: 1em;
-                border: 3px solid rgba(255, 255, 255, 0.3);
-                border-radius: 50%;
-                border-top-color: white;
-                animation: spin 1s ease-in-out infinite;
-                margin-right: 10px;
-                vertical-align: middle;
-            }
-            #jweInput {
-                height: 150px;
-            }
-            @keyframes spin {
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-        </style>
-        <script src="https://unpkg.com/argon2-browser/dist/argon2-bundled.min.js"></script>
-        <script type="module">
-            import { compactDecrypt, decodeProtectedHeader } from "https://esm.sh/jose@5.6.3";
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JWE 解密 B</title>
+    <style>
+      :root {
+        --primary-color: #4f46e5;
+        --bg-color: #f1f5f9;
+        --container-bg: #ffffff;
+        --text-color: #1f2937;
+        --border-color: #e5e7eb;
+        --error-color: #dc2626;
+        --error-bg: #fee2e2;
+        --success-color: #059669;
+        --success-bg: #d1fae5;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: var(--bg-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        color: var(--text-color);
+      }
+      .container {
+        background: var(--container-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        padding: 40px;
+        width: 100%;
+        max-width: 600px;
+      }
+      h1 {
+        text-align: center;
+        color: var(--primary-color);
+        margin-top: 0;
+      }
+      .form-group {
+        margin-bottom: 25px;
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      textarea,
+      input[type='password'] {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      button:hover:not(:disabled) {
+        background-color: #4338ca;
+      }
+      button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+      .result-section {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 5px;
+        font-family: 'Courier New', monospace;
+      }
+      .result-section.error {
+        background-color: var(--error-bg);
+        color: var(--error-color);
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .result-section.success {
+        background-color: var(--success-bg);
+        color: var(--success-color);
+      }
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .result-header strong {
+        font-weight: 600;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 1.1em;
+      }
+      .btn-copy {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+      }
+      .btn-copy:hover:not(:disabled) {
+        background-color: #4338ca;
+      }
+      .btn-copy:disabled {
+        background-color: #9ca3af;
+        cursor: not-allowed;
+      }
+      .plaintext-content {
+        white-space: pre-wrap;
+        word-break: break-all;
+        background: rgba(0, 0, 0, 0.05);
+        padding: 10px;
+        border-radius: 5px;
+        color: var(--text-color);
+      }
+      .debug-info {
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--border-color);
+      }
+      .debug-info strong {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text-color);
+      }
+      .header-content {
+        white-space: pre;
+        word-break: break-all;
+        background: rgba(0, 0, 0, 0.05);
+        padding: 10px;
+        border-radius: 5px;
+        color: var(--text-color);
+        font-size: 12px;
+        overflow-x: auto;
+      }
+      .loader {
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 10px;
+        vertical-align: middle;
+      }
+      #jweInput {
+        height: 150px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <script src="https://unpkg.com/argon2-browser/dist/argon2-bundled.min.js"></script>
+    <script type="module">
+      import { compactDecrypt, decodeProtectedHeader } from 'https://esm.sh/jose@5.6.3';
 
-            const KDF_ARGON2 = "Argon2id";
-            const KDF_PBKDF2 = "PBKDF2";
-            const HASH_SHA256 = "SHA-256";
-            const KEY_LENGTH_BITS = 256;
+      const KDF_ARGON2 = 'Argon2id';
+      const KDF_PBKDF2 = 'PBKDF2';
+      const HASH_SHA256 = 'SHA-256';
+      const KEY_LENGTH_BITS = 256;
 
-            const elements = {
-                jweInput: document.getElementById("jweInput"),
-                passphrase: document.getElementById("passphrase"),
-                decryptBtn: document.getElementById("decryptBtn"),
-                resultSection: document.getElementById("resultSection"),
-            };
+      const elements = {
+        jweInput: document.getElementById('jweInput'),
+        passphrase: document.getElementById('passphrase'),
+        decryptBtn: document.getElementById('decryptBtn'),
+        resultSection: document.getElementById('resultSection'),
+      };
 
-            async function deriveKey(passphrase, salt, kdfParams) {
-                const textEncoder = new TextEncoder();
-                if (kdfParams.name === KDF_ARGON2) {
-                    const { hash } = await window.argon2.hash({
-                        pass: passphrase,
-                        salt: salt,
-                        time: kdfParams.iterations,
-                        mem: kdfParams.memory,
-                        parallelism: kdfParams.parallelism,
-                        hashLen: 32,
-                        type: window.argon2.ArgonType.Argon2id,
-                    });
-                    return hash;
-                }
-                if (kdfParams.name === KDF_PBKDF2) {
-                    const keyMaterial = await crypto.subtle.importKey(
-                        "raw",
-                        textEncoder.encode(passphrase),
-                        { name: KDF_PBKDF2 },
-                        false,
-                        ["deriveBits"]
-                    );
-                    const derivedBits = await crypto.subtle.deriveBits(
-                        { name: KDF_PBKDF2, salt, iterations: kdfParams.iterations, hash: HASH_SHA256 },
-                        keyMaterial,
-                        KEY_LENGTH_BITS
-                    );
-                    return new Uint8Array(derivedBits);
-                }
-                throw new Error("Unsupported KDF");
-            }
+      async function deriveKey(passphrase, salt, kdfParams) {
+        const textEncoder = new TextEncoder();
+        if (kdfParams.name === KDF_ARGON2) {
+          const { hash } = await window.argon2.hash({
+            pass: passphrase,
+            salt: salt,
+            time: kdfParams.iterations,
+            mem: kdfParams.memory,
+            parallelism: kdfParams.parallelism,
+            hashLen: 32,
+            type: window.argon2.ArgonType.Argon2id,
+          });
+          return hash;
+        }
+        if (kdfParams.name === KDF_PBKDF2) {
+          const keyMaterial = await crypto.subtle.importKey(
+            'raw',
+            textEncoder.encode(passphrase),
+            { name: KDF_PBKDF2 },
+            false,
+            ['deriveBits']
+          );
+          const derivedBits = await crypto.subtle.deriveBits(
+            { name: KDF_PBKDF2, salt, iterations: kdfParams.iterations, hash: HASH_SHA256 },
+            keyMaterial,
+            KEY_LENGTH_BITS
+          );
+          return new Uint8Array(derivedBits);
+        }
+        throw new Error('Unsupported KDF');
+      }
 
-            async function decrypt() {
-                const jweString = elements.jweInput.value.trim();
-                const passphrase = elements.passphrase.value;
+      async function decrypt() {
+        const jweString = elements.jweInput.value.trim();
+        const passphrase = elements.passphrase.value;
 
-                if (!jweString || !passphrase) {
-                    showResult("請輸入 JWE 密文和密碼短語。", true);
-                    return;
-                }
+        if (!jweString || !passphrase) {
+          showResult('請輸入 JWE 密文和密碼短語。', true);
+          return;
+        }
 
-                setLoading(true);
-                let protectedHeader = null; // Define outside try
+        setLoading(true);
+        let protectedHeader = null; // Define outside try
 
-                try {
-                    protectedHeader = decodeProtectedHeader(jweString);
+        try {
+          protectedHeader = decodeProtectedHeader(jweString);
 
-                    if (protectedHeader.alg !== "dir" || protectedHeader.enc !== "A256GCM") {
-                        throw new Error(`不支援的 JWE 演算法: alg=${protectedHeader.alg}, enc=${protectedHeader.enc}`);
-                    }
+          if (protectedHeader.alg !== 'dir' || protectedHeader.enc !== 'A256GCM') {
+            throw new Error(`不支援的 JWE 演算法: alg=${protectedHeader.alg}, enc=${protectedHeader.enc}`);
+          }
 
-                    const salt = Uint8Array.from(
-                        atob(protectedHeader.salt.replace(/-/g, "+").replace(/_/g, "/")),
-                        (c) => c.charCodeAt(0)
-                    );
-                    const kdfParams = { name: protectedHeader.kdf };
+          const salt = Uint8Array.from(atob(protectedHeader.salt.replace(/-/g, '+').replace(/_/g, '/')), (c) =>
+            c.charCodeAt(0)
+          );
+          const kdfParams = { name: protectedHeader.kdf };
 
-                    if (protectedHeader.kdf === KDF_ARGON2) {
-                        kdfParams.iterations = protectedHeader.t;
-                        kdfParams.memory = protectedHeader.m;
-                        kdfParams.parallelism = protectedHeader.p;
-                    } else if (protectedHeader.kdf === KDF_PBKDF2) {
-                        kdfParams.iterations = protectedHeader.i;
-                    } else {
-                        throw new Error(`不支援的 KDF: ${protectedHeader.kdf}`);
-                    }
+          if (protectedHeader.kdf === KDF_ARGON2) {
+            kdfParams.iterations = protectedHeader.t;
+            kdfParams.memory = protectedHeader.m;
+            kdfParams.parallelism = protectedHeader.p;
+          } else if (protectedHeader.kdf === KDF_PBKDF2) {
+            kdfParams.iterations = protectedHeader.i;
+          } else {
+            throw new Error(`不支援的 KDF: ${protectedHeader.kdf}`);
+          }
 
-                    const key = await deriveKey(passphrase, salt, kdfParams);
-                    const { plaintext } = await compactDecrypt(jweString, key);
-                    const decryptedText = new TextDecoder().decode(plaintext);
+          const key = await deriveKey(passphrase, salt, kdfParams);
+          const { plaintext } = await compactDecrypt(jweString, key);
+          const decryptedText = new TextDecoder().decode(plaintext);
 
-                    showResult(`✅ 解密成功`, false, decryptedText, protectedHeader);
-                } catch (error) {
-                    console.error("Decryption error:", error);
-                    showResult(
-                        `❌ 解密失敗: ${error.message.includes("JWEInvalid") ? "密碼錯誤或密文損毀" : error.message}`,
-                        true,
-                        null,
-                        protectedHeader
-                    );
-                } finally {
-                    setLoading(false);
-                }
-            }
+          showResult(`✅ 解密成功`, false, decryptedText, protectedHeader);
+        } catch (error) {
+          console.error('Decryption error:', error);
+          showResult(
+            `❌ 解密失敗: ${error.message.includes('JWEInvalid') ? '密碼錯誤或密文損毀' : error.message}`,
+            true,
+            null,
+            protectedHeader
+          );
+        } finally {
+          setLoading(false);
+        }
+      }
 
-            function setLoading(isLoading) {
-                elements.decryptBtn.disabled = isLoading;
-                if (isLoading) {
-                    elements.decryptBtn.innerHTML = '<span class="loader"></span>處理中...';
-                } else {
-                    elements.decryptBtn.textContent = "🔓 開始解密";
-                }
-            }
+      function setLoading(isLoading) {
+        elements.decryptBtn.disabled = isLoading;
+        if (isLoading) {
+          elements.decryptBtn.innerHTML = '<span class="loader"></span>處理中...';
+        } else {
+          elements.decryptBtn.textContent = '🔓 開始解密';
+        }
+      }
 
-            function showResult(message, isError, rawText = null, header = null) {
-                elements.resultSection.className = isError ? "result-section error" : "result-section success";
-                elements.resultSection.style.display = "block";
+      function showResult(message, isError, rawText = null, header = null) {
+        elements.resultSection.className = isError ? 'result-section error' : 'result-section success';
+        elements.resultSection.style.display = 'block';
 
-                let headerHtml = "";
-                if (header) {
-                    const escapedHeader = JSON.stringify(header, null, 2)
-                        .replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;");
-                    headerHtml = `
+        let headerHtml = '';
+        if (header) {
+          const escapedHeader = JSON.stringify(header, null, 2)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          headerHtml = `
                         <div class="debug-info">
                             <strong>JWE Header 參數:</strong>
                             <pre class="header-content">${escapedHeader}</pre>
                         </div>
                     `;
-                }
+        }
 
-                if (isError) {
-                    const escapedMessage = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    elements.resultSection.innerHTML = `<p>${escapedMessage}</p>${headerHtml}`;
-                } else {
-                    const escapedText = rawText
-                        .replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;")
-                        .replace(/"/g, "&quot;")
-                        .replace(/'/g, "&#039;");
+        if (isError) {
+          const escapedMessage = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          elements.resultSection.innerHTML = `<p>${escapedMessage}</p>${headerHtml}`;
+        } else {
+          const escapedText = rawText
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
 
-                    elements.resultSection.innerHTML = `
+          elements.resultSection.innerHTML = `
                         <div class="result-header">
                             <strong>${message}</strong>
                         </div>
@@ -319,37 +318,37 @@
                         ${headerHtml}
                     `;
 
-                    document.getElementById("copyBtn").addEventListener("click", function () {
-                        navigator.clipboard.writeText(rawText).then(() => {
-                            this.textContent = "已複製！";
-                            this.disabled = true;
-                            setTimeout(() => {
-                                this.textContent = "複製內文";
-                                this.disabled = false;
-                            }, 2000);
-                        });
-                    });
-                }
-            }
-
-            window.addEventListener("DOMContentLoaded", () => {
-                elements.decryptBtn.addEventListener("click", decrypt);
+          document.getElementById('copyBtn').addEventListener('click', function () {
+            navigator.clipboard.writeText(rawText).then(() => {
+              this.textContent = '已複製！';
+              this.disabled = true;
+              setTimeout(() => {
+                this.textContent = '複製內文';
+                this.disabled = false;
+              }, 2000);
             });
-        </script>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🔓 Encipher v4 JWE 解密器</h1>
-            <div class="form-group">
-                <label for="jweInput">JWE 密文:</label>
-                <textarea id="jweInput" placeholder="貼上 v4.0 格式的 JWE Compact 字串..." required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="passphrase">密碼短語:</label>
-                <input type="password" id="passphrase" placeholder="輸入解密密碼" required />
-            </div>
-            <button id="decryptBtn">🔓 開始解密</button>
-            <div id="resultSection" style="display: none"></div>
-        </div>
-    </body>
+          });
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        elements.decryptBtn.addEventListener('click', decrypt);
+      });
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔓 Encipher v4 JWE 解密器</h1>
+      <div class="form-group">
+        <label for="jweInput">JWE 密文:</label>
+        <textarea id="jweInput" placeholder="貼上 v4.0 格式的 JWE Compact 字串..." required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="passphrase">密碼短語:</label>
+        <input type="password" id="passphrase" placeholder="輸入解密密碼" required />
+      </div>
+      <button id="decryptBtn">🔓 開始解密</button>
+      <div id="resultSection" style="display: none"></div>
+    </div>
+  </body>
 </html>

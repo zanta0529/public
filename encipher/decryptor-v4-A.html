@@ -1,364 +1,360 @@
 <!doctype html>
 <html lang="zh-TW">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>JWE 解密 A</title>
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JWE 解密 A</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
-                line-height: 1.5;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                padding: 20px;
-            }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+        line-height: 1.5;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
 
-            .container {
-                max-width: 1024px;
-                margin: 0 auto;
-                background: rgba(255, 255, 255, 0.95);
-                border-radius: 20px;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-                backdrop-filter: blur(10px);
-                overflow: hidden;
-            }
+      .container {
+        max-width: 1024px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+      }
 
-            .header {
-                background: linear-gradient(135deg, #2c3e50, #3498db);
-                color: white;
-                padding: 30px;
-                text-align: center;
-            }
+      .header {
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
 
-            .header h1 {
-                font-size: 2.2em;
-                margin-bottom: 10px;
-                font-weight: 300;
-            }
+      .header h1 {
+        font-size: 2.2em;
+        margin-bottom: 10px;
+        font-weight: 300;
+      }
 
-            .header p {
-                opacity: 0.9;
-                font-size: 1.1em;
-            }
+      .header p {
+        opacity: 0.9;
+        font-size: 1.1em;
+      }
 
-            .content {
-                padding: 40px;
-            }
+      .content {
+        padding: 40px;
+      }
 
-            .form-group {
-                margin-bottom: 20px;
-            }
+      .form-group {
+        margin-bottom: 20px;
+      }
 
-            label {
-                display: block;
-                margin-bottom: 8px;
-                font-weight: 600;
-                color: #2c3e50;
-                font-size: 1.1em;
-            }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.1em;
+      }
 
-            input[type="password"],
-            textarea {
-                width: 100%;
-                padding: 15px;
-                border: 2px solid #e0e6ed;
-                border-radius: 12px;
-                font-size: 16px;
-                transition: all 0.3s ease;
-                font-family: "Consolas", "Monaco", monospace;
-                background: #f8f9fa;
-            }
+      input[type='password'],
+      textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e0e6ed;
+        border-radius: 12px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        font-family: 'Consolas', 'Monaco', monospace;
+        background: #f8f9fa;
+      }
 
-            input[type="password"]:focus,
-            textarea:focus {
-                outline: none;
-                border-color: #3498db;
-                background: white;
-                box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-            }
+      input[type='password']:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #3498db;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+      }
 
-            textarea {
-                min-height: 120px;
-                resize: vertical;
-            }
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
 
-            .btn {
-                background: linear-gradient(135deg, #3498db, #2980b9);
-                color: white;
-                border: none;
-                padding: 15px 30px;
-                border-radius: 12px;
-                cursor: pointer;
-                font-size: 16px;
-                font-weight: 600;
-                transition: all 0.3s ease;
-                width: 100%;
-                margin-bottom: 20px;
-            }
+      .btn {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-bottom: 20px;
+      }
 
-            .btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
-            }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+      }
 
-            .btn:active {
-                transform: translateY(0);
-            }
+      .btn:active {
+        transform: translateY(0);
+      }
 
-            .result {
-                margin-top: 30px;
-                padding: 20px;
-                border-radius: 12px;
-                min-height: 100px;
-                font-family: "Consolas", "Monaco", monospace;
-            }
+      .result {
+        margin-top: 30px;
+        padding: 20px;
+        border-radius: 12px;
+        min-height: 100px;
+        font-family: 'Consolas', 'Monaco', monospace;
+      }
 
-            .result-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 15px;
-            }
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
 
-            .result-header strong {
-                font-size: 1.1em;
-                margin-right: 15px;
-            }
+      .result-header strong {
+        font-size: 1.1em;
+        margin-right: 15px;
+      }
 
-            .btn-copy {
-                background: #3498db;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 14px;
-                font-weight: 500;
-                transition: all 0.2s ease;
-                flex-shrink: 0;
-            }
+      .btn-copy {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+      }
 
-            .btn-copy:hover {
-                background: #2980b9;
-                transform: translateY(-1px);
-            }
+      .btn-copy:hover {
+        background: #2980b9;
+        transform: translateY(-1px);
+      }
 
-            .plaintext-content {
-                white-space: pre-wrap;
-                word-break: break-all;
-                background: rgba(0, 0, 0, 0.04);
-                padding: 15px;
-                border-radius: 8px;
-            }
+      .plaintext-content {
+        white-space: pre-wrap;
+        word-break: break-all;
+        background: rgba(0, 0, 0, 0.04);
+        padding: 15px;
+        border-radius: 8px;
+      }
 
-            .success {
-                background: #d4edda;
-                border: 2px solid #c3e6cb;
-                color: #155724;
-            }
+      .success {
+        background: #d4edda;
+        border: 2px solid #c3e6cb;
+        color: #155724;
+      }
 
-            .error {
-                background: #f8d7da;
-                border: 2px solid #f5c6cb;
-                color: #721c24;
-            }
+      .error {
+        background: #f8d7da;
+        border: 2px solid #f5c6cb;
+        color: #721c24;
+      }
 
-            .info {
-                background: #d1ecf1;
-                border: 2px solid #bee5eb;
-                color: #0c5460;
-                margin-bottom: 30px;
-            }
+      .info {
+        background: #d1ecf1;
+        border: 2px solid #bee5eb;
+        color: #0c5460;
+        margin-bottom: 30px;
+      }
 
-            .test-section {
-                margin-top: 40px;
-                padding-top: 30px;
-                border-top: 2px solid #e0e6ed;
-            }
+      .test-section {
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #e0e6ed;
+      }
 
-            .test-btn {
-                background: linear-gradient(135deg, #28a745, #20c997);
-                margin-bottom: 10px;
-            }
+      .test-btn {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        margin-bottom: 10px;
+      }
 
-            .test-btn:hover {
-                box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
-            }
+      .test-btn:hover {
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+      }
 
-            .loading {
-                display: none;
-                text-align: center;
-                color: #666;
-                font-style: italic;
-            }
+      .loading {
+        display: none;
+        text-align: center;
+        color: #666;
+        font-style: italic;
+      }
 
-            .tech-info {
-                font-size: 0.9em;
-                color: #666;
-                margin-top: 10px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>🔓 JWE 解密工具</h1>
-                <p>純客戶端 JSON Web Encryption 解密器</p>
-            </div>
+      .tech-info {
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🔓 JWE 解密工具</h1>
+        <p>純客戶端 JSON Web Encryption 解密器</p>
+      </div>
 
-            <div class="content">
-                <div class="info">
-                    <strong>支援格式：</strong> JWE Compact Serialization<br />
-                    <strong>加密演算法：</strong> A256GCM（AES-256-GCM）<br />
-                    <strong>金鑰管理：</strong> Argon2id / PBES2（自動判斷 alg 標頭）<br />
-                    <strong>隱私保護：</strong> 所有運算在瀏覽器本機完成
-                </div>
-
-                <form id="decryptForm">
-                    <div class="form-group">
-                        <label for="jweString">JWE 加密字串</label>
-                        <textarea
-                            id="jweString"
-                            rows="5"
-                            placeholder="eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..."
-                        ></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">密碼</label>
-                        <input type="password" id="password" placeholder="請輸入解密密碼" />
-                    </div>
-
-                    <button type="submit" class="btn">🔓 開始解密</button>
-                </form>
-
-                <div class="loading" id="loading">正在解密中，請稍候...</div>
-
-                <div id="result"></div>
-
-                <div class="test-section">
-                    <h3>📋 測試功能</h3>
-                    <p class="tech-info">使用內建的標準測試向量驗證解密功能</p>
-                    <button type="button" class="btn test-btn" onclick="runTestVector()">執行測試向量</button>
-                </div>
-            </div>
+      <div class="content">
+        <div class="info">
+          <strong>支援格式：</strong> JWE Compact Serialization<br />
+          <strong>加密演算法：</strong> A256GCM（AES-256-GCM）<br />
+          <strong>金鑰管理：</strong> Argon2id / PBES2（自動判斷 alg 標頭）<br />
+          <strong>隱私保護：</strong> 所有運算在瀏覽器本機完成
         </div>
 
-        <script src="https://unpkg.com/argon2-browser/dist/argon2-bundled.min.js"></script>
-        <script type="module">
-            import { compactDecrypt, decodeProtectedHeader } from "https://esm.sh/jose@5.6.3";
+        <form id="decryptForm">
+          <div class="form-group">
+            <label for="jweString">JWE 加密字串</label>
+            <textarea id="jweString" rows="5" placeholder="eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..."></textarea>
+          </div>
 
-            // Base64URL 解碼函數
-            function base64urlDecode(str) {
-                str = str.replace(/-/g, "+").replace(/_/g, "/");
-                while (str.length % 4) str += "=";
-                return Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
+          <div class="form-group">
+            <label for="password">密碼</label>
+            <input type="password" id="password" placeholder="請輸入解密密碼" />
+          </div>
+
+          <button type="submit" class="btn">🔓 開始解密</button>
+        </form>
+
+        <div class="loading" id="loading">正在解密中，請稍候...</div>
+
+        <div id="result"></div>
+
+        <div class="test-section">
+          <h3>📋 測試功能</h3>
+          <p class="tech-info">使用內建的標準測試向量驗證解密功能</p>
+          <button type="button" class="btn test-btn" onclick="runTestVector()">執行測試向量</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/argon2-browser/dist/argon2-bundled.min.js"></script>
+    <script type="module">
+      import { compactDecrypt, decodeProtectedHeader } from 'https://esm.sh/jose@5.6.3';
+
+      // Base64URL 解碼函數
+      function base64urlDecode(str) {
+        str = str.replace(/-/g, '+').replace(/_/g, '/');
+        while (str.length % 4) str += '=';
+        return Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
+      }
+
+      // HTML escaping function to prevent XSS
+      function escapeHTML(str) {
+        if (typeof str !== 'string') return '';
+        return str
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      // Argon2id 金鑰衍生
+      async function deriveKeyArgon2id(password, salt, memory, iterations, parallelism) {
+        const result = await argon2.hash({
+          pass: password,
+          salt: Array.from(salt),
+          time: iterations,
+          mem: memory,
+          hashLen: 32,
+          parallelism: parallelism,
+          type: argon2.ArgonType.Argon2id,
+        });
+
+        return await crypto.subtle.importKey('raw', result.hash, { name: 'AES-GCM' }, false, ['decrypt']);
+      }
+
+      // JWE 解密主函數
+      async function decryptJWE(jweString, password) {
+        try {
+          const parts = jweString.split('.');
+          if (parts.length !== 5) {
+            throw new Error('無效的 JWE 格式：應包含 5 個部分');
+          }
+
+          // 解析 Protected Header
+          const protectedHeader = decodeProtectedHeader(jweString);
+          console.log('JWE Header:', protectedHeader);
+
+          if (protectedHeader.enc !== 'A256GCM') {
+            throw new Error(`不支援的內容加密演算法: enc=${protectedHeader.enc}`);
+          }
+
+          let decrypted;
+
+          if (protectedHeader.alg === 'dir') {
+            if (protectedHeader.kdf !== 'Argon2id') {
+              throw new Error(`alg: "dir" 模式下不支援的 KDF: ${protectedHeader.kdf}`);
             }
+            const salt = base64urlDecode(protectedHeader.salt);
+            const key = await deriveKeyArgon2id(
+              password,
+              salt,
+              protectedHeader.m,
+              protectedHeader.t,
+              protectedHeader.p
+            );
+            const { plaintext } = await compactDecrypt(jweString, key);
+            decrypted = plaintext;
+          } else if (protectedHeader.alg === 'PBES2-HS512+A256KW') {
+            const passphraseBytes = new TextEncoder().encode(password);
+            const { plaintext } = await compactDecrypt(jweString, passphraseBytes, {
+              keyManagementAlgorithms: ['PBES2-HS512+A256KW'],
+            });
+            decrypted = plaintext;
+          } else {
+            throw new Error(`不支援的金鑰管理演算法: alg=${protectedHeader.alg}`);
+          }
 
-            // HTML escaping function to prevent XSS
-            function escapeHTML(str) {
-                if (typeof str !== "string") return "";
-                return str
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
-            }
+          return new TextDecoder().decode(decrypted);
+        } catch (error) {
+          console.error('解密錯誤:', error);
+          throw new Error(`解密失敗: ${error.message}`);
+        }
+      }
 
-            // Argon2id 金鑰衍生
-            async function deriveKeyArgon2id(password, salt, memory, iterations, parallelism) {
-                const result = await argon2.hash({
-                    pass: password,
-                    salt: Array.from(salt),
-                    time: iterations,
-                    mem: memory,
-                    hashLen: 32,
-                    parallelism: parallelism,
-                    type: argon2.ArgonType.Argon2id,
-                });
+      // 表單提交處理
+      document.getElementById('decryptForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
 
-                return await crypto.subtle.importKey("raw", result.hash, { name: "AES-GCM" }, false, ["decrypt"]);
-            }
+        const jweString = document.getElementById('jweString').value.trim();
+        const password = document.getElementById('password').value;
+        const resultDiv = document.getElementById('result');
+        const loading = document.getElementById('loading');
 
-            // JWE 解密主函數
-            async function decryptJWE(jweString, password) {
-                try {
-                    const parts = jweString.split(".");
-                    if (parts.length !== 5) {
-                        throw new Error("無效的 JWE 格式：應包含 5 個部分");
-                    }
+        if (!jweString || !password) {
+          resultDiv.className = 'result error';
+          resultDiv.textContent = '請輸入 JWE 字串和密碼';
+          return;
+        }
 
-                    // 解析 Protected Header
-                    const protectedHeader = decodeProtectedHeader(jweString);
-                    console.log("JWE Header:", protectedHeader);
+        loading.style.display = 'block';
+        resultDiv.style.display = 'none';
 
-                    if (protectedHeader.enc !== "A256GCM") {
-                        throw new Error(`不支援的內容加密演算法: enc=${protectedHeader.enc}`);
-                    }
-
-                    let decrypted;
-
-                    if (protectedHeader.alg === "dir") {
-                        if (protectedHeader.kdf !== "Argon2id") {
-                            throw new Error(`alg: "dir" 模式下不支援的 KDF: ${protectedHeader.kdf}`);
-                        }
-                        const salt = base64urlDecode(protectedHeader.salt);
-                        const key = await deriveKeyArgon2id(
-                            password,
-                            salt,
-                            protectedHeader.m,
-                            protectedHeader.t,
-                            protectedHeader.p
-                        );
-                        const { plaintext } = await compactDecrypt(jweString, key);
-                        decrypted = plaintext;
-                    } else if (protectedHeader.alg === "PBES2-HS512+A256KW") {
-                        const passphraseBytes = new TextEncoder().encode(password);
-                        const { plaintext } = await compactDecrypt(jweString, passphraseBytes, {
-                            keyManagementAlgorithms: ["PBES2-HS512+A256KW"],
-                        });
-                        decrypted = plaintext;
-                    } else {
-                        throw new Error(`不支援的金鑰管理演算法: alg=${protectedHeader.alg}`);
-                    }
-
-                    return new TextDecoder().decode(decrypted);
-                } catch (error) {
-                    console.error("解密錯誤:", error);
-                    throw new Error(`解密失敗: ${error.message}`);
-                }
-            }
-
-            // 表單提交處理
-            document.getElementById("decryptForm").addEventListener("submit", async function (e) {
-                e.preventDefault();
-
-                const jweString = document.getElementById("jweString").value.trim();
-                const password = document.getElementById("password").value;
-                const resultDiv = document.getElementById("result");
-                const loading = document.getElementById("loading");
-
-                if (!jweString || !password) {
-                    resultDiv.className = "result error";
-                    resultDiv.textContent = "請輸入 JWE 字串和密碼";
-                    return;
-                }
-
-                loading.style.display = "block";
-                resultDiv.style.display = "none";
-
-                try {
-                    const plaintext = await decryptJWE(jweString, password);
-                    const safePlaintext = escapeHTML(plaintext);
-                    resultDiv.className = "result success";
-                    resultDiv.innerHTML = `
+        try {
+          const plaintext = await decryptJWE(jweString, password);
+          const safePlaintext = escapeHTML(plaintext);
+          resultDiv.className = 'result success';
+          resultDiv.innerHTML = `
                         <div class="result-header">
                             <strong>✅ 解密成功</strong>
                             <button id="copyBtn" class="btn-copy" title="複製到剪貼簿">複製內文</button>
@@ -366,51 +362,51 @@
                         <pre class="plaintext-content">${safePlaintext}</pre>
                     `;
 
-                    document.getElementById("copyBtn").addEventListener("click", function () {
-                        navigator.clipboard.writeText(plaintext).then(() => {
-                            this.textContent = "已複製！";
-                            this.disabled = true;
-                            setTimeout(() => {
-                                this.textContent = "複製內文";
-                                this.disabled = false;
-                            }, 2000);
-                        });
-                    });
-                } catch (error) {
-                    const safeErrorMessage = escapeHTML(error.message);
-                    resultDiv.className = "result error";
-                    resultDiv.innerHTML = `
+          document.getElementById('copyBtn').addEventListener('click', function () {
+            navigator.clipboard.writeText(plaintext).then(() => {
+              this.textContent = '已複製！';
+              this.disabled = true;
+              setTimeout(() => {
+                this.textContent = '複製內文';
+                this.disabled = false;
+              }, 2000);
+            });
+          });
+        } catch (error) {
+          const safeErrorMessage = escapeHTML(error.message);
+          resultDiv.className = 'result error';
+          resultDiv.innerHTML = `
                         <div class="result-header">
                             <strong>❌ 解密失敗</strong>
                         </div>
                         <pre class="plaintext-content">${safeErrorMessage}</pre>
                     `;
-                } finally {
-                    loading.style.display = "none";
-                    resultDiv.style.display = "block";
-                }
-            });
+        } finally {
+          loading.style.display = 'none';
+          resultDiv.style.display = 'block';
+        }
+      });
 
-            // 測試向量函數
-            async function runTestVector() {
-                // PBES2 Test Vector
-                const testJWE_PBES2 =
-                    "eyJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIiwicDJjIjo0MDk2LCJwMnMiOiJwYmo1eVctYkNBNTJlclRvai0yX0EifQ.9uUEj2aUarsTdU29f123i_5Z0_O3w8Xy3-8n-u2y2-c.cN_t-stxEAx2jY4I.g3Rj6tF-N_L5fJ-jS8K_tL-L-J3E.D2Zg-P4-Z-n1-U6D_Q";
-                const testPassword_PBES2 = "standard-compatible-password";
-                const expectedPlaintext_PBES2 = "This is a test for PBES2 compatibility.";
+      // 測試向量函數
+      async function runTestVector() {
+        // PBES2 Test Vector
+        const testJWE_PBES2 =
+          'eyJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIiwicDJjIjo0MDk2LCJwMnMiOiJwYmo1eVctYkNBNTJlclRvai0yX0EifQ.9uUEj2aUarsTdU29f123i_5Z0_O3w8Xy3-8n-u2y2-c.cN_t-stxEAx2jY4I.g3Rj6tF-N_L5fJ-jS8K_tL-L-J3E.D2Zg-P4-Z-n1-U6D_Q';
+        const testPassword_PBES2 = 'standard-compatible-password';
+        const expectedPlaintext_PBES2 = 'This is a test for PBES2 compatibility.';
 
-                document.getElementById("jweString").value = testJWE_PBES2;
-                document.getElementById("password").value = testPassword_PBES2;
-                document.getElementById("decryptBtn").click();
-            }
+        document.getElementById('jweString').value = testJWE_PBES2;
+        document.getElementById('password').value = testPassword_PBES2;
+        document.getElementById('decryptBtn').click();
+      }
 
-            // Expose to global scope
-            window.runTestVector = runTestVector;
+      // Expose to global scope
+      window.runTestVector = runTestVector;
 
-            // 頁面載入完成提示
-            window.addEventListener("load", function () {
-                console.log("JWE v4.1 解密工具已載入完成");
-            });
-        </script>
-    </body>
+      // 頁面載入完成提示
+      window.addEventListener('load', function () {
+        console.log('JWE v4.1 解密工具已載入完成');
+      });
+    </script>
+  </body>
 </html>
