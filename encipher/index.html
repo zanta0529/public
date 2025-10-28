@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Encipher v4 - JWE 進階加密、解密器</title>
     <script src="/public/encipher/argon2-bundled.min.js"></script>
-    <script type="module" crossorigin src="/public/encipher/assets/index-C_BLrLc0.js"></script>
+    <script type="module" crossorigin src="/public/encipher/assets/index-DWE1xHm_.js"></script>
     <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-4QC6MV89.css">
   </head>
   <body>
@@ -19,7 +19,7 @@
 
       <div class="accordion">
         <div class="accordion-item">
-          <button class="accordion-header" aria-expanded="false">ℹ️ 關於本工具 / v4.1 技術規格</button>
+          <button class="accordion-header" aria-expanded="false">ℹ️ 關於本工具 / v4.2 技術規格</button>
           <div class="accordion-content" aria-hidden="true">
             <h4>工具用途</h4>
             <p>
@@ -28,13 +28,17 @@
               JWE (JSON Web Encryption) 標準、可安全傳輸的密文。
             </p>
 
-            <h4>版本 v4.1 說明</h4>
+            <h4>版本 v4.2 說明</h4>
             <p style="color: var(--warning-color)">
               <strong>重要：</strong>此版本採用了業界標準的
               <strong>JWE Compact Serialization</strong> 格式，旨在提供更好的互通性。它與 v3.0 之前的任何版本均不相容。
             </p>
+            <p>
+              <strong>v4.2 更新：</strong>在 JWE Protected Header 中新增了 <code>app: "encipher"</code> 與
+              <code>v: 4</code> 兩個自訂參數，用於標示密文來源。
+            </p>
 
-            <h4>技術規格 (v4.1)</h4>
+            <h4>技術規格 (v4.2)</h4>
             <ul>
               <li><strong>加密格式：</strong> 最終輸出為一個 <strong>JWE Compact Serialization</strong> 字串。</li>
               <li>
@@ -48,23 +52,57 @@
                 </ul>
               </li>
               <li><strong>對稱加密 (`enc`)：</strong> 固定使用 <code>A256GCM</code> (AES-256-GCM)。</li>
+              <li>
+                <strong>標頭參數 (Header)：</strong> 除了標準 JWE 參數外，額外包含
+                <code>app: "encipher"</code> (應用程式識別) 和 <code>v: 4</code> (主版本號)。這些參數會被包含在 AAD
+                (附加驗證資料) 的計算中。
+              </li>
             </ul>
 
-            <h4>給開發者的話：實作相容的 v4.1 解密器</h4>
+            <h4>給開發者的話：實作相容的 v4.2 解密器</h4>
             <p>
               <strong>首選作法：</strong><br />
               我們強烈建議您使用一個成熟的 <strong>JOSE / JWE 函式庫</strong> (例如 Node.js 的 `jose`) 來處理解密。
             </p>
             <ol>
-              <li>首先解析 JWE Protected Header 以取得 <code>alg</code> 參數。</li>
+              <li>
+                首先解析 JWE Protected Header 以取得 <code>alg</code> 參數 (以及可選的 <code>app</code>,
+                <code>v</code> 參數)。
+              </li>
               <li>
                 <strong>若 <code>alg</code> 為 <code>"dir"</code></strong
-                >: 從 Header 讀取 <code>kdf</code>, <code>salt</code> 等參數，使用 Argon2id 重現出 32
-                位元組金鑰，再將**金鑰**傳入解密函式。
+                >:
+                <ul>
+                  <li>
+                    從 Header 讀取 <code>kdf</code> (應為 "Argon2id"), <code>salt</code>, <code>t</code>,
+                    <code>m</code>, <code>p</code> 參數。
+                  </li>
+                  <li>使用 Argon2id 重現出 32 位元組金鑰。</li>
+                  <li>
+                    將**金鑰**傳入解密函式。解密函式**必須**使用 JWE 字串第一部分 (Base64URL 編碼的 Header) 作為 AAD
+                    進行驗證。
+                  </li>
+                </ul>
               </li>
               <li>
                 <strong>若 <code>alg</code> 為 <code>"PBES2-HS512+A256KW"</code></strong
-                >: 直接將**原始密碼**傳入解密函式，並在選項中明確允許此演算法。函式庫會自動處理所有流程。
+                >:
+                <ul>
+                  <li>
+                    直接將**原始密碼**傳入解密函式，並在選項中明確允許此演算法。函式庫會自動處理金鑰解包、AAD
+                    驗證等所有流程。
+                  </li>
+                  <li>您不需要手動處理 Header 中的 <code>p2s</code> 或 <code>p2c</code> 參數。</li>
+                </ul>
+              </li>
+              <li>
+                <strong>處理自訂參數 (<code>app</code>, <code>v</code>)</strong>:
+                您的解密器**應該**忽略無法識別的標頭參數 (包括 <code>app</code> 和 <code>v</code>)，這是 JWE
+                標準的要求。您**可以**選擇性地讀取它們以獲取額外資訊，但**絕不能**因為它們的存在而拒絕解密。
+              </li>
+              <li>
+                <strong>向下相容性</strong>: 您的解密器**必須**能成功解密缺少 <code>app</code> 與 <code>v</code> 參數的
+                v4.0/v4.1 JWE 密文。
               </li>
             </ol>
 
@@ -72,11 +110,11 @@
             <p>為了協助第三方開發者驗證其解密實作的正確性，特提供以下測試案例。</p>
             <pre><code style="font-family: monospace; white-space: pre-wrap; word-break: break-all;">
 // ----------
-// 測試案例 1: Argon2id (最高安全模式)
+// 測試案例 1: Argon2id (最高安全模式, v4.2 - 含 app/v)
 // ----------
 
 // -- 輸入 --
-明文 (Plaintext): "This is a JWE test vector."
+明文 (Plaintext): "This is a JWE test vector with app/v headers."
 密碼短語 (Passphrase): "a_very_secure_password_123!@#"
 
 // -- KDF 參數 --
@@ -89,18 +127,18 @@ Argon2 平行度: 4
 IV (Base64URL): AAAAAAAAAAAAAAAAAA (12 zero bytes)
 
 // -- 中間產物 (必須一致) --
-派生出的金鑰 (Hex): 
+派生出的金鑰 (Hex):
 f3987f6dd2f02a632276e0a490f402f327916962077180556209cf556149021a
 
 // -- 最終輸出 (JWE Compact Serialization) --
-eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiQXJnb24yaWQiLCJzYWx0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUEiLCJ0Ijo0LCJtIjo2NTUzNiwicCI6NH0..AAAAAAAAAAAAAAAAAA.R0bX3te25EuQJt1pfr14M32aV4pYl8jYgQ.P2I-gn_Jtcf67Vso-3qPkw
+eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiQXJnb24yaWQiLCJzYWx0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUEiLCJ0Ijo0LCJtIjo2NTUzNiwicCI6NCwiYXBwIjoiZW5jaXBoZXIiLCJ2Ijo0fQ..AAAAAAAAAAAAAAAAAA.bN7aXI3R8l3oUa-P7U_Nrqy9HMfFwVps4k5XIFqKiyI9n3L_-p4e68p1Q_8JKA.2Fv-qjgy0C13p930z9v-fQ
 
 // ----------
-// 測試案例 2: PBES2 (最高相容模式)
+// 測試案例 2: PBES2 (最高相容模式, v4.2 - 含 app/v)
 // ----------
 
 // -- 輸入 --
-明文 (Plaintext): "This is a test for PBES2 compatibility."
+明文 (Plaintext): "This is a test for PBES2 compatibility with app/v headers."
 密碼短語 (Passphrase): "standard-compatible-password"
 
 // -- JWE 參數 (由 jose 函式庫自動產生) --
@@ -109,7 +147,7 @@ p2c (Count, Iterations): 4096
 IV (Base64URL): cN_t-stxEAx2jY4I
 
 // -- 最終輸出 (JWE Compact Serialization) --
-eyJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIiwicDJjIjo0MDk2LCJwMnMiOiJwYmo1eVctYkNBNTJlclRvai0yX0EifQ.9uUEj2aUarsTdU29f123i_5Z0_O3w8Xy3-8n-u2y2-c.cN_t-stxEAx2jY4I.g3Rj6tF-N_L5fJ-jS8K_tL-L-J3E.D2Zg-P4-Z-n1-U6D_Q
+eyJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIiwicDJjIjo0MDk2LCJwMnMiOiJwYmo1eVctYkNBNTJlclRvai0yX0EiLCJhcHAiOiJlbmNpcGhlciIsInYiOjR9.wRqpYyR01c8QyD6_R_lS_7e_U6D2Y-P4Z_N1-U6D_Q.cN_t-stxEAx2jY4I.sZ2Rj6tF-N_L5fJ-jS8K_tL-L-J3E_4n5Y-p9s-R.D2Zg-P4-Z-n1-U6D_Q
             </code></pre>
           </div>
         </div>
