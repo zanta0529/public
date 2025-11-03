@@ -4,15 +4,57 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Price Comparator</title>
-    <script type="module" crossorigin src="/public/comparator/assets/index-B5Qt9EMX.js"></script>
+    <script type="module" crossorigin src="/public/comparator/assets/index-B4I2HJSy.js"></script>
+    <link rel="stylesheet" crossorigin href="/public/comparator/assets/index-DbRdv8HV.css">
   </head>
   <body>
     <div id="app">
       <header>
-        <h1>Price Comparator</h1>
+        <h1>單位價格比較工具</h1>
       </header>
 
-      <div class="container"></div>
+      <div class="container">
+        <div class="comparator-grid">
+          <div class="card" id="cardA">
+            <h2>商品 A</h2>
+            <div class="input-group">
+              <label for="priceA">價格 (Price)</label>
+              <input type="number" id="priceA" placeholder="例如：100" />
+            </div>
+            <div class="input-group">
+              <label for="unitA">單位 (Unit)</label>
+              <input type="number" id="unitA" placeholder="例如：500 (克/毫升/個)" />
+            </div>
+            <div class="result-group">
+              <label>單位價格</label>
+              <div class="result-display">
+                <span class="result-icon" id="iconA"></span>
+                <div class="result-output" id="resultA">--</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" id="cardB">
+            <h2>商品 B</h2>
+            <div class="input-group">
+              <label for="priceB">價格 (Price)</label>
+              <input type="number" id="priceB" placeholder="例如：150" />
+            </div>
+            <div class="input-group">
+              <label for="unitB">單位 (Unit)</label>
+              <input type="number" id="unitB" placeholder="例如：800 (克/毫升/個)" />
+            </div>
+            <div class="result-group">
+              <label>單位價格</label>
+              <div class="result-display">
+                <span class="result-icon" id="iconB"></span>
+                <div class="result-output" id="resultB">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button id="resetBtn" title="清空所有欄位">清除</button>
+      </div>
 
       <footer>
         <p>
