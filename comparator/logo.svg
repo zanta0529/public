@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
+  <defs>
+    <path id="tagShape" d="M0 20 L20 0 L40 20 L40 70 C40 80 30 80 30 80 L10 80 C10 80 0 80 0 70 Z" />
+  </defs>
+  
+  <g transform="translate(45, 10)">
+    <use href="#tagShape" fill="#2ecc71" />
+    <circle cx="20" cy="20" r="5" fill="#ffffff"/>
+    <path d="M10 45 L18 55 L30 35" stroke="#ffffff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+  
+  <g transform="translate(15, 10)">
+    <use href="#tagShape" fill="#fd7070ff" />
+    <circle cx="20" cy="20" r="5" fill="#ffffff"/>
+    <path d="M20 35 L20 60 M13 50 L20 60 L27 50" stroke="#ffffff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>
