@@ -1,0 +1,1 @@
+{"name":"Encipher v4 - JWE 加密解密器","short_name":"Encipher v4","description":"一個純客戶端的 JWE (JSON Web Encryption) 進階加密與解密工具。","start_url":".","display":"standalone","background_color":"#1e293b","theme_color":"#4f46e5","lang":"en","scope":"/public/encipher/","icons":[{"src":"logo.svg","sizes":[64,192,512],"purpose":"any"},{"src":"logo.svg","sizes":[192,512],"purpose":"maskable"}]}
