@@ -1,0 +1,1 @@
+{"name":"Shamir 秘密分享演算法示範工具","short_name":"Shamir 秘密分享","description":"一個示範 Shamir 秘密分享演算法的網頁工具。","start_url":"/public/shamir/","display":"standalone","background_color":"#1a1b1e","theme_color":"#1a1b1e","lang":"en","scope":"/public/shamir/","icons":[{"src":"logo.svg","sizes":[64,192,512],"purpose":"any"},{"src":"logo.svg","sizes":[192,512],"purpose":"maskable"}]}

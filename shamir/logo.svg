@@ -1,0 +1,10 @@
+<svg width="512" height="512" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="Shamir Secret Sharing Logo">
+
+  <g transform="translate(100, 100)">    
+    <path d="M 5 -5 L 65 -37.5 L 0 -75 Z" fill="#1E90FF" />    
+    <path d="M 5 5 L 0 75 L 65 37.5 Z" fill="#28A745" />    
+    <path d="M -5 5 L -65 37.5 L 0 75 Z" fill="#E8E8F0" />    
+    <path d="M -5 -5 L 0 -75 L -65 -37.5 Z" fill="#EAEB6E" />
+  </g>
+  
+</svg>

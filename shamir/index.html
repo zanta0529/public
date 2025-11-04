@@ -1,140 +1,134 @@
 <!doctype html>
 <html lang="zh-Hant" data-theme="dark">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Shamir's Secret Sharing Tool 2.0</title>
-      <script type="module" crossorigin src="/public/shamir/assets/index-Dg_Zinme.js"></script>
-      <link rel="stylesheet" crossorigin href="/public/shamir/assets/index-BjB1wpXb.css">
-    </head>
-    <body>
-        <div id="app">
-            <div class="container">
-                <h1>Shamir's Secret Sharing Tool</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/public/shamir/logo.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/public/shamir/logo.svg" />
+    <title>Shamir's Secret Sharing</title>
+    <script type="module" crossorigin src="/public/shamir/assets/index-Dg_Zinme.js"></script>
+    <link rel="stylesheet" crossorigin href="/public/shamir/assets/index-BjB1wpXb.css">
+  <link rel="manifest" href="/public/shamir/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/public/shamir/registerSW.js"></script></head>
+  <body>
+    <div id="app">
+      <div class="container">
+        <h1>Shamir's Secret Sharing</h1>
 
-                <div class="mode-switcher">
-                    <button id="modeSplitBtn" class="mode-btn active">分割</button>
-                    <button id="modeReconstructBtn" class="mode-btn">重建</button>
-                </div>
-
-                <div id="splitSection" class="content-section active">
-                    <h2>分割秘密</h2>
-                    <div class="form-group">
-                        <label for="originalString">原始字串</label>
-                        <textarea
-                            id="originalString"
-                            rows="3"
-                            placeholder="請在此輸入任何您想加密保護的文字..."
-                        ></textarea>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="n">總分割數 (n)</label>
-                            <input type="number" id="n" min="2" max="255" placeholder="e.g., 5" />
-                            <div id="nErrorMessage" class="input-error-message"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="k">重建門檻值 (k)</label>
-                            <input type="number" id="k" min="2" max="255" placeholder="e.g., 3" />
-                            <div id="kErrorMessage" class="input-error-message"></div>
-                        </div>
-                    </div>
-                    <div id="splitError" class="output-box error" style="display: none"></div>
-                    <div class="button-group">
-                        <button id="generateBtn">產生分割值</button>
-                        <button id="clearSplitBtn" class="secondary">清除</button>
-                    </div>
-                    <div id="splitResultArea" style="display: none">
-                        <div class="result-header">
-                            <h2>分割結果</h2>
-                            <div class="encoding-switcher">
-                                <span>Base64</span>
-                                <label class="switch">
-                                    <input type="checkbox" id="encodingToggle" />
-                                    <span class="slider round"></span>
-                                </label>
-                                <span>Base58Check</span>
-                                <span
-                                    class="tooltip-icon"
-                                    data-tooltip="Base58Check 是一種常用於加密貨幣的編碼方式。它移除了視覺上易混淆的字元 (0, O, I, l)，並內建校驗碼 (Checksum) 來驗證資料完整性，大幅降低手動抄寫時的出錯風險。"
-                                    >ⓘ</span
-                                >
-                            </div>
-                        </div>
-                        <table id="splitResultTable">
-                            <thead>
-                                <tr>
-                                    <th style="width: 30px">ID</th>
-                                    <th>編碼分割值</th>
-                                    <th style="width: 150px">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="reconstructSection" class="content-section">
-                    <h2>重建秘密</h2>
-
-                    <div id="reconstructionQueue">
-                        <div id="queueProgress" class="queue-progress">
-                            請從「分割」頁面加入分割值，或從下方手動貼上
-                        </div>
-                        <div id="queueList"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="customShareInput">手動貼上 Base64 分割值</label>
-                        <textarea
-                            id="customShareInput"
-                            rows="2"
-                            placeholder="貼上包含版本與校驗碼的 Base64 編碼分割值..."
-                        ></textarea>
-                        <div class="button-group" style="margin-top: 0.5rem; justify-content: flex-end">
-                            <button id="addCustomShareBtn" class="secondary" style="flex: 0 1 auto">加入佇列</button>
-                        </div>
-                    </div>
-
-                    <div id="reconstructionResult" class="output-box" style="display: none"></div>
-
-                    <div class="button-group">
-                        <button id="reconstructBtn">重建秘密</button>
-                        <button id="clearQueueBtn" class="secondary">清空佇列</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="container tech-specs">
-                <h2>技術規格與安全聲明</h2>
-                <ul>
-                    <li><b>演算法基礎:</b> 本工具基於 Adi Shamir 秘密分享演算法，並在 <b>GF(2^8)</b> 有限域上運算。</li>
-                    <li>
-                        <b>質多項式:</b> 使用的質多項式為 <b>0x1D</b> (x⁸+x⁴+x³+x+1)，此為 AES 加密標準採用的通用選項。
-                    </li>
-                    <li>
-                        <b>安全亂數:</b> 多項式係數由瀏覽器內建的密碼學安全亂數產生器
-                        <code>window.crypto.getRandomValues()</code> 產生。
-                    </li>
-                    <li>
-                        <b>安全聲明:</b>
-                        本工具為開源專案，未經第三方專業安全審計。處理高敏感度資訊時，建議在可信賴的離線環境中使用本工具。
-                    </li>
-                </ul>
-            </div>
-
-            <footer>
-                <p>
-                    &copy; <span id="currentYear"></span> Zanta's Utilities
-                    <button id="themeToggleBtn" title="切換主題">🌙</button>
-                </p>
-            </footer>
-
-            <div id="qrModal">
-                <div id="qrCodeContainer" onclick="event.stopPropagation()"></div>
-            </div>
-
-            <div id="toast"></div>
+        <div class="mode-switcher">
+          <button id="modeSplitBtn" class="mode-btn active">分割</button>
+          <button id="modeReconstructBtn" class="mode-btn">重建</button>
         </div>
-    </body>
+
+        <div id="splitSection" class="content-section active">
+          <h2>分割秘密</h2>
+          <div class="form-group">
+            <label for="originalString">原始字串</label>
+            <textarea id="originalString" rows="3" placeholder="請在此輸入任何您想加密保護的文字..."></textarea>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="n">總分割數 (n)</label>
+              <input type="number" id="n" min="2" max="255" placeholder="e.g., 5" />
+              <div id="nErrorMessage" class="input-error-message"></div>
+            </div>
+            <div class="form-group">
+              <label for="k">重建門檻值 (k)</label>
+              <input type="number" id="k" min="2" max="255" placeholder="e.g., 3" />
+              <div id="kErrorMessage" class="input-error-message"></div>
+            </div>
+          </div>
+          <div id="splitError" class="output-box error" style="display: none"></div>
+          <div class="button-group">
+            <button id="generateBtn">產生分割值</button>
+            <button id="clearSplitBtn" class="secondary">清除</button>
+          </div>
+          <div id="splitResultArea" style="display: none">
+            <div class="result-header">
+              <h2>分割結果</h2>
+              <div class="encoding-switcher">
+                <span>Base64</span>
+                <label class="switch">
+                  <input type="checkbox" id="encodingToggle" />
+                  <span class="slider round"></span>
+                </label>
+                <span>Base58Check</span>
+                <span
+                  class="tooltip-icon"
+                  data-tooltip="Base58Check 是一種常用於加密貨幣的編碼方式。它移除了視覺上易混淆的字元 (0, O, I, l)，並內建校驗碼 (Checksum) 來驗證資料完整性，大幅降低手動抄寫時的出錯風險。"
+                  >ⓘ</span
+                >
+              </div>
+            </div>
+            <table id="splitResultTable">
+              <thead>
+                <tr>
+                  <th style="width: 30px">ID</th>
+                  <th>編碼分割值</th>
+                  <th style="width: 150px">操作</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="reconstructSection" class="content-section">
+          <h2>重建秘密</h2>
+
+          <div id="reconstructionQueue">
+            <div id="queueProgress" class="queue-progress">請從「分割」頁面加入分割值，或從下方手動貼上</div>
+            <div id="queueList"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="customShareInput">手動貼上 Base64 分割值</label>
+            <textarea
+              id="customShareInput"
+              rows="2"
+              placeholder="貼上包含版本與校驗碼的 Base64 編碼分割值..."
+            ></textarea>
+            <div class="button-group" style="margin-top: 0.5rem; justify-content: flex-end">
+              <button id="addCustomShareBtn" class="secondary" style="flex: 0 1 auto">加入佇列</button>
+            </div>
+          </div>
+
+          <div id="reconstructionResult" class="output-box" style="display: none"></div>
+
+          <div class="button-group">
+            <button id="reconstructBtn">重建秘密</button>
+            <button id="clearQueueBtn" class="secondary">清空佇列</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="container tech-specs">
+        <h2>技術規格與安全聲明</h2>
+        <ul>
+          <li><b>演算法基礎:</b> 本工具基於 Adi Shamir 秘密分享演算法，並在 <b>GF(2^8)</b> 有限域上運算。</li>
+          <li><b>質多項式:</b> 使用的質多項式為 <b>0x1D</b> (x⁸+x⁴+x³+x+1)，此為 AES 加密標準採用的通用選項。</li>
+          <li>
+            <b>安全亂數:</b> 多項式係數由瀏覽器內建的密碼學安全亂數產生器
+            <code>window.crypto.getRandomValues()</code> 產生。
+          </li>
+          <li>
+            <b>安全聲明:</b>
+            本工具為開源專案，未經第三方專業安全審計。處理高敏感度資訊時，建議在可信賴的離線環境中使用本工具。
+          </li>
+        </ul>
+      </div>
+
+      <footer>
+        <p>
+          &copy; <span id="currentYear"></span> Zanta's Utilities
+          <button id="themeToggleBtn" title="切換主題">🌙</button>
+        </p>
+      </footer>
+
+      <div id="qrModal">
+        <div id="qrCodeContainer" onclick="event.stopPropagation()"></div>
+      </div>
+
+      <div id="toast"></div>
+    </div>
+  </body>
 </html>
