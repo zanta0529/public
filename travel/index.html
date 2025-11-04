@@ -1,183 +1,180 @@
 <!doctype html>
 <html lang="zh-TW">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>旅遊行程小幫手 v3.3</title>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <script type="module" crossorigin src="/public/travel/assets/index-D0xnTwQB.js"></script>
-      <link rel="stylesheet" crossorigin href="/public/travel/assets/index-2W8SqgVV.css">
-    </head>
-    <body>
-        <div id="app-container">
-            <div id="offline-warning-banner" class="hidden">
-                <p><strong>離線模式：</strong>目前操作僅會儲存於本機，待網路恢復後才可同步至雲端。</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>旅遊行程小幫手</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="icon" href="/public/travel/logo.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/public/travel/logo.svg" />
+    <script type="module" crossorigin src="/public/travel/assets/index-D0xnTwQB.js"></script>
+    <link rel="stylesheet" crossorigin href="/public/travel/assets/index-2W8SqgVV.css">
+  <link rel="manifest" href="/public/travel/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/public/travel/registerSW.js"></script></head>
+  <body>
+    <div id="app-container">
+      <div id="offline-warning-banner" class="hidden">
+        <p><strong>離線模式：</strong>目前操作僅會儲存於本機，待網路恢復後才可同步至雲端。</p>
+      </div>
+
+      <aside id="itinerary-panel">
+        <div class="panel-header">
+          <div class="header-main-row">
+            <h1>我的行程</h1>
+            <div id="auth-container">
+              <div id="user-info" class="hidden">
+                <span id="user-email"></span>
+                <button id="logout-btn">登出</button>
+              </div>
+              <div id="guest-info">
+                <button id="show-login-btn">登入</button>
+              </div>
             </div>
+          </div>
 
-            <aside id="itinerary-panel">
-                <div class="panel-header">
-                    <div class="header-main-row">
-                        <h1>我的行程</h1>
-                        <div id="auth-container">
-                            <div id="user-info" class="hidden">
-                                <span id="user-email"></span>
-                                <button id="logout-btn">登出</button>
-                            </div>
-                            <div id="guest-info">
-                                <button id="show-login-btn">登入</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="header-controls">
-                        <button id="manage-itineraries-btn" title="行程管理">管理</button>
-                        <input type="text" id="search-input" placeholder="搜尋地點..." />
-                        <button id="export-json" title="匯出當前行程為 JSON">💾</button>
-                        <button id="export-printable" title="匯出可列印頁面">🖨️</button>
-                    </div>
-                </div>
-                <div id="stats-panel">
-                    <div class="stat-item"><span id="stats-days">0</span><label>天</label></div>
-                    <div class="stat-item"><span id="stats-locations">0</span><label>地點</label></div>
-                    <div class="stat-item"><span id="stats-distance">0</span><label>公里</label></div>
-                </div>
-                <div id="itinerary-list-container">
-                    <div id="itinerary-list-header"><h2 id="itinerary-title">尚未載入行程</h2></div>
-                    <div id="itinerary-list"></div>
-                    <div id="add-location-container" class="hidden">
-                        <button id="add-location-btn">+ 新增景點</button>
-                    </div>
-                </div>
-            </aside>
-            <div id="panel-handle"><div class="handle-icon"></div></div>
-
-            <main id="map-container">
-                <div id="filters-wrapper">
-                    <div id="filters">
-                        <div id="date-filters"></div>
-                        <div id="category-filters"></div>
-                    </div>
-                    <div id="filters-handle"><div class="filters-handle-icon"></div></div>
-                </div>
-                <div id="map"></div>
-                <div id="map-offline-placeholder" class="map-offline-placeholder hidden">離線模式下無法載入地圖</div>
-            </main>
+          <div class="header-controls">
+            <button id="manage-itineraries-btn" title="行程管理">管理</button>
+            <input type="text" id="search-input" placeholder="搜尋地點..." />
+            <button id="export-json" title="匯出當前行程為 JSON">💾</button>
+            <button id="export-printable" title="匯出可列印頁面">🖨️</button>
+          </div>
         </div>
+        <div id="stats-panel">
+          <div class="stat-item"><span id="stats-days">0</span><label>天</label></div>
+          <div class="stat-item"><span id="stats-locations">0</span><label>地點</label></div>
+          <div class="stat-item"><span id="stats-distance">0</span><label>公里</label></div>
+        </div>
+        <div id="itinerary-list-container">
+          <div id="itinerary-list-header"><h2 id="itinerary-title">尚未載入行程</h2></div>
+          <div id="itinerary-list"></div>
+          <div id="add-location-container" class="hidden">
+            <button id="add-location-btn">+ 新增景點</button>
+          </div>
+        </div>
+      </aside>
+      <div id="panel-handle"><div class="handle-icon"></div></div>
 
-        <div id="login-modal" class="modal-backdrop hidden">
-            <div class="modal-content">
-                <h2>登入</h2>
-                <div class="form-group">
-                    <label for="login-email">電子郵件</label><input type="email" id="login-email" required />
-                </div>
-                <div class="form-group">
-                    <label for="login-password">密碼</label><input type="password" id="login-password" required />
-                </div>
-                <p class="auth-note">本服務採邀請制，請聯絡管理員以開通帳號。</p>
-                <div class="modal-actions">
-                    <button id="login-btn">登入</button><button class="close-modal-btn">取消</button>
-                </div>
-            </div>
+      <main id="map-container">
+        <div id="filters-wrapper">
+          <div id="filters">
+            <div id="date-filters"></div>
+            <div id="category-filters"></div>
+          </div>
+          <div id="filters-handle"><div class="filters-handle-icon"></div></div>
         </div>
-        <div id="signup-modal" class="modal-backdrop hidden">
-            <div class="modal-content">
-                <h2>註冊新帳號</h2>
-                <div class="form-group">
-                    <label for="signup-email">電子郵件</label><input type="email" id="signup-email" required />
-                </div>
-                <div class="form-group">
-                    <label for="signup-password">密碼 (至少6位數)</label
-                    ><input type="password" id="signup-password" required />
-                </div>
-                <div class="modal-actions">
-                    <button id="signup-btn">註冊</button><button class="close-modal-btn">取消</button>
-                </div>
-            </div>
-        </div>
-        <div id="itinerary-manager-modal" class="modal-backdrop hidden">
-            <div class="modal-content">
-                <h2>行程管理</h2>
-                <ul id="itinerary-manager-list"></ul>
-                <div class="modal-actions">
-                    <button id="load-from-json-btn">從 JSON 載入</button
-                    ><button id="create-new-itinerary-btn">建立新行程</button
-                    ><button class="close-modal-btn">關閉</button>
-                </div>
-            </div>
-        </div>
-        <div id="create-itinerary-modal" class="modal-backdrop hidden">
-            <div class="modal-content">
-                <h2>建立新行程</h2>
-                <div class="form-group">
-                    <label for="new-itinerary-name">行程名稱</label
-                    ><input type="text" id="new-itinerary-name" required />
-                </div>
-                <div class="modal-actions">
-                    <button id="save-new-itinerary-btn">建立</button><button class="close-modal-btn">取消</button>
-                </div>
-            </div>
-        </div>
-        <div id="edit-location-modal" class="modal-backdrop hidden">
-            <div class="modal-content large">
-                <h2 id="edit-location-title">編輯景點</h2>
-                <div class="form-group">
-                    <label for="location-name">地點名稱</label>
-                    <div class="search-wrapper">
-                        <input type="text" id="location-name" placeholder="輸入關鍵字後點擊右側搜尋" /><button
-                            id="search-location-btn"
-                        >
-                            🔍
-                        </button>
-                    </div>
-                    <details class="coordinates-helper">
-                        <summary>如何取得地點的精確座標？</summary>
-                        <p>
-                            建議使用 <strong>Google Maps</strong> 來取得最精確的座標：<br />
-                            1. 在 Google Maps 上找到您要的地點。<br />
-                            2. 在該地點上按一下滑鼠右鍵。<br />
-                            3. 點擊彈出選單中的經緯度數字 (例如：<code>25.033981, 121.564506</code
-                            >)，即可將其複製。<br />
-                            4. 將複製的座標貼到下方的座標欄位中。
-                        </p>
-                    </details>
-                    <div id="location-search-results"></div>
-                </div>
-                <div class="form-group">
-                    <label for="location-date">日期</label><input type="date" id="location-date" required />
-                </div>
-                <div class="form-group">
-                    <label for="location-category">分類</label
-                    ><select id="location-category">
-                        <option value="sight">景點</option>
-                        <option value="food">餐飲</option>
-                        <option value="stay">住宿</option>
-                        <option value="transport">交通</option>
-                        <option value="default">其他</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="location-description">描述</label
-                    ><textarea id="location-description" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>座標 (緯度, 經度)</label>
-                    <input type="text" id="location-coordinates" placeholder="可透過上方搜尋自動帶入，或手動貼上" />
-                    <p id="coordinates-warning" class="coordinates-warning-message hidden">
-                        手動修改座標可能會導致地圖標示不準確，請謹慎操作。
-                    </p>
-                </div>
-                <div class="modal-actions">
-                    <button id="save-location-btn">儲存</button><button class="close-modal-btn">取消</button>
-                </div>
-            </div>
-        </div>
+        <div id="map"></div>
+        <div id="map-offline-placeholder" class="map-offline-placeholder hidden">離線模式下無法載入地圖</div>
+      </main>
+    </div>
 
-        <input type="file" id="json-file-input" accept=".json" style="display: none" />
+    <div id="login-modal" class="modal-backdrop hidden">
+      <div class="modal-content">
+        <h2>登入</h2>
+        <div class="form-group">
+          <label for="login-email">電子郵件</label><input type="email" id="login-email" required />
+        </div>
+        <div class="form-group">
+          <label for="login-password">密碼</label><input type="password" id="login-password" required />
+        </div>
+        <p class="auth-note">本服務採邀請制，請聯絡管理員以開通帳號。</p>
+        <div class="modal-actions">
+          <button id="login-btn">登入</button><button class="close-modal-btn">取消</button>
+        </div>
+      </div>
+    </div>
+    <div id="signup-modal" class="modal-backdrop hidden">
+      <div class="modal-content">
+        <h2>註冊新帳號</h2>
+        <div class="form-group">
+          <label for="signup-email">電子郵件</label><input type="email" id="signup-email" required />
+        </div>
+        <div class="form-group">
+          <label for="signup-password">密碼 (至少6位數)</label><input type="password" id="signup-password" required />
+        </div>
+        <div class="modal-actions">
+          <button id="signup-btn">註冊</button><button class="close-modal-btn">取消</button>
+        </div>
+      </div>
+    </div>
+    <div id="itinerary-manager-modal" class="modal-backdrop hidden">
+      <div class="modal-content">
+        <h2>行程管理</h2>
+        <ul id="itinerary-manager-list"></ul>
+        <div class="modal-actions">
+          <button id="load-from-json-btn">從 JSON 載入</button><button id="create-new-itinerary-btn">建立新行程</button
+          ><button class="close-modal-btn">關閉</button>
+        </div>
+      </div>
+    </div>
+    <div id="create-itinerary-modal" class="modal-backdrop hidden">
+      <div class="modal-content">
+        <h2>建立新行程</h2>
+        <div class="form-group">
+          <label for="new-itinerary-name">行程名稱</label><input type="text" id="new-itinerary-name" required />
+        </div>
+        <div class="modal-actions">
+          <button id="save-new-itinerary-btn">建立</button><button class="close-modal-btn">取消</button>
+        </div>
+      </div>
+    </div>
+    <div id="edit-location-modal" class="modal-backdrop hidden">
+      <div class="modal-content large">
+        <h2 id="edit-location-title">編輯景點</h2>
+        <div class="form-group">
+          <label for="location-name">地點名稱</label>
+          <div class="search-wrapper">
+            <input type="text" id="location-name" placeholder="輸入關鍵字後點擊右側搜尋" /><button
+              id="search-location-btn"
+            >
+              🔍
+            </button>
+          </div>
+          <details class="coordinates-helper">
+            <summary>如何取得地點的精確座標？</summary>
+            <p>
+              建議使用 <strong>Google Maps</strong> 來取得最精確的座標：<br />
+              1. 在 Google Maps 上找到您要的地點。<br />
+              2. 在該地點上按一下滑鼠右鍵。<br />
+              3. 點擊彈出選單中的經緯度數字 (例如：<code>25.033981, 121.564506</code>)，即可將其複製。<br />
+              4. 將複製的座標貼到下方的座標欄位中。
+            </p>
+          </details>
+          <div id="location-search-results"></div>
+        </div>
+        <div class="form-group">
+          <label for="location-date">日期</label><input type="date" id="location-date" required />
+        </div>
+        <div class="form-group">
+          <label for="location-category">分類</label
+          ><select id="location-category">
+            <option value="sight">景點</option>
+            <option value="food">餐飲</option>
+            <option value="stay">住宿</option>
+            <option value="transport">交通</option>
+            <option value="default">其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="location-description">描述</label><textarea id="location-description" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>座標 (緯度, 經度)</label>
+          <input type="text" id="location-coordinates" placeholder="可透過上方搜尋自動帶入，或手動貼上" />
+          <p id="coordinates-warning" class="coordinates-warning-message hidden">
+            手動修改座標可能會導致地圖標示不準確，請謹慎操作。
+          </p>
+        </div>
+        <div class="modal-actions">
+          <button id="save-location-btn">儲存</button><button class="close-modal-btn">取消</button>
+        </div>
+      </div>
+    </div>
 
-        <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <input type="file" id="json-file-input" accept=".json" style="display: none" />
 
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    </body>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </body>
 </html>

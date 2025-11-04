@@ -1,0 +1,1 @@
+{"name":"旅遊行程小幫手","short_name":"旅遊行程小幫手","description":"提供使用者一個可以視覺化地規劃、管理並跨裝置同步旅遊行程的平台。","start_url":"/public/travel/","display":"standalone","background_color":"#1a1b1e","theme_color":"#1a1b1e","lang":"en","scope":"/public/travel/","icons":[{"src":"logo.svg","sizes":[64,192,512],"purpose":"any"},{"src":"logo.svg","sizes":[192,512],"purpose":"maskable"}]}
