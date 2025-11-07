@@ -231,24 +231,18 @@
             <input type="password" id="password" placeholder="請輸入解密密碼" />
           </div>
 
-          <button type="submit" class="btn">🔓 開始解密</button>
+          <button type="submit" class="btn" id="decryptBtn">🔓 開始解密</button>
         </form>
 
         <div class="loading" id="loading">正在解密中，請稍候...</div>
 
         <div id="result"></div>
-
-        <div class="test-section">
-          <h3>📋 測試功能</h3>
-          <p class="tech-info">使用內建的標準測試向量驗證解密功能</p>
-          <button type="button" class="btn test-btn" onclick="runTestVector()">執行測試向量</button>
-        </div>
       </div>
     </div>
 
     <script src="https://unpkg.com/argon2-browser/dist/argon2-bundled.min.js"></script>
     <script type="module">
-      import { compactDecrypt, decodeProtectedHeader } from 'https://esm.sh/jose@5.6.3';
+      import { compactDecrypt, decodeProtectedHeader } from 'https://esm.sh/jose@6.1.0';
 
       // Base64URL 解碼函數
       function base64urlDecode(str) {
@@ -386,22 +380,6 @@
           resultDiv.style.display = 'block';
         }
       });
-
-      // 測試向量函數
-      async function runTestVector() {
-        // PBES2 Test Vector
-        const testJWE_PBES2 =
-          'eyJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIiwicDJjIjo0MDk2LCJwMnMiOiJwYmo1eVctYkNBNTJlclRvai0yX0EifQ.9uUEj2aUarsTdU29f123i_5Z0_O3w8Xy3-8n-u2y2-c.cN_t-stxEAx2jY4I.g3Rj6tF-N_L5fJ-jS8K_tL-L-J3E.D2Zg-P4-Z-n1-U6D_Q';
-        const testPassword_PBES2 = 'standard-compatible-password';
-        const expectedPlaintext_PBES2 = 'This is a test for PBES2 compatibility.';
-
-        document.getElementById('jweString').value = testJWE_PBES2;
-        document.getElementById('password').value = testPassword_PBES2;
-        document.getElementById('decryptBtn').click();
-      }
-
-      // Expose to global scope
-      window.runTestVector = runTestVector;
 
       // 頁面載入完成提示
       window.addEventListener('load', function () {
