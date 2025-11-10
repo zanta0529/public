@@ -6,7 +6,7 @@
     <link rel="icon" href="/public/shamir/logo.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/public/shamir/logo.svg" />
     <title>Shamir's Secret Sharing</title>
-    <script type="module" crossorigin src="/public/shamir/assets/index-DfaJCbpU.js"></script>
+    <script type="module" crossorigin src="/public/shamir/assets/index-BdG59oTV.js"></script>
     <link rel="stylesheet" crossorigin href="/public/shamir/assets/index-BjB1wpXb.css">
   <link rel="manifest" href="/public/shamir/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/public/shamir/registerSW.js"></script></head>
   <body>
@@ -122,6 +122,10 @@
         <ul>
           <li><b>演算法基礎:</b> 本工具基於 Adi Shamir 秘密分享演算法，並在 <b>GF(2^8)</b> 有限域上運算。</li>
           <li><b>質多項式:</b> 使用的質多項式為 <b>0x1D</b> (x⁸+x⁴+x³+x+1)，此為 AES 加密標準採用的通用選項。</li>
+          <li>
+            <b>編碼與填充:</b> 秘密字串 (UTF-8) 被轉換為二進位字串，前方附加一個 "1" 位元標記，並補零至 8 位元的倍數
+            (規格 ID: `secrets.js-1bit`)。
+          </li>
           <li>
             <b>安全亂數:</b> 多項式係數由瀏覽器內建的密碼學安全亂數產生器
             <code>window.crypto.getRandomValues()</code> 產生。

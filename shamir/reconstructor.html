@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shamir 祕密重建工具</title>
+    <style>
+      /* --- 基礎樣式 --- */
+      :root {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        --slate-900: #0f172a;
+        --purple-900: #581c87;
+        --purple-400: #c084fc;
+        --purple-200: #e9d5ff;
+        --purple-100: #f3e8ff;
+        --purple-600: #9333ea;
+        --purple-700: #7e22ce;
+        --pink-600: #db2777;
+        --pink-700: #be185d;
+        --red-600: rgba(220, 38, 38, 0.8);
+        --red-700: #b91c1c;
+        --blue-500: #3b82f6;
+        --blue-200: #bfdbfe;
+        --blue-100: #dbeafe;
+        --green-500: #22c55e;
+        --green-300: #86efac;
+        --green-200: #bbf7d0;
+        --white-10: rgba(255, 255, 255, 0.1);
+        --white-20: rgba(255, 255, 255, 0.2);
+        --black-30: rgba(0, 0, 0, 0.3);
+        --purple-border-20: rgba(216, 180, 254, 0.2);
+        --purple-border-30: rgba(216, 180, 254, 0.3);
+        --purple-placeholder: rgba(216, 180, 254, 0.5);
+        --focus-ring: rgba(192, 132, 252, 0.5);
+        --red-border-50: rgba(248, 113, 113, 0.5);
+        --red-bg-20: rgba(248, 113, 113, 0.2);
+        --red-200: #fecaca;
+        --red-100: #fee2e2;
+        --green-border-50: rgba(74, 222, 128, 0.5);
+        --green-bg-20: rgba(74, 222, 128, 0.2);
+        --blue-border-50: rgba(96, 165, 250, 0.5);
+        --blue-bg-20: rgba(96, 165, 250, 0.2);
+      }
+      body {
+        min-height: 100vh;
+        background: linear-gradient(to bottom right, var(--slate-900), var(--purple-900), var(--slate-900));
+        padding: 1.5rem;
+        margin: 0;
+        color: white;
+      }
+      .container {
+        max-width: 56rem;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* --- 標題區 --- */
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .header-flex {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .header-flex svg {
+        width: 2.5rem;
+        height: 2.5rem;
+        color: var(--purple-400);
+      }
+      .header h1 {
+        font-size: 2.25rem;
+        line-height: 2.5rem;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+      }
+      .header p {
+        color: var(--purple-200);
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+        margin: 0;
+      }
+
+      /* --- 卡片樣式 --- */
+      .card {
+        background-color: var(--white-10);
+        backdrop-filter: blur(4px);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--purple-border-20);
+      }
+      .card h2 {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .card h2 svg {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      /* --- 規格卡片 --- */
+      .spec-grid {
+        display: grid;
+        gap: 1rem;
+      }
+      @media (min-width: 768px) {
+        .spec-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      .spec-grid h3 {
+        color: var(--purple-200);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        margin-top: 0;
+      }
+      .spec-grid ul {
+        color: var(--purple-100);
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        padding-left: 0;
+        margin: 0;
+        list-style: none;
+      }
+      .spec-grid li {
+        margin-top: 0.25rem;
+      }
+
+      /* --- 輸入卡片 --- */
+      .input-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+      }
+      .shares-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .share-item {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .share-item textarea {
+        flex: 1 1 0%;
+        padding: 0.75rem 1rem;
+        background-color: var(--white-20);
+        border: 1px solid var(--purple-border-30);
+        border-radius: 0.5rem;
+        color: white;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        resize: none;
+      }
+      .share-item textarea::placeholder {
+        color: var(--purple-placeholder);
+      }
+      .share-item textarea:focus {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+        border-color: var(--purple-400);
+        box-shadow: 0 0 0 2px var(--focus-ring);
+      }
+      .share-item .remove-btn {
+        padding: 0.5rem 0.75rem;
+        background-color: var(--red-600);
+        align-self: flex-start;
+      }
+      .share-item .remove-btn:hover {
+        background-color: var(--red-700);
+      }
+
+      /* --- 按鈕 --- */
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        color: white;
+        transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        cursor: pointer;
+      }
+      button:focus {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+      }
+      .btn-add {
+        padding: 0.5rem 1rem;
+        background-color: var(--purple-600);
+      }
+      .btn-add:hover {
+        background-color: var(--purple-700);
+      }
+      .btn-reconstruct {
+        width: 100%;
+        margin-top: 1rem;
+        padding: 0.75rem 1.5rem;
+        background-image: linear-gradient(to right, var(--purple-600), var(--pink-600));
+      }
+      .btn-reconstruct:hover {
+        background-image: linear-gradient(to right, var(--purple-700), var(--pink-700));
+      }
+      button svg {
+        width: 1rem;
+        height: 1rem;
+      }
+      .btn-reconstruct svg {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      /* --- 結果/錯誤/資訊 區塊 --- */
+      .info-block {
+        background-color: var(--blue-bg-20);
+        border: 1px solid var(--blue-border-50);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      .info-block h3 {
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 0.75rem;
+        margin-top: 0;
+      }
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+      }
+      @media (min-width: 768px) {
+        .info-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+      .info-grid span:first-child {
+        color: var(--blue-200);
+      }
+      .info-grid span:last-child {
+        color: white;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+      }
+
+      .error-block {
+        background-color: var(--red-bg-20);
+        border: 1px solid var(--red-border-50);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      .error-block svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: var(--red-200);
+        flex-shrink: 0;
+        margin-top: 0.125rem;
+      }
+      .error-block div {
+        flex: 1;
+      }
+      .error-block h3 {
+        font-weight: 600;
+        color: var(--red-100);
+        margin-bottom: 0.25rem;
+        margin-top: 0;
+      }
+      .error-block p {
+        color: var(--red-100);
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        margin: 0;
+      }
+
+      .result-block {
+        background-color: var(--green-bg-20);
+        border: 1px solid var(--green-border-50);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+      }
+      .result-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .result-header svg {
+        width: 1.5rem;
+        height: 1.5rem;
+        color: var(--green-300);
+      }
+      .result-header h3 {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+        font-weight: 600;
+        color: white;
+        margin: 0;
+      }
+      .result-body {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .result-body label {
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        color: var(--green-200);
+        margin-bottom: 0.5rem;
+        display: block;
+      }
+      .result-box {
+        background-color: var(--black-30);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        word-break: break-all;
+      }
+      .result-text {
+        color: white;
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+        white-space: pre-wrap; /* 顯示換行符 */
+      }
+      .result-hex {
+        color: var(--green-300);
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+      }
+      .result-note {
+        background-color: var(--blue-bg-20);
+        border: 1px solid var(--blue-border-50);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-top: 1rem;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        color: var(--blue-100);
+      }
+      .result-note strong {
+        color: var(--blue-100);
+      }
+
+      /* --- 使用說明 --- */
+      .instructions-card {
+        margin-top: 2rem;
+        background-color: var(--white-10);
+        border-color: var(--purple-border-20);
+      }
+      .instructions-card ol {
+        color: var(--purple-200);
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        list-style-type: decimal;
+        list-style-position: inside;
+        padding-left: 0;
+        margin: 0;
+      }
+
+      /* --- 隱藏元素 --- */
+      [style*='display: none'] {
+        display: none !important;
+      }
+    </style>
+    <!-- <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.11.1/sha256.min.js"
+      integrity="sha512-YVITnHZw4RIWJdL3B3qiUUjFwe2999f7+GY9p75emmKu62hze4Tr1hSG5SSDPAp1WaMMbjGOZL9YaNzO5UDpYg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script> -->
+    <script src="./sha256.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="header-flex">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <h1 class="text-4xl font-bold text-white">Shamir 祕密重建工具</h1>
+        </div>
+        <p class="text-purple-200 text-lg">基於 GF(2^8) 有限域的祕密分享重建</p>
+      </div>
+
+      <div class="card">
+        <h2 class="text-xl font-semibold text-white mb-3 flex items-center gap-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <path d="M10 16.5c.5.3 1.2.5 2 .5s1.5-.2 2-.5"></path>
+            <path d="M10 13.5c.5.3 1.2.5 2 .5s1.5-.2 2-.5"></path>
+            <path d="M14 19.5c-.5-.3-1.2-.5-2-.5s-1.5.2-2 .5"></path>
+            <path d="M10 10.5c.5.3 1.2.5 2 .5s1.5-.2 2-.5"></path>
+          </svg>
+          技術規格與分片格式
+        </h2>
+        <div class="spec-grid">
+          <div>
+            <h3 class="text-purple-200 font-semibold mb-2">演算法規格</h3>
+            <ul class="text-purple-100 space-y-1">
+              <li>• 基於 GF(2^8) 有限域</li>
+              <li>• 質多項式：0x1D</li>
+              <li>• UTF-8 編碼</li>
+              <li>• SHA-256 校驗（前 4 位元組）</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-purple-200 font-semibold mb-2">分片格式（Base64 JSON）</h3>
+            <ul class="text-purple-100 space-y-1">
+              <li>• v: 版本號</li>
+              <li>• n: 總分片數</li>
+              <li>• k: 重建閾值</li>
+              <li>• id: 分片編號</li>
+              <li>• share: 分片資料陣列</li>
+              <li>• chk: 校驗碼</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="input-header">
+          <h2 class="text-xl font-semibold text-white">輸入祕密分片（Base64）</h2>
+          <button id="add-share-btn" class="btn-add">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            新增分片
+          </button>
+        </div>
+
+        <div id="shares-list" class="shares-list"></div>
+
+        <button id="reconstruct-btn" class="btn-reconstruct">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+          </svg>
+          重建祕密
+        </button>
+      </div>
+
+      <div id="info-block" class="info-block" style="display: none">
+        <h3 class="text-lg font-semibold text-white mb-3">分片資訊</h3>
+        <div class="info-grid">
+          <div>
+            <span class="text-blue-200">版本：</span>
+            <span id="info-version" class="text-white font-mono"></span>
+          </div>
+          <div>
+            <span class="text-blue-200">總分片數：</span>
+            <span id="info-n" class="text-white font-mono"></span>
+          </div>
+          <div>
+            <span class="text-blue-200">重建閾值：</span>
+            <span id="info-k" class="text-white font-mono"></span>
+          </div>
+          <div>
+            <span class="text-blue-200">多項式：</span>
+            <span id="info-polynomial" class="text-white font-mono"></span>
+          </div>
+          <div>
+            <span class="text-blue-200">編碼：</span>
+            <span id="info-encoding" class="text-white font-mono"></span>
+          </div>
+          <div>
+            <span class="text-blue-200">使用分片：</span>
+            <span id="info-used-shares" class="text-white font-mono"></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="error-block" class="error-block" style="display: none">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div>
+          <h3 class="font-semibold text-red-200 mb-1">重建失敗</h3>
+          <p id="error-message" class="text-red-100 text-sm"></p>
+        </div>
+      </div>
+
+      <div id="result-block" class="result-block" style="display: none">
+        <div class="result-header">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <h3 class="text-xl font-semibold text-white">重建成功！</h3>
+        </div>
+
+        <div class="result-body">
+          <div>
+            <label class="text-sm text-green-200 mb-2 block">使用分片數量</label>
+            <div id="result-share-count" class="text-white font-mono text-lg"></div>
+          </div>
+
+          <div>
+            <label class="text-sm text-green-200 mb-2 block">重建的祕密（文字）</label>
+            <div id="result-text" class="result-box result-text"></div>
+          </div>
+
+          <div>
+            <label class="text-sm text-green-200 mb-2 block">十六進位表示</label>
+            <div id="result-hex" class="result-box result-hex"></div>
+          </div>
+
+          <div class="result-note">
+            <p class="text-sm text-blue-100">
+              <strong>💡 提示：</strong>每個分片都有自己的校驗碼（chk
+              欄位），用於驗證該分片的完整性，而非驗證重建後的祕密。
+              如果重建過程沒有錯誤，則重建的結果就是正確的原始祕密。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card instructions-card">
+        <h3 class="text-lg font-semibold text-white mb-3">使用說明</h3>
+        <ol class="text-purple-200 space-y-2 text-sm list-decimal list-inside">
+          <li>貼上至少 2 個 Base64 編碼的 JSON 格式分片</li>
+          <li>每個分片包含版本、分片編號、閾值等資訊</li>
+          <li>點擊「重建祕密」按鈕進行重建</li>
+          <li>系統會自動驗證分片數量是否達到閾值 (k)</li>
+          <li>重建後會顯示原始祕密並進行 SHA-256 校驗碼驗證</li>
+          <li>校驗通過表示重建的祕密正確無誤</li>
+        </ol>
+      </div>
+    </div>
+
+    <script type="module">
+      // --- DOM 元素 ---
+      const sharesList = document.getElementById('shares-list');
+      const addShareBtn = document.getElementById('add-share-btn');
+      const reconstructBtn = document.getElementById('reconstruct-btn');
+      const infoBlock = document.getElementById('info-block');
+      const errorBlock = document.getElementById('error-block');
+      const resultBlock = document.getElementById('result-block');
+
+      // --- 核心演算法邏輯 (從 .tsx 移植) ---
+
+      // GF(2^8) 有限域運算 - 完全對應原始 shamir.js 的實作
+      const GF256 = {
+        LOG: new Array(256).fill(0),
+        EXP: new Array(512).fill(0),
+        primitive: 29, // 0x1D for 8-bit
+        maxShares: 255,
+
+        init() {
+          let x = 1;
+          for (let i = 0; i < this.maxShares; i++) {
+            this.EXP[i] = x;
+            this.LOG[x] = i;
+            x <<= 1; // x = x * 2
+            if (x >= 256) {
+              x ^= this.primitive;
+              x &= this.maxShares;
+            }
+          }
+          // 擴展 EXP 表以方便模運算
+          for (let i = 255; i < 512; i++) {
+            this.EXP[i] = this.EXP[i - 255];
+          }
+        },
+      };
+
+      // 初始化有限域
+      GF256.init();
+
+      // Base64 解碼
+      const base64Decode = (str) => {
+        try {
+          const decoded = atob(str.trim());
+          return JSON.parse(decoded);
+        } catch (e) {
+          throw new Error(`Base64 解碼失敗: ${e.message}`);
+        }
+      };
+
+      // [修改] 解析分片 - 支援 Base64 JSON 格式 (含校驗碼驗證)
+      const parseShare = (shareStr) => {
+        try {
+          const trimmed = shareStr.trim();
+          if (!trimmed) return null;
+
+          // 解碼 Base64 並解析 JSON
+          const shareObj = base64Decode(trimmed);
+
+          // --- [新增] 校驗碼驗證邏輯 (移植自 main.js) ---
+          const { chk, ...shareData } = shareObj;
+
+          if (!chk) {
+            throw new Error('格式不正確：缺少校驗碼 (chk) 欄位。');
+          }
+
+          // 重新計算校驗碼
+          // 我們必須對 *不包含* 'chk' 欄位的物件進行 stringify
+          const expectedChecksum = window.sha256(JSON.stringify(shareData)).substring(0, 8);
+
+          if (chk !== expectedChecksum) {
+            console.error(`校驗失敗: 預期 ${expectedChecksum}, 得到 ${chk}`);
+            throw new Error('Checksum 驗證失敗！此分片可能已損毀或被竄改。');
+          }
+          // --- [新增] 驗證結束 ---
+
+          // 驗證必要欄位 (現在從 shareData 讀取)
+          if (!shareData.id || !shareData.share || !Array.isArray(shareData.share)) {
+            throw new Error('分片格式不完整 (缺少 id 或 share 欄位)');
+          }
+
+          // 驗證 share 內容
+          if (!shareData.share.every((val) => typeof val === 'number' && val >= 0 && val <= 255)) {
+            throw new Error('分片中的 share 陣列包含無效的數字 (應為 0-255 之間的數字)。');
+          }
+
+          return {
+            x: shareData.id,
+            data: new Uint8Array(shareData.share),
+            version: shareData.v,
+            n: shareData.n,
+            k: shareData.k,
+            polynomial: shareData.p,
+            encoding: shareData.enc,
+            padding: shareData.pad,
+            checksum: chk, // 儲存已驗證的校驗碼
+          };
+        } catch (e) {
+          // 將錯誤訊息傳遞出去
+          throw new Error(e.message.startsWith('分片解析失敗') ? e.message : `分片解析失敗: ${e.message}`);
+        }
+      };
+
+      // Lagrange 插值法重建祕密
+      const reconstructSecret = (parsedShares) => {
+        // [修改] 從第一個分片獲取 k 值
+        const k = parsedShares[0].k;
+        if (!k || parsedShares.length < k) {
+          throw new Error(`至少需要 ${k || '?'} 個分片才能重建祕密`);
+        }
+
+        const dataLength = parsedShares[0].data.length;
+
+        // 檢查所有分片長度是否一致
+        for (let share of parsedShares) {
+          if (share.data.length !== dataLength) {
+            throw new Error('所有分片的長度必須相同');
+          }
+        }
+
+        // 驗證分片參數一致性
+        const firstShare = parsedShares[0];
+        for (let share of parsedShares) {
+          if (share.n !== firstShare.n || share.k !== firstShare.k) {
+            throw new Error('分片參數不一致（n 或 k 值不同）');
+          }
+        }
+
+        // [修改] 只取前 k 個分片進行重建
+        const sharesToUse = parsedShares.slice(0, k);
+        const x_coords = sharesToUse.map((s) => s.x);
+
+        // 重建每個元素
+        let reconstructedBinaryString = '';
+
+        for (let i = 0; i < dataLength; i++) {
+          const y_coords = sharesToUse.map((s) => s.data[i]);
+          const reconstructedElement = reconstructElementSJS(x_coords, y_coords, k);
+
+          reconstructedBinaryString += reconstructedElement.toString(2).padStart(8, '0');
+        }
+
+        return reconstructedBinaryString;
+      };
+
+      // Lagrange 插值重建單個元素（完全對應原始 _reconstructElementSJS）
+      const reconstructElementSJS = (x_coords, y_coords, k) => {
+        let sum = 0;
+        const at = 0; // 我們要重建 P(0)
+
+        // [修改] 確保只使用 k 個分片
+        for (let i = 0; i < k; i++) {
+          if (y_coords[i] === 0) continue;
+
+          let product = GF256.LOG[y_coords[i]]; // log(y_i)
+
+          for (let j = 0; j < k; j++) {
+            if (i === j) continue;
+
+            if (at === x_coords[j]) {
+              product = -1;
+              break;
+            }
+
+            const numerator = at ^ x_coords[j]; // 0 XOR x_j = x_j
+            const denominator = x_coords[i] ^ x_coords[j];
+
+            if (denominator === 0) {
+              // 避免除以零（理論上不應發生，除非有重複的 id）
+              product = -1;
+              break;
+            }
+
+            product = (product + GF256.LOG[numerator] - GF256.LOG[denominator] + GF256.maxShares) % GF256.maxShares;
+          }
+
+          sum = product === -1 ? sum : sum ^ GF256.EXP[product];
+        }
+
+        return sum;
+      };
+
+      // 移除填充位元（secrets.js-1bit 格式）
+      const removePaddingFromBinary = (binaryString) => {
+        const markerIndex = binaryString.indexOf('1');
+        if (markerIndex === -1) {
+          // 如果沒有 '1' 標記（例如，原始秘密是空字串），則返回空
+          return '';
+        }
+        return binaryString.slice(markerIndex + 1);
+      };
+
+      // 二進位字串轉十六進位
+      const binaryToHex = (binaryString) => {
+        // [修改] 確保在二進位字串為空時返回空字串
+        if (!binaryString) {
+          return '';
+        }
+        const paddedBinary = binaryString.padStart(Math.ceil(binaryString.length / 4) * 4, '0');
+        let hex = '';
+        for (let i = 0; i < paddedBinary.length; i += 4) {
+          const chunk = paddedBinary.substring(i, i + 4);
+          hex += parseInt(chunk, 2).toString(16);
+        }
+        return hex;
+      };
+
+      // 十六進位轉 UTF-8 字串（對應原始程式碼的 _hex2str）
+      const hexToStr = (hexStr) => {
+        let str = '';
+        let i = 0;
+
+        // [修改] 確保 hexStr 長度為偶數
+        if (hexStr.length % 2 !== 0) {
+          console.warn('十六進位字串長度為奇數，可能已損毀:', hexStr);
+          // 丟棄最後一個不完整的字元
+          hexStr = hexStr.substring(0, hexStr.length - 1);
+        }
+
+        while (i < hexStr.length) {
+          let charCode;
+          let byte1 = parseInt(hexStr.substring(i, i + 2), 16);
+          i += 2;
+
+          if (isNaN(byte1)) {
+            throw new Error('包含無效的十六進位字元。');
+          }
+
+          if (byte1 < 0x80) {
+            charCode = byte1;
+          } else if ((byte1 & 0xe0) === 0xc0) {
+            let byte2 = parseInt(hexStr.substring(i, i + 2), 16);
+            i += 2;
+            charCode = ((byte1 & 0x1f) << 6) | (byte2 & 0x3f);
+          } else if ((byte1 & 0xf0) === 0xe0) {
+            let byte2 = parseInt(hexStr.substring(i, i + 2), 16);
+            i += 2;
+            let byte3 = parseInt(hexStr.substring(i, i + 2), 16);
+            i += 2;
+            charCode = ((byte1 & 0x0f) << 12) | ((byte2 & 0x3f) << 6) | (byte3 & 0x3f);
+          } else if ((byte1 & 0xf8) === 0xf0) {
+            let byte2 = parseInt(hexStr.substring(i, i + 2), 16);
+            i += 2;
+            let byte3 = parseInt(hexStr.substring(i, i + 2), 16);
+            i += 2;
+            let byte4 = parseInt(hexStr.substring(i, i + 2), 16);
+            i += 2;
+            charCode = ((byte1 & 0x07) << 18) | ((byte2 & 0x3f) << 12) | ((byte3 & 0x3f) << 6) | (byte4 & 0x3f);
+          } else {
+            throw new Error('Invalid UTF-8 sequence in hex string.');
+          }
+          str += String.fromCodePoint(charCode);
+        }
+        return str;
+      };
+
+      // 二進位字串轉為 UTF-8 字串
+      const binaryStringToText = (binaryString) => {
+        try {
+          const unpaddedBinary = removePaddingFromBinary(binaryString);
+          const hexString = binaryToHex(unpaddedBinary);
+          // [修改] 處理空字串的特殊情況
+          if (hexString === '') {
+            return '';
+          }
+          return hexToStr(hexString);
+        } catch (e) {
+          throw new Error(`UTF-8 解碼失敗: ${e.message}`);
+        }
+      };
+
+      // [刪除] 不再需要異步的 Web Crypto API
+      // const calculateChecksum = async (data) => { ... };
+
+      // --- DOM 操作邏輯 ---
+
+      let shareCount = 0;
+
+      const createShareInput = () => {
+        shareCount++;
+        const index = shareCount;
+        const div = document.createElement('div');
+        div.className = 'share-item';
+        div.setAttribute('data-index', index);
+
+        const textarea = document.createElement('textarea');
+        textarea.rows = 3;
+        textarea.placeholder = `分片 ${index} (Base64 編碼的 JSON)`;
+        textarea.className = 'share-textarea';
+
+        div.appendChild(textarea);
+
+        if (shareCount > 2) {
+          const button = document.createElement('button');
+          button.className = 'remove-btn';
+          button.title = '移除分片';
+          button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+          button.onclick = () => removeShare(div);
+          div.appendChild(button);
+        }
+
+        sharesList.appendChild(div);
+      };
+
+      const removeShare = (element) => {
+        if (sharesList.children.length > 2) {
+          sharesList.removeChild(element);
+        }
+      };
+
+      const addShare = () => {
+        createShareInput();
+      };
+
+      // 處理重建
+      const handleReconstruct = async () => {
+        let parsedShares = [];
+        try {
+          // 重置 UI
+          errorBlock.style.display = 'none';
+          resultBlock.style.display = 'none';
+          infoBlock.style.display = 'none';
+
+          const textareas = sharesList.querySelectorAll('.share-textarea');
+          const shares = Array.from(textareas).map((t) => t.value);
+
+          // 過濾空白分片並解析
+          const validShares = shares.filter((s) => s.trim() !== '');
+          if (validShares.length < 2) {
+            throw new Error('請至少輸入 2 個有效的分片');
+          }
+
+          // [修改] 在 map 中處理解析錯誤
+          let parseError = null;
+          parsedShares = validShares
+            .map((shareStr, index) => {
+              try {
+                return parseShare(shareStr);
+              } catch (e) {
+                if (!parseError) {
+                  parseError = `分片 ${index + 1} 錯誤: ${e.message}`;
+                }
+                return null;
+              }
+            })
+            .filter((s) => s !== null);
+
+          // 如果在解析過程中發生錯誤，立即拋出
+          if (parseError) {
+            throw new Error(parseError);
+          }
+
+          if (parsedShares.length < 2) {
+            throw new Error('沒有足夠的有效分片（請檢查格式或校驗碼）');
+          }
+
+          // 檢查是否達到閾值
+          const k = parsedShares[0].k;
+          if (!k) {
+            throw new Error('無法從分片中讀取重建閾值 (k)，請確認分片格式正確。');
+          }
+          if (parsedShares.length < k) {
+            throw new Error(`需要至少 ${k} 個分片才能重建祕密（目前只有 ${parsedShares.length} 個有效分片）`);
+          }
+
+          // 顯示分片資訊
+          const firstShare = parsedShares[0];
+          document.getElementById('info-version').textContent = firstShare.version || 'N/A';
+          document.getElementById('info-n').textContent = firstShare.n || 'N/A';
+          document.getElementById('info-k').textContent = firstShare.k || 'N/A';
+          document.getElementById('info-polynomial').textContent = firstShare.polynomial
+            ? `0x${firstShare.polynomial}`
+            : 'N/A';
+          document.getElementById('info-encoding').textContent = firstShare.encoding || 'N/A';
+          document.getElementById('info-used-shares').textContent = parsedShares
+            .map((s) => s.x)
+            .sort((a, b) => a - b)
+            .join(', ');
+          infoBlock.style.display = 'block';
+
+          // 重建祕密
+          const reconstructedBinaryString = reconstructSecret(parsedShares);
+          const secretText = binaryStringToText(reconstructedBinaryString);
+          const hexDisplay = binaryToHex(reconstructedBinaryString);
+
+          // 顯示結果
+          document.getElementById('result-share-count').textContent = `${parsedShares.length} 個分片`;
+          document.getElementById('result-text').textContent = secretText;
+          document.getElementById('result-hex').textContent = hexDisplay;
+          resultBlock.style.display = 'block';
+        } catch (e) {
+          document.getElementById('error-message').textContent = e.message;
+          errorBlock.style.display = 'block';
+          console.error('重建錯誤:', e);
+        }
+      };
+
+      // --- 初始化與事件綁定 ---
+      addShareBtn.addEventListener('click', addShare);
+      reconstructBtn.addEventListener('click', handleReconstruct);
+
+      // 初始化 2 個輸入框
+      createShareInput();
+      createShareInput();
+    </script>
+  </body>
+</html>
