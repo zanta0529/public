@@ -1,0 +1,160 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- 定義漸層 -->
+  <defs>
+    <!-- 背景漸層 - 深藍到紫色，象徵穩定與科技 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4c1d95;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 美元符號漸層 - 綠色系 -->
+    <linearGradient id="dollarGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#34d399;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.25" />
+    </linearGradient>
+    
+    <!-- 盾牌漸層 - 改為深色系提升對比 -->
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 心跳線漸層 - 改為明亮的綠色 -->
+    <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#4ade80;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 發光效果 -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+
+  
+  <!-- 前景：盾牌形狀（保護與安全） - 最大化尺寸 -->
+  <path d="M 256 40
+           L 420 85
+           Q 445 95, 445 120
+           L 445 310
+           Q 445 370, 405 415
+           L 256 490
+           L 107 415
+           Q 67 370, 67 310
+           L 67 120
+           Q 67 95, 92 85
+           Z" 
+        fill="url(#shieldGradient)" 
+        opacity="0.95"
+        filter="url(#glow)"/>
+  
+  <!-- 盾牌邊框 -->
+  <path d="M 256 40
+           L 420 85
+           Q 445 95, 445 120
+           L 445 310
+           Q 445 370, 405 415
+           L 256 490
+           L 107 415
+           Q 67 370, 67 310
+           L 67 120
+           Q 67 95, 92 85
+           Z" 
+        fill="none" 
+        stroke="#ffffff" 
+        stroke-width="4"
+        opacity="0.4"/>
+  
+  <!-- 心跳線（健康監控意象）- 高對比度設計 -->
+  <g>
+    <!-- 心跳線陰影/底層加強 -->
+    <path d="M 120 280
+             L 180 280
+             L 205 215
+             L 230 355
+             L 256 165
+             L 282 355
+             L 307 215
+             L 332 280
+             L 392 280" 
+          fill="none" 
+          stroke="#000000" 
+          stroke-width="18" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+          opacity="0.3"/>
+    
+    <!-- 主要心跳線 - 明亮綠色 -->
+    <path d="M 120 280
+             L 180 280
+             L 205 215
+             L 230 355
+             L 256 165
+             L 282 355
+             L 307 215
+             L 332 280
+             L 392 280" 
+          fill="none" 
+          stroke="url(#pulseGradient)" 
+          stroke-width="14" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+          filter="url(#glow)"/>
+    
+    <!-- 心跳線高光 -->
+    <path d="M 120 280
+             L 180 280
+             L 205 215
+             L 230 355
+             L 256 165
+             L 282 355
+             L 307 215
+             L 332 280
+             L 392 280" 
+          fill="none" 
+          stroke="#86efac" 
+          stroke-width="6" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+          opacity="0.8"/>
+  </g>
+  
+  <!-- 數據點（監控節點）- 明亮對比 -->
+  <circle cx="205" cy="215" r="11" fill="#000000" opacity="0.3"/>
+  <circle cx="205" cy="215" r="10" fill="#22c55e" opacity="1">
+    <animate attributeName="r" values="10;12;10" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="205" cy="215" r="5" fill="#86efac" opacity="0.9"/>
+  
+  <circle cx="256" cy="165" r="11" fill="#000000" opacity="0.3"/>
+  <circle cx="256" cy="165" r="10" fill="#22c55e" opacity="1">
+    <animate attributeName="r" values="10;12;10" dur="2s" begin="0.3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="256" cy="165" r="5" fill="#86efac" opacity="0.9"/>
+  
+  <circle cx="307" cy="215" r="11" fill="#000000" opacity="0.3"/>
+  <circle cx="307" cy="215" r="10" fill="#22c55e" opacity="1">
+    <animate attributeName="r" values="10;12;10" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="307" cy="215" r="5" fill="#86efac" opacity="0.9"/>
+  
+  <!-- 外圍監控指示燈 - 改為明亮綠色 -->
+  <circle cx="256" cy="100" r="8" fill="#000000" opacity="0.2"/>
+  <circle cx="256" cy="100" r="7" fill="#22c55e" opacity="0.9">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="370" cy="170" r="7" fill="#000000" opacity="0.2"/>
+  <circle cx="370" cy="170" r="6" fill="#4ade80" opacity="0.8">
+    <animate attributeName="opacity" values="0.4;1;0.4" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="142" cy="170" r="7" fill="#000000" opacity="0.2"/>
+  <circle cx="142" cy="170" r="6" fill="#4ade80" opacity="0.8">
+    <animate attributeName="opacity" values="0.4;1;0.4" dur="2.3s" repeatCount="indefinite"/>
+  </circle>
+</svg>
