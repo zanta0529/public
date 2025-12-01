@@ -1,7 +1,7 @@
 [
   {
     "id": "demo_1",
-    "word": "Serendipity",
+    "word": "serendipity",
     "ipa": "ˌsɛr.ənˈdɪp.ɪ.ti",
     "definition": "The occurrence and development of events by chance in a happy or beneficial way.",
     "context": "We found this restaurant by pure serendipity.",
@@ -11,7 +11,7 @@
   },
   {
     "id": "demo_2",
-    "word": "Epiphany",
+    "word": "epiphany",
     "ipa": "əˈpɪf.ən.i",
     "definition": "A moment of sudden revelation or insight.",
     "context": "I had an epiphany while working on this code.",
