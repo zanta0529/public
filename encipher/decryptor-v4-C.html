@@ -67,7 +67,7 @@
     <label for="passphrase">密碼短語：</label><input type="text" id="passphrase" placeholder="輸入你的密碼" />
     <div id="output"></div>
     <script type="module">
-      import { compactDecrypt, decodeProtectedHeader } from 'https://esm.sh/jose@5.6.3';
+      import { compactDecrypt, decodeProtectedHeader } from 'https://esm.sh/jose';
       let argon2Loaded = false;
       const argon2Script = document.createElement('script');
       argon2Script.src = 'https://unpkg.com/argon2-browser/dist/argon2-bundled.min.js';
