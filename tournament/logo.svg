@@ -1,0 +1,23 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Rounded Background -->
+  <rect width="512" height="512" rx="128" fill="#2563eb"/>
+  
+  <!-- Stylized Bracket Lines in Background -->
+  <g fill="none" stroke="#ffffff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+    <path d="M100 140h60v80M100 372h60v-80M160 220v72h40"/>
+    <path d="M412 140h-60v80M412 372h-60v-80M352 220v72h-40"/>
+  </g>
+
+  <!-- Trophy Cup Body -->
+  <path d="M256 120c-45 0-80 35-80 80v40c0 45 35 80 80 80s80-35 80-80v-40c0-45-35-80-80-80z" fill="#fbbf24"/>
+  
+  <!-- Trophy Handles -->
+  <path d="M176 160c-25 0-45 20-45 45s20 45 45 45M336 160c25 0 45 20 45 45s-20 45-45 45" fill="none" stroke="#fbbf24" stroke-width="20" stroke-linecap="round"/>
+  
+  <!-- Trophy Stem & Base -->
+  <path d="M256 320v60M200 380h112" fill="none" stroke="#fbbf24" stroke-width="28" stroke-linecap="round"/>
+  
+  <!-- Center Star Decor on Trophy -->
+  <path d="M256 185l8 16 18 2-13 12 3 18-16-9-16 9 3-18-13-12 18-2z" fill="#ffffff" opacity="0.8"/>
+</svg>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tournament Master</title>
+    <link rel="icon" type="image/svg+xml" href="logo.svg" />
+    <link rel="apple-touch-icon" href="logo.svg" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+      };
+    </script>
+    <style>
+      @media print {
+        .no-print {
+          display: none !important;
+        }
+        .print-break-inside-avoid {
+          break-inside: avoid;
+        }
+        /* Ensure dark mode colors don't waste ink or look bad when printing */
+        body {
+          background-color: white !important;
+          color: black !important;
+        }
+      }
+      /* Custom scrollbar for better bracket viewing */
+      .bracket-scroll::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+      }
+      .bracket-scroll::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      .dark .bracket-scroll::-webkit-scrollbar-track {
+        background: #1e293b;
+      }
+      .bracket-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      .dark .bracket-scroll::-webkit-scrollbar-thumb {
+        background: #475569;
+      }
+      .bracket-scroll::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "react/": "https://esm.sh/react@^19.2.3/",
+          "react": "https://esm.sh/react@^19.2.3",
+          "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+        }
+      }
+    </script>
+    <script type="module" crossorigin src="/public/tournament/assets/index-CoU4X46A.js"></script>
+  <link rel="manifest" href="/public/tournament/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/public/tournament/registerSW.js"></script></head>
+  <body class="bg-gray-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <div id="root"></div>
+  </body>
+</html>
