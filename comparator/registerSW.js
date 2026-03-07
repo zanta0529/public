@@ -1,7 +1,1 @@
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/public/comparator/sw.js", {
-      scope: "/public/comparator/",
-    });
-  });
-}
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/public/comparator/sw.js', { scope: '/public/comparator/' })})}
