@@ -7,7 +7,9 @@
     <style>
       /* --- 基礎樣式 --- */
       :root {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
         --slate-900: #0f172a;
         --purple-900: #581c87;
         --purple-400: #c084fc;
@@ -43,7 +45,12 @@
       }
       body {
         min-height: 100vh;
-        background: linear-gradient(to bottom right, var(--slate-900), var(--purple-900), var(--slate-900));
+        background: linear-gradient(
+          to bottom right,
+          var(--slate-900),
+          var(--purple-900),
+          var(--slate-900)
+        );
         padding: 1.5rem;
         margin: 0;
         color: white;
@@ -160,7 +167,9 @@
         border: 1px solid var(--purple-border-30);
         border-radius: 0.5rem;
         color: white;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
         font-size: 0.875rem;
         line-height: 1.25rem;
         resize: none;
@@ -211,10 +220,18 @@
         width: 100%;
         margin-top: 1rem;
         padding: 0.75rem 1.5rem;
-        background-image: linear-gradient(to right, var(--purple-600), var(--pink-600));
+        background-image: linear-gradient(
+          to right,
+          var(--purple-600),
+          var(--pink-600)
+        );
       }
       .btn-reconstruct:hover {
-        background-image: linear-gradient(to right, var(--purple-700), var(--pink-700));
+        background-image: linear-gradient(
+          to right,
+          var(--purple-700),
+          var(--pink-700)
+        );
       }
       button svg {
         width: 1rem;
@@ -258,7 +275,9 @@
       }
       .info-grid span:last-child {
         color: white;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
       }
 
       .error-block {
@@ -334,7 +353,9 @@
         background-color: var(--black-30);
         border-radius: 0.5rem;
         padding: 1rem;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
         word-break: break-all;
       }
       .result-text {
@@ -382,7 +403,7 @@
       }
 
       /* --- 隱藏元素 --- */
-      [style*='display: none'] {
+      [style*="display: none"] {
         display: none !important;
       }
     </style>
@@ -418,7 +439,9 @@
       </div>
 
       <div class="card">
-        <h2 class="text-xl font-semibold text-white mb-3 flex items-center gap-2">
+        <h2
+          class="text-xl font-semibold text-white mb-3 flex items-center gap-2"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -430,7 +453,9 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+            <path
+              d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"
+            ></path>
             <polyline points="14 2 14 8 20 8"></polyline>
             <path d="M10 16.5c.5.3 1.2.5 2 .5s1.5-.2 2-.5"></path>
             <path d="M10 13.5c.5.3 1.2.5 2 .5s1.5-.2 2-.5"></path>
@@ -450,7 +475,9 @@
             </ul>
           </div>
           <div>
-            <h3 class="text-purple-200 font-semibold mb-2">分片格式（Base64 JSON）</h3>
+            <h3 class="text-purple-200 font-semibold mb-2">
+              分片格式（Base64 JSON）
+            </h3>
             <ul class="text-purple-100 space-y-1">
               <li>• v: 版本號</li>
               <li>• n: 總分片數</li>
@@ -465,7 +492,9 @@
 
       <div class="card">
         <div class="input-header">
-          <h2 class="text-xl font-semibold text-white">輸入祕密分片（Base64）</h2>
+          <h2 class="text-xl font-semibold text-white">
+            輸入祕密分片（Base64）
+          </h2>
           <button id="add-share-btn" class="btn-add">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -579,17 +608,26 @@
 
         <div class="result-body">
           <div>
-            <label class="text-sm text-green-200 mb-2 block">使用分片數量</label>
-            <div id="result-share-count" class="text-white font-mono text-lg"></div>
+            <label class="text-sm text-green-200 mb-2 block"
+              >使用分片數量</label
+            >
+            <div
+              id="result-share-count"
+              class="text-white font-mono text-lg"
+            ></div>
           </div>
 
           <div>
-            <label class="text-sm text-green-200 mb-2 block">重建的祕密（文字）</label>
+            <label class="text-sm text-green-200 mb-2 block"
+              >重建的祕密（文字）</label
+            >
             <div id="result-text" class="result-box result-text"></div>
           </div>
 
           <div>
-            <label class="text-sm text-green-200 mb-2 block">十六進位表示</label>
+            <label class="text-sm text-green-200 mb-2 block"
+              >十六進位表示</label
+            >
             <div id="result-hex" class="result-box result-hex"></div>
           </div>
 
@@ -618,12 +656,12 @@
 
     <script type="module">
       // --- DOM 元素 ---
-      const sharesList = document.getElementById('shares-list');
-      const addShareBtn = document.getElementById('add-share-btn');
-      const reconstructBtn = document.getElementById('reconstruct-btn');
-      const infoBlock = document.getElementById('info-block');
-      const errorBlock = document.getElementById('error-block');
-      const resultBlock = document.getElementById('result-block');
+      const sharesList = document.getElementById("shares-list");
+      const addShareBtn = document.getElementById("add-share-btn");
+      const reconstructBtn = document.getElementById("reconstruct-btn");
+      const infoBlock = document.getElementById("info-block");
+      const errorBlock = document.getElementById("error-block");
+      const resultBlock = document.getElementById("result-block");
 
       // --- 核心演算法邏輯 (從 .tsx 移植) ---
 
@@ -678,27 +716,39 @@
           const { chk, ...shareData } = shareObj;
 
           if (!chk) {
-            throw new Error('格式不正確：缺少校驗碼 (chk) 欄位。');
+            throw new Error("格式不正確：缺少校驗碼 (chk) 欄位。");
           }
 
           // 重新計算校驗碼
           // 我們必須對 *不包含* 'chk' 欄位的物件進行 stringify
-          const expectedChecksum = window.sha256(JSON.stringify(shareData)).substring(0, 8);
+          const expectedChecksum = window
+            .sha256(JSON.stringify(shareData))
+            .substring(0, 8);
 
           if (chk !== expectedChecksum) {
             console.error(`校驗失敗: 預期 ${expectedChecksum}, 得到 ${chk}`);
-            throw new Error('Checksum 驗證失敗！此分片可能已損毀或被竄改。');
+            throw new Error("Checksum 驗證失敗！此分片可能已損毀或被竄改。");
           }
           // --- [新增] 驗證結束 ---
 
           // 驗證必要欄位 (現在從 shareData 讀取)
-          if (!shareData.id || !shareData.share || !Array.isArray(shareData.share)) {
-            throw new Error('分片格式不完整 (缺少 id 或 share 欄位)');
+          if (
+            !shareData.id ||
+            !shareData.share ||
+            !Array.isArray(shareData.share)
+          ) {
+            throw new Error("分片格式不完整 (缺少 id 或 share 欄位)");
           }
 
           // 驗證 share 內容
-          if (!shareData.share.every((val) => typeof val === 'number' && val >= 0 && val <= 255)) {
-            throw new Error('分片中的 share 陣列包含無效的數字 (應為 0-255 之間的數字)。');
+          if (
+            !shareData.share.every(
+              (val) => typeof val === "number" && val >= 0 && val <= 255,
+            )
+          ) {
+            throw new Error(
+              "分片中的 share 陣列包含無效的數字 (應為 0-255 之間的數字)。",
+            );
           }
 
           return {
@@ -714,7 +764,11 @@
           };
         } catch (e) {
           // 將錯誤訊息傳遞出去
-          throw new Error(e.message.startsWith('分片解析失敗') ? e.message : `分片解析失敗: ${e.message}`);
+          throw new Error(
+            e.message.startsWith("分片解析失敗")
+              ? e.message
+              : `分片解析失敗: ${e.message}`,
+          );
         }
       };
 
@@ -723,7 +777,7 @@
         // [修改] 從第一個分片獲取 k 值
         const k = parsedShares[0].k;
         if (!k || parsedShares.length < k) {
-          throw new Error(`至少需要 ${k || '?'} 個分片才能重建祕密`);
+          throw new Error(`至少需要 ${k || "?"} 個分片才能重建祕密`);
         }
 
         const dataLength = parsedShares[0].data.length;
@@ -731,7 +785,7 @@
         // 檢查所有分片長度是否一致
         for (let share of parsedShares) {
           if (share.data.length !== dataLength) {
-            throw new Error('所有分片的長度必須相同');
+            throw new Error("所有分片的長度必須相同");
           }
         }
 
@@ -739,7 +793,7 @@
         const firstShare = parsedShares[0];
         for (let share of parsedShares) {
           if (share.n !== firstShare.n || share.k !== firstShare.k) {
-            throw new Error('分片參數不一致（n 或 k 值不同）');
+            throw new Error("分片參數不一致（n 或 k 值不同）");
           }
         }
 
@@ -748,13 +802,19 @@
         const x_coords = sharesToUse.map((s) => s.x);
 
         // 重建每個元素
-        let reconstructedBinaryString = '';
+        let reconstructedBinaryString = "";
 
         for (let i = 0; i < dataLength; i++) {
           const y_coords = sharesToUse.map((s) => s.data[i]);
-          const reconstructedElement = reconstructElementSJS(x_coords, y_coords, k);
+          const reconstructedElement = reconstructElementSJS(
+            x_coords,
+            y_coords,
+            k,
+          );
 
-          reconstructedBinaryString += reconstructedElement.toString(2).padStart(8, '0');
+          reconstructedBinaryString += reconstructedElement
+            .toString(2)
+            .padStart(8, "0");
         }
 
         return reconstructedBinaryString;
@@ -788,7 +848,12 @@
               break;
             }
 
-            product = (product + GF256.LOG[numerator] - GF256.LOG[denominator] + GF256.maxShares) % GF256.maxShares;
+            product =
+              (product +
+                GF256.LOG[numerator] -
+                GF256.LOG[denominator] +
+                GF256.maxShares) %
+              GF256.maxShares;
           }
 
           sum = product === -1 ? sum : sum ^ GF256.EXP[product];
@@ -799,10 +864,10 @@
 
       // 移除填充位元（secrets.js-1bit 格式）
       const removePaddingFromBinary = (binaryString) => {
-        const markerIndex = binaryString.indexOf('1');
+        const markerIndex = binaryString.indexOf("1");
         if (markerIndex === -1) {
           // 如果沒有 '1' 標記（例如，原始秘密是空字串），則返回空
-          return '';
+          return "";
         }
         return binaryString.slice(markerIndex + 1);
       };
@@ -811,10 +876,13 @@
       const binaryToHex = (binaryString) => {
         // [修改] 確保在二進位字串為空時返回空字串
         if (!binaryString) {
-          return '';
+          return "";
         }
-        const paddedBinary = binaryString.padStart(Math.ceil(binaryString.length / 4) * 4, '0');
-        let hex = '';
+        const paddedBinary = binaryString.padStart(
+          Math.ceil(binaryString.length / 4) * 4,
+          "0",
+        );
+        let hex = "";
         for (let i = 0; i < paddedBinary.length; i += 4) {
           const chunk = paddedBinary.substring(i, i + 4);
           hex += parseInt(chunk, 2).toString(16);
@@ -824,12 +892,12 @@
 
       // 十六進位轉 UTF-8 字串（對應原始程式碼的 _hex2str）
       const hexToStr = (hexStr) => {
-        let str = '';
+        let str = "";
         let i = 0;
 
         // [修改] 確保 hexStr 長度為偶數
         if (hexStr.length % 2 !== 0) {
-          console.warn('十六進位字串長度為奇數，可能已損毀:', hexStr);
+          console.warn("十六進位字串長度為奇數，可能已損毀:", hexStr);
           // 丟棄最後一個不完整的字元
           hexStr = hexStr.substring(0, hexStr.length - 1);
         }
@@ -840,7 +908,7 @@
           i += 2;
 
           if (isNaN(byte1)) {
-            throw new Error('包含無效的十六進位字元。');
+            throw new Error("包含無效的十六進位字元。");
           }
 
           if (byte1 < 0x80) {
@@ -854,7 +922,8 @@
             i += 2;
             let byte3 = parseInt(hexStr.substring(i, i + 2), 16);
             i += 2;
-            charCode = ((byte1 & 0x0f) << 12) | ((byte2 & 0x3f) << 6) | (byte3 & 0x3f);
+            charCode =
+              ((byte1 & 0x0f) << 12) | ((byte2 & 0x3f) << 6) | (byte3 & 0x3f);
           } else if ((byte1 & 0xf8) === 0xf0) {
             let byte2 = parseInt(hexStr.substring(i, i + 2), 16);
             i += 2;
@@ -862,9 +931,13 @@
             i += 2;
             let byte4 = parseInt(hexStr.substring(i, i + 2), 16);
             i += 2;
-            charCode = ((byte1 & 0x07) << 18) | ((byte2 & 0x3f) << 12) | ((byte3 & 0x3f) << 6) | (byte4 & 0x3f);
+            charCode =
+              ((byte1 & 0x07) << 18) |
+              ((byte2 & 0x3f) << 12) |
+              ((byte3 & 0x3f) << 6) |
+              (byte4 & 0x3f);
           } else {
-            throw new Error('Invalid UTF-8 sequence in hex string.');
+            throw new Error("Invalid UTF-8 sequence in hex string.");
           }
           str += String.fromCodePoint(charCode);
         }
@@ -877,8 +950,8 @@
           const unpaddedBinary = removePaddingFromBinary(binaryString);
           const hexString = binaryToHex(unpaddedBinary);
           // [修改] 處理空字串的特殊情況
-          if (hexString === '') {
-            return '';
+          if (hexString === "") {
+            return "";
           }
           return hexToStr(hexString);
         } catch (e) {
@@ -896,21 +969,21 @@
       const createShareInput = () => {
         shareCount++;
         const index = shareCount;
-        const div = document.createElement('div');
-        div.className = 'share-item';
-        div.setAttribute('data-index', index);
+        const div = document.createElement("div");
+        div.className = "share-item";
+        div.setAttribute("data-index", index);
 
-        const textarea = document.createElement('textarea');
+        const textarea = document.createElement("textarea");
         textarea.rows = 3;
         textarea.placeholder = `分片 ${index} (Base64 編碼的 JSON)`;
-        textarea.className = 'share-textarea';
+        textarea.className = "share-textarea";
 
         div.appendChild(textarea);
 
         if (shareCount > 2) {
-          const button = document.createElement('button');
-          button.className = 'remove-btn';
-          button.title = '移除分片';
+          const button = document.createElement("button");
+          button.className = "remove-btn";
+          button.title = "移除分片";
           button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
           button.onclick = () => removeShare(div);
           div.appendChild(button);
@@ -934,17 +1007,17 @@
         let parsedShares = [];
         try {
           // 重置 UI
-          errorBlock.style.display = 'none';
-          resultBlock.style.display = 'none';
-          infoBlock.style.display = 'none';
+          errorBlock.style.display = "none";
+          resultBlock.style.display = "none";
+          infoBlock.style.display = "none";
 
-          const textareas = sharesList.querySelectorAll('.share-textarea');
+          const textareas = sharesList.querySelectorAll(".share-textarea");
           const shares = Array.from(textareas).map((t) => t.value);
 
           // 過濾空白分片並解析
-          const validShares = shares.filter((s) => s.trim() !== '');
+          const validShares = shares.filter((s) => s.trim() !== "");
           if (validShares.length < 2) {
-            throw new Error('請至少輸入 2 個有效的分片');
+            throw new Error("請至少輸入 2 個有效的分片");
           }
 
           // [修改] 在 map 中處理解析錯誤
@@ -968,32 +1041,37 @@
           }
 
           if (parsedShares.length < 2) {
-            throw new Error('沒有足夠的有效分片（請檢查格式或校驗碼）');
+            throw new Error("沒有足夠的有效分片（請檢查格式或校驗碼）");
           }
 
           // 檢查是否達到閾值
           const k = parsedShares[0].k;
           if (!k) {
-            throw new Error('無法從分片中讀取重建閾值 (k)，請確認分片格式正確。');
+            throw new Error(
+              "無法從分片中讀取重建閾值 (k)，請確認分片格式正確。",
+            );
           }
           if (parsedShares.length < k) {
-            throw new Error(`需要至少 ${k} 個分片才能重建祕密（目前只有 ${parsedShares.length} 個有效分片）`);
+            throw new Error(
+              `需要至少 ${k} 個分片才能重建祕密（目前只有 ${parsedShares.length} 個有效分片）`,
+            );
           }
 
           // 顯示分片資訊
           const firstShare = parsedShares[0];
-          document.getElementById('info-version').textContent = firstShare.version || 'N/A';
-          document.getElementById('info-n').textContent = firstShare.n || 'N/A';
-          document.getElementById('info-k').textContent = firstShare.k || 'N/A';
-          document.getElementById('info-polynomial').textContent = firstShare.polynomial
-            ? `0x${firstShare.polynomial}`
-            : 'N/A';
-          document.getElementById('info-encoding').textContent = firstShare.encoding || 'N/A';
-          document.getElementById('info-used-shares').textContent = parsedShares
+          document.getElementById("info-version").textContent =
+            firstShare.version || "N/A";
+          document.getElementById("info-n").textContent = firstShare.n || "N/A";
+          document.getElementById("info-k").textContent = firstShare.k || "N/A";
+          document.getElementById("info-polynomial").textContent =
+            firstShare.polynomial ? `0x${firstShare.polynomial}` : "N/A";
+          document.getElementById("info-encoding").textContent =
+            firstShare.encoding || "N/A";
+          document.getElementById("info-used-shares").textContent = parsedShares
             .map((s) => s.x)
             .sort((a, b) => a - b)
-            .join(', ');
-          infoBlock.style.display = 'block';
+            .join(", ");
+          infoBlock.style.display = "block";
 
           // 重建祕密
           const reconstructedBinaryString = reconstructSecret(parsedShares);
@@ -1001,20 +1079,21 @@
           const hexDisplay = binaryToHex(reconstructedBinaryString);
 
           // 顯示結果
-          document.getElementById('result-share-count').textContent = `${parsedShares.length} 個分片`;
-          document.getElementById('result-text').textContent = secretText;
-          document.getElementById('result-hex').textContent = hexDisplay;
-          resultBlock.style.display = 'block';
+          document.getElementById("result-share-count").textContent =
+            `${parsedShares.length} 個分片`;
+          document.getElementById("result-text").textContent = secretText;
+          document.getElementById("result-hex").textContent = hexDisplay;
+          resultBlock.style.display = "block";
         } catch (e) {
-          document.getElementById('error-message').textContent = e.message;
-          errorBlock.style.display = 'block';
-          console.error('重建錯誤:', e);
+          document.getElementById("error-message").textContent = e.message;
+          errorBlock.style.display = "block";
+          console.error("重建錯誤:", e);
         }
       };
 
       // --- 初始化與事件綁定 ---
-      addShareBtn.addEventListener('click', addShare);
-      reconstructBtn.addEventListener('click', handleReconstruct);
+      addShareBtn.addEventListener("click", addShare);
+      reconstructBtn.addEventListener("click", handleReconstruct);
 
       // 初始化 2 個輸入框
       createShareInput();

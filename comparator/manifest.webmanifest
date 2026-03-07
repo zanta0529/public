@@ -1,1 +1,15 @@
-{"name":"商品價格比較工具","short_name":"比價工具","description":"一個簡易的比價網頁工具，用於計算商品單位價格。","start_url":"/public/comparator/","display":"standalone","background_color":"#1a1b1e","theme_color":"#1a1b1e","lang":"en","scope":"/public/comparator/","icons":[{"src":"logo.svg","sizes":[64,192,512],"purpose":"any"},{"src":"logo.svg","sizes":[192,512],"purpose":"maskable"}]}
+{
+  "name": "商品價格比較工具",
+  "short_name": "比價工具",
+  "description": "一個簡易的比價網頁工具，用於計算商品單位價格。",
+  "start_url": "/public/comparator/",
+  "display": "standalone",
+  "background_color": "#1a1b1e",
+  "theme_color": "#1a1b1e",
+  "lang": "en",
+  "scope": "/public/comparator/",
+  "icons": [
+    { "src": "logo.svg", "sizes": [64, 192, 512], "purpose": "any" },
+    { "src": "logo.svg", "sizes": [192, 512], "purpose": "maskable" }
+  ]
+}

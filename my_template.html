@@ -1,1354 +1,1518 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant" data-theme="dark">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Zanta 的網頁風格樣板</title>
-        <style>
-            /* --- CSS 變數定義 (淺色 & 深色主題) --- */
-            :root {
-                /* Palette - 沉穩藍靛色系 */
-                --primary-color: #4f46e5;
-                --primary-hover-color: #6366f1;
-                --primary-text-color: #ffffff;
-                --secondary-color: #6b7280;
-                --secondary-hover-color: #4b5563;
-                --secondary-text-color: #ffffff;
-                /* Status Colors */
-                --success-color: #059669;
-                --success-bg: #d1fae5;
-                --success-color-rgb: 5, 150, 105;
-                --error-color: #dc2626;
-                --error-bg: #fee2e2;
-                --error-color-rgb: 220, 38, 38;
-                --info-color: #0891b2;
-                --info-bg: #cffafe;
-                --note-color: #92400e;
-                --note-bg: #fefce8;
-                --warning-color: #9a3412;
-                --warning-bg: #ffedd5;
-                /* UI Elements */
-                --section-header-bg: #f8fafc;
-                --bg-color: #f1f5f9;
-                --container-bg: #ffffff;
-                --text-color: #1f2937;
-                --border-color: #e5e7eb;
-                --input-bg: #f8fafc;
-                --input-focus-shadow: rgba(79, 70, 229, 0.25);
-                --button-disabled-bg: #d1d5db;
-                --button-disabled-text-color: #9ca3af;
-                --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-                --toast-bg: #1f2937;
-                --toast-color: #f9fafb;
-                --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
-                --tooltip-bg: #1f2937;
-                --tooltip-color: #f9fafb;
-                /* 設計規範變數 */
-                --border-radius-sm: 5px;
-                --border-radius-md: 12px;
-                --border-radius-full: 50%;
-                --transition-duration-fast: 0.2s;
-                --transition-duration-normal: 0.3s;
-                --transition-duration-slow: 0.4s;
-                --z-index-content: 10;
-                --z-index-dropdown: 20;
-                --z-index-fixed: 1000;
-                --z-index-modal: 1010;
-                --z-index-toast: 1020;
-            }
-            :root[data-theme="dark"] {
-                /* ... Palette & Status Colors ... */
-                --primary-color: #6366f1;
-                --primary-hover-color: #818cf8;
-                --primary-text-color: #ffffff;
-                --secondary-color: #9ca3af;
-                --secondary-hover-color: #d1d5db;
-                --secondary-text-color: #1e293b;
-                --success-color: #6ee7b7;
-                --success-bg: #064e3b;
-                --success-color-rgb: 110, 231, 183;
-                --error-color: #f87171;
-                --error-bg: #7f1d1d;
-                --error-color-rgb: 248, 113, 113;
-                --info-color: #67e8f9;
-                --info-bg: #164e63;
-                --note-color: #fde047;
-                --note-bg: #451a03;
-                --warning-color: #fb923c;
-                --warning-bg: #7c2d12;
-                /* UI Elements */
-                --section-header-bg: #293548;
-                --bg-color: #1e293b;
-                --container-bg: #334155;
-                --text-color: #d1d5db;
-                --border-color: #475569;
-                --input-bg: #293548;
-                --input-focus-shadow: rgba(99, 102, 241, 0.3);
-                --button-disabled-bg: #293548;
-                --button-disabled-text-color: #64748b;
-                --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-                --toast-bg: #fde68a;
-                --toast-color: #78350f;
-                --modal-backdrop-bg: rgba(0, 0, 0, 0.7);
-                --tooltip-bg: #fde68a;
-                --tooltip-color: #78350f;
-            }
-            /* --- 基礎 & 佈局樣式 --- */
-            *,
-            *::before,
-            *::after {
-                box-sizing: border-box;
-            }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                font-size: 1.1em;
-                margin: 0;
-                padding: 2rem;
-                background-color: var(--bg-color);
-                color: var(--text-color);
-                line-height: 1.6;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                min-height: 100vh;
-                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal);
-            }
-            body.modal-is-open {
-                overflow: hidden;
-            }
-            .container {
-                width: 100%;
-                max-width: 1024px;
-            }
-            h1 {
-                text-align: center;
-                margin-bottom: 2.5rem;
-            }
-            h4 {
-                margin-top: 2rem;
-                margin-bottom: 0.5rem;
-                font-weight: 600;
-            }
-            h1,
-            h2,
-            h3,
-            h4 {
-                word-break: break-word;
-            }
-            section {
-                margin-bottom: 2.5rem;
-            }
-            section:last-child {
-                margin-bottom: 0;
-            }
-            section.card {
-                border: 1px solid var(--border-color);
-                border-radius: var(--border-radius-md);
-                background-color: var(--container-bg);
-                box-shadow: var(--box-shadow);
-                transition: background-color var(--transition-duration-normal),
-                    border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal);
-            }
-            section.card > h2 {
-                padding: 0.85rem 1.5rem;
-                margin: 0;
-                font-size: 1.25em;
-                font-weight: 600;
-                letter-spacing: 0.5px;
-                color: var(--primary-text-color);
-                background-color: var(--primary-color);
-                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-                transition: background-color var(--transition-duration-normal),
-                    border-color var(--transition-duration-normal), color var(--transition-duration-normal);
-                border-top-left-radius: var(--border-radius-md);
-                border-top-right-radius: var(--border-radius-md);
-            }
-            :root[data-theme="dark"] section.card > h2 {
-                border-bottom-color: rgba(255, 255, 255, 0.1);
-            }
-            .card-content {
-                padding: 1.5rem;
-            }
-            .card-content > h3 {
-                color: var(--secondary-color);
-                margin-top: 2rem;
-                margin-bottom: 1rem;
-                padding-bottom: 0;
-                border-bottom: none;
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-                transition: color var(--transition-duration-normal);
-            }
-            .card-content > h3::before {
-                content: "";
-                display: block;
-                width: 10px;
-                height: 10px;
-                background-color: var(--primary-color);
-                border-radius: 3px;
-                transform: rotate(45deg);
-                transition: background-color var(--transition-duration-normal);
-            }
-            .card-content > h3:first-child {
-                margin-top: 0;
-            }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zanta 的網頁風格樣板</title>
+    <style>
+      /* --- CSS 變數定義 (淺色 & 深色主題) --- */
+      :root {
+        /* Palette - 沉穩藍靛色系 */
+        --primary-color: #4f46e5;
+        --primary-hover-color: #6366f1;
+        --primary-text-color: #ffffff;
+        --secondary-color: #6b7280;
+        --secondary-hover-color: #4b5563;
+        --secondary-text-color: #ffffff;
+        /* Status Colors */
+        --success-color: #059669;
+        --success-bg: #d1fae5;
+        --success-color-rgb: 5, 150, 105;
+        --error-color: #dc2626;
+        --error-bg: #fee2e2;
+        --error-color-rgb: 220, 38, 38;
+        --info-color: #0891b2;
+        --info-bg: #cffafe;
+        --note-color: #92400e;
+        --note-bg: #fefce8;
+        --warning-color: #9a3412;
+        --warning-bg: #ffedd5;
+        /* UI Elements */
+        --section-header-bg: #f8fafc;
+        --bg-color: #f1f5f9;
+        --container-bg: #ffffff;
+        --text-color: #1f2937;
+        --border-color: #e5e7eb;
+        --input-bg: #f8fafc;
+        --input-focus-shadow: rgba(79, 70, 229, 0.25);
+        --button-disabled-bg: #d1d5db;
+        --button-disabled-text-color: #9ca3af;
+        --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        --toast-bg: #1f2937;
+        --toast-color: #f9fafb;
+        --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
+        --tooltip-bg: #1f2937;
+        --tooltip-color: #f9fafb;
+        /* 設計規範變數 */
+        --border-radius-sm: 5px;
+        --border-radius-md: 12px;
+        --border-radius-full: 50%;
+        --transition-duration-fast: 0.2s;
+        --transition-duration-normal: 0.3s;
+        --transition-duration-slow: 0.4s;
+        --z-index-content: 10;
+        --z-index-dropdown: 20;
+        --z-index-fixed: 1000;
+        --z-index-modal: 1010;
+        --z-index-toast: 1020;
+      }
+      :root[data-theme="dark"] {
+        /* ... Palette & Status Colors ... */
+        --primary-color: #6366f1;
+        --primary-hover-color: #818cf8;
+        --primary-text-color: #ffffff;
+        --secondary-color: #9ca3af;
+        --secondary-hover-color: #d1d5db;
+        --secondary-text-color: #1e293b;
+        --success-color: #6ee7b7;
+        --success-bg: #064e3b;
+        --success-color-rgb: 110, 231, 183;
+        --error-color: #f87171;
+        --error-bg: #7f1d1d;
+        --error-color-rgb: 248, 113, 113;
+        --info-color: #67e8f9;
+        --info-bg: #164e63;
+        --note-color: #fde047;
+        --note-bg: #451a03;
+        --warning-color: #fb923c;
+        --warning-bg: #7c2d12;
+        /* UI Elements */
+        --section-header-bg: #293548;
+        --bg-color: #1e293b;
+        --container-bg: #334155;
+        --text-color: #d1d5db;
+        --border-color: #475569;
+        --input-bg: #293548;
+        --input-focus-shadow: rgba(99, 102, 241, 0.3);
+        --button-disabled-bg: #293548;
+        --button-disabled-text-color: #64748b;
+        --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        --toast-bg: #fde68a;
+        --toast-color: #78350f;
+        --modal-backdrop-bg: rgba(0, 0, 0, 0.7);
+        --tooltip-bg: #fde68a;
+        --tooltip-color: #78350f;
+      }
+      /* --- 基礎 & 佈局樣式 --- */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 1.1em;
+        margin: 0;
+        padding: 2rem;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        transition:
+          background-color var(--transition-duration-normal),
+          color var(--transition-duration-normal);
+      }
+      body.modal-is-open {
+        overflow: hidden;
+      }
+      .container {
+        width: 100%;
+        max-width: 1024px;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      h4 {
+        margin-top: 2rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        word-break: break-word;
+      }
+      section {
+        margin-bottom: 2.5rem;
+      }
+      section:last-child {
+        margin-bottom: 0;
+      }
+      section.card {
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        background-color: var(--container-bg);
+        box-shadow: var(--box-shadow);
+        transition:
+          background-color var(--transition-duration-normal),
+          border-color var(--transition-duration-normal),
+          box-shadow var(--transition-duration-normal);
+      }
+      section.card > h2 {
+        padding: 0.85rem 1.5rem;
+        margin: 0;
+        font-size: 1.25em;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: var(--primary-text-color);
+        background-color: var(--primary-color);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        transition:
+          background-color var(--transition-duration-normal),
+          border-color var(--transition-duration-normal),
+          color var(--transition-duration-normal);
+        border-top-left-radius: var(--border-radius-md);
+        border-top-right-radius: var(--border-radius-md);
+      }
+      :root[data-theme="dark"] section.card > h2 {
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+      }
+      .card-content {
+        padding: 1.5rem;
+      }
+      .card-content > h3 {
+        color: var(--secondary-color);
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0;
+        border-bottom: none;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: color var(--transition-duration-normal);
+      }
+      .card-content > h3::before {
+        content: "";
+        display: block;
+        width: 10px;
+        height: 10px;
+        background-color: var(--primary-color);
+        border-radius: 3px;
+        transform: rotate(45deg);
+        transition: background-color var(--transition-duration-normal);
+      }
+      .card-content > h3:first-child {
+        margin-top: 0;
+      }
 
-            /* --- 可訪問性：統一的視覺焦點 --- */
-            a:focus-visible,
-            button:focus-visible,
-            .button:focus-visible,
-            .option:focus-visible,
-            .accordion-header:focus-visible,
-            .tab-btn:focus-visible,
-            .modal-close-btn:focus-visible,
-            .toggle-label:focus-visible,
-            .dropdown-toggle:focus-visible,
-            .dropdown-item:focus-visible {
-                outline: 2px solid var(--primary-color);
-                outline-offset: 2px;
-                box-shadow: 0 0 0 4px var(--input-focus-shadow);
-            }
-            input:focus-visible,
-            textarea:focus-visible {
-                outline: none;
-            }
-            /* --- 組件：按鈕 --- */
-            .button-group {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 1rem;
-                align-items: center;
-            }
-            button,
-            .button {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.5rem;
-                padding: 0.75rem 1.5rem;
-                background-color: var(--primary-color);
-                color: var(--primary-text-color);
-                border: 1px solid transparent;
-                border-radius: var(--border-radius-sm);
-                cursor: pointer;
-                font-size: 1em;
-                font-weight: 600;
-                text-decoration: none;
-                text-align: center;
-                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal),
-                    border-color var(--transition-duration-normal), transform var(--transition-duration-fast);
-            }
-            button:hover:not(:disabled),
-            .button:hover:not(:disabled) {
-                background-color: var(--primary-hover-color);
-                transform: translateY(-1px);
-            }
-            button.secondary,
-            .button.secondary {
-                background-color: transparent;
-                border-color: var(--secondary-color);
-                color: var(--secondary-color);
-            }
-            button.secondary:hover:not(:disabled),
-            .button.secondary:hover:not(:disabled) {
-                background-color: var(--secondary-hover-color);
-                border-color: var(--secondary-hover-color);
-                color: var(--secondary-text-color);
-            }
-            button:disabled,
-            .button:disabled {
-                background-color: var(--button-disabled-bg);
-                color: var(--button-disabled-text-color);
-                border-color: transparent;
-                cursor: not-allowed;
-                opacity: 0.7;
-            }
-            /* [修正2] 深色模式禁用按鈕樣式 */
-            :root[data-theme="dark"] button:disabled,
-            :root[data-theme="dark"] .button:disabled {
-                border: 1px solid var(--border-color);
-            }
+      /* --- 可訪問性：統一的視覺焦點 --- */
+      a:focus-visible,
+      button:focus-visible,
+      .button:focus-visible,
+      .option:focus-visible,
+      .accordion-header:focus-visible,
+      .tab-btn:focus-visible,
+      .modal-close-btn:focus-visible,
+      .toggle-label:focus-visible,
+      .dropdown-toggle:focus-visible,
+      .dropdown-item:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+        box-shadow: 0 0 0 4px var(--input-focus-shadow);
+      }
+      input:focus-visible,
+      textarea:focus-visible {
+        outline: none;
+      }
+      /* --- 組件：按鈕 --- */
+      .button-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+      }
+      button,
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background-color: var(--primary-color);
+        color: var(--primary-text-color);
+        border: 1px solid transparent;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        transition:
+          background-color var(--transition-duration-normal),
+          color var(--transition-duration-normal),
+          border-color var(--transition-duration-normal),
+          transform var(--transition-duration-fast);
+      }
+      button:hover:not(:disabled),
+      .button:hover:not(:disabled) {
+        background-color: var(--primary-hover-color);
+        transform: translateY(-1px);
+      }
+      button.secondary,
+      .button.secondary {
+        background-color: transparent;
+        border-color: var(--secondary-color);
+        color: var(--secondary-color);
+      }
+      button.secondary:hover:not(:disabled),
+      .button.secondary:hover:not(:disabled) {
+        background-color: var(--secondary-hover-color);
+        border-color: var(--secondary-hover-color);
+        color: var(--secondary-text-color);
+      }
+      button:disabled,
+      .button:disabled {
+        background-color: var(--button-disabled-bg);
+        color: var(--button-disabled-text-color);
+        border-color: transparent;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      /* [修正2] 深色模式禁用按鈕樣式 */
+      :root[data-theme="dark"] button:disabled,
+      :root[data-theme="dark"] .button:disabled {
+        border: 1px solid var(--border-color);
+      }
 
-            /* --- 組件：載入指示器 (Spinner) --- */
-            @keyframes spin {
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-            .spinner {
-                display: inline-block;
-                width: 1.5em;
-                height: 1.5em;
-                border-radius: var(--border-radius-full);
-                border: 3px solid var(--border-color);
-                border-top-color: var(--primary-color);
-                animation: spin 1s linear infinite;
-            }
-            .spinner--sm {
-                width: 1em;
-                height: 1em;
-                border-width: 2px;
-            }
-            .spinner--lg {
-                width: 3em;
-                height: 3em;
-                border-width: 4px;
-            }
-            button .spinner {
-                display: none;
-            }
-            button.is-loading .spinner {
-                display: inline-block;
-            }
-            button.is-loading .btn-text {
-                display: none;
-            }
+      /* --- 組件：載入指示器 (Spinner) --- */
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .spinner {
+        display: inline-block;
+        width: 1.5em;
+        height: 1.5em;
+        border-radius: var(--border-radius-full);
+        border: 3px solid var(--border-color);
+        border-top-color: var(--primary-color);
+        animation: spin 1s linear infinite;
+      }
+      .spinner--sm {
+        width: 1em;
+        height: 1em;
+        border-width: 2px;
+      }
+      .spinner--lg {
+        width: 3em;
+        height: 3em;
+        border-width: 4px;
+      }
+      button .spinner {
+        display: none;
+      }
+      button.is-loading .spinner {
+        display: inline-block;
+      }
+      button.is-loading .btn-text {
+        display: none;
+      }
 
-            /* --- 組件：警告提示框 (Alert) --- */
-            .alert {
-                display: flex;
-                align-items: flex-start;
-                gap: 1rem;
-                padding: 1rem;
-                border-radius: var(--border-radius-sm);
-                border: 1px solid;
-                margin-top: 1rem;
-            }
-            .alert.is-hidden {
-                display: none;
-            }
-            .alert-icon {
-                font-size: 1.25em;
-                flex-shrink: 0;
-                margin-top: 0.1em;
-            }
-            .alert-message {
-                flex-grow: 1;
-                margin: 0;
-                padding: 0;
-            }
-            .alert-close-btn {
-                background: none;
-                border: none;
-                color: inherit;
-                opacity: 0.7;
-                padding: 0;
-                cursor: pointer;
-                font-size: 1.5em;
-                line-height: 1;
-                transition: opacity var(--transition-duration-fast);
-            }
-            .alert-close-btn:hover {
-                opacity: 1;
-            }
-            .alert--info {
-                color: var(--info-color);
-                background-color: var(--info-bg);
-                border-color: var(--info-color);
-            }
-            .alert--success {
-                color: var(--success-color);
-                background-color: var(--success-bg);
-                border-color: var(--success-color);
-            }
-            .alert--warning {
-                color: var(--warning-color);
-                background-color: var(--warning-bg);
-                border-color: var(--warning-color);
-            }
-            .alert--danger {
-                color: var(--error-color);
-                background-color: var(--error-bg);
-                border-color: var(--error-color);
-            }
+      /* --- 組件：警告提示框 (Alert) --- */
+      .alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid;
+        margin-top: 1rem;
+      }
+      .alert.is-hidden {
+        display: none;
+      }
+      .alert-icon {
+        font-size: 1.25em;
+        flex-shrink: 0;
+        margin-top: 0.1em;
+      }
+      .alert-message {
+        flex-grow: 1;
+        margin: 0;
+        padding: 0;
+      }
+      .alert-close-btn {
+        background: none;
+        border: none;
+        color: inherit;
+        opacity: 0.7;
+        padding: 0;
+        cursor: pointer;
+        font-size: 1.5em;
+        line-height: 1;
+        transition: opacity var(--transition-duration-fast);
+      }
+      .alert-close-btn:hover {
+        opacity: 1;
+      }
+      .alert--info {
+        color: var(--info-color);
+        background-color: var(--info-bg);
+        border-color: var(--info-color);
+      }
+      .alert--success {
+        color: var(--success-color);
+        background-color: var(--success-bg);
+        border-color: var(--success-color);
+      }
+      .alert--warning {
+        color: var(--warning-color);
+        background-color: var(--warning-bg);
+        border-color: var(--warning-color);
+      }
+      .alert--danger {
+        color: var(--error-color);
+        background-color: var(--error-bg);
+        border-color: var(--error-color);
+      }
 
-            /* --- 組件：下拉式選單 (Dropdown) --- */
-            .dropdown {
-                position: relative;
-                display: inline-block;
-            }
-            .dropdown-menu {
-                position: absolute;
-                top: calc(100% + 5px);
-                left: 0;
-                z-index: var(--z-index-dropdown);
-                min-width: 180px;
-                background-color: var(--container-bg);
-                border: 1px solid var(--border-color);
-                border-radius: var(--border-radius-sm);
-                box-shadow: var(--box-shadow);
-                padding: 0.5rem 0;
-                opacity: 0;
-                visibility: hidden;
-                transform: translateY(10px);
-                transition: opacity var(--transition-duration-fast), transform var(--transition-duration-fast),
-                    visibility var(--transition-duration-fast);
-            }
-            .dropdown.is-active .dropdown-menu {
-                opacity: 1;
-                visibility: visible;
-                transform: translateY(0);
-            }
-            .dropdown-menu--right {
-                left: auto;
-                right: 0;
-            }
-            .dropdown-item {
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-                padding: 0.5rem 1rem;
-                color: var(--text-color);
-                text-decoration: none;
-                white-space: nowrap;
-            }
-            .dropdown-item:hover,
-            .dropdown-item:focus {
-                background-color: var(--section-header-bg);
-                color: var(--text-color);
-            }
-            .dropdown-divider {
-                height: 1px;
-                background-color: var(--border-color);
-                margin: 0.5rem 0;
-            }
-            [data-tooltip] {
-                position: relative;
-            }
-            [data-tooltip]::after {
-                content: attr(data-tooltip);
-                position: absolute;
-                bottom: 100%;
-                left: 50%;
-                transform: translateX(-50%);
-                margin-bottom: 8px;
-                background-color: var(--tooltip-bg);
-                color: var(--tooltip-color);
-                padding: 0.5rem 0.8rem;
-                border-radius: var(--border-radius-sm);
-                font-size: 0.9em;
-                white-space: nowrap;
-                pointer-events: none;
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity var(--transition-duration-fast), visibility var(--transition-duration-fast);
-                z-index: var(--z-index-content);
-            }
-            [data-tooltip]:hover::after {
-                opacity: 1;
-                visibility: visible;
-            }
-            /* [修正4] 輸入框樣式 */
-            input[type="text"],
-            textarea {
-                width: 100%;
-                padding: 0.75rem;
-                border: 1px solid var(--border-color);
-                border-radius: var(--border-radius-sm);
-                font-family: inherit; /* 與頁面字體一致 */
-                font-size: inherit; /* 與頁面字體大小一致 */
-                background-color: var(--input-bg);
-                color: var(--text-color);
-                transition: border-color var(--transition-duration-normal), box-shadow var(--transition-duration-normal),
-                    background-color var(--transition-duration-normal);
-            }
-            input[type="text"]:focus,
-            textarea:focus {
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
-            }
-            textarea {
-                min-height: 120px;
-                resize: vertical;
-            }
-            /* [新增] 輸入框禁用狀態 */
-            input:disabled,
-            textarea:disabled {
-                background-color: var(--border-color);
-                cursor: not-allowed;
-                opacity: 0.7;
-            }
-            :root[data-theme="dark"] input:disabled,
-            :root[data-theme="dark"] textarea:disabled {
-                background-color: var(--input-bg);
-            }
-            /* [新增] 輸入框驗證狀態 */
-            input.is-success,
-            textarea.is-success {
-                border-color: var(--success-color);
-            }
-            input.is-success:focus,
-            textarea.is-success:focus {
-                border-color: var(--success-color);
-                box-shadow: 0 0 0 0.2rem rgba(var(--success-color-rgb), 0.25);
-            }
-            input.is-error,
-            textarea.is-error {
-                border-color: var(--error-color);
-            }
-            input.is-error:focus,
-            textarea.is-error:focus {
-                border-color: var(--error-color);
-                box-shadow: 0 0 0 0.2rem rgba(var(--error-color-rgb), 0.25);
-            }
+      /* --- 組件：下拉式選單 (Dropdown) --- */
+      .dropdown {
+        position: relative;
+        display: inline-block;
+      }
+      .dropdown-menu {
+        position: absolute;
+        top: calc(100% + 5px);
+        left: 0;
+        z-index: var(--z-index-dropdown);
+        min-width: 180px;
+        background-color: var(--container-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-sm);
+        box-shadow: var(--box-shadow);
+        padding: 0.5rem 0;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition:
+          opacity var(--transition-duration-fast),
+          transform var(--transition-duration-fast),
+          visibility var(--transition-duration-fast);
+      }
+      .dropdown.is-active .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+      .dropdown-menu--right {
+        left: auto;
+        right: 0;
+      }
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 1rem;
+        color: var(--text-color);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .dropdown-item:hover,
+      .dropdown-item:focus {
+        background-color: var(--section-header-bg);
+        color: var(--text-color);
+      }
+      .dropdown-divider {
+        height: 1px;
+        background-color: var(--border-color);
+        margin: 0.5rem 0;
+      }
+      [data-tooltip] {
+        position: relative;
+      }
+      [data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 8px;
+        background-color: var(--tooltip-bg);
+        color: var(--tooltip-color);
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.9em;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity var(--transition-duration-fast),
+          visibility var(--transition-duration-fast);
+        z-index: var(--z-index-content);
+      }
+      [data-tooltip]:hover::after {
+        opacity: 1;
+        visibility: visible;
+      }
+      /* [修正4] 輸入框樣式 */
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-sm);
+        font-family: inherit; /* 與頁面字體一致 */
+        font-size: inherit; /* 與頁面字體大小一致 */
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        transition:
+          border-color var(--transition-duration-normal),
+          box-shadow var(--transition-duration-normal),
+          background-color var(--transition-duration-normal);
+      }
+      input[type="text"]:focus,
+      textarea:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
+      }
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+      /* [新增] 輸入框禁用狀態 */
+      input:disabled,
+      textarea:disabled {
+        background-color: var(--border-color);
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      :root[data-theme="dark"] input:disabled,
+      :root[data-theme="dark"] textarea:disabled {
+        background-color: var(--input-bg);
+      }
+      /* [新增] 輸入框驗證狀態 */
+      input.is-success,
+      textarea.is-success {
+        border-color: var(--success-color);
+      }
+      input.is-success:focus,
+      textarea.is-success:focus {
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 0.2rem rgba(var(--success-color-rgb), 0.25);
+      }
+      input.is-error,
+      textarea.is-error {
+        border-color: var(--error-color);
+      }
+      input.is-error:focus,
+      textarea.is-error:focus {
+        border-color: var(--error-color);
+        box-shadow: 0 0 0 0.2rem rgba(var(--error-color-rgb), 0.25);
+      }
 
-            .option-group {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-            .option {
-                padding: 10px 15px;
-                border: 1px solid var(--border-color);
-                border-radius: var(--border-radius-sm);
-                cursor: pointer;
-                transition: background-color var(--transition-duration-normal),
-                    border-color var(--transition-duration-normal), color var(--transition-duration-normal);
-            }
-            .option.selected {
-                background-color: var(--primary-color);
-                color: var(--primary-text-color);
-                border-color: var(--primary-color);
-                font-weight: bold;
-            }
-            .message-block {
-                padding: 0.75rem 1rem;
-                border-radius: var(--border-radius-sm);
-                margin-top: 1rem;
-                border-left: 4px solid;
-            }
-            .hint-note {
-                font-size: 0.9em;
-                color: var(--note-color);
-                background-color: var(--note-bg);
-                border-color: var(--note-color);
-                transition: all var(--transition-duration-normal) ease-in-out;
-            }
-            .output-box {
-                padding: 1rem;
-                border-left-width: 5px;
-                white-space: pre-wrap;
-                word-break: break-all;
-            }
-            .output-box + .output-box {
-                margin-top: 1rem;
-            }
-            .output-box.success {
-                color: var(--success-color);
-                border-color: var(--success-color);
-                background-color: var(--success-bg);
-            }
-            .output-box.error {
-                color: var(--error-color);
-                border-color: var(--error-color);
-                background-color: var(--error-bg);
-            }
-            .output-box.info {
-                color: var(--info-color);
-                border-color: var(--info-color);
-                background-color: var(--info-bg);
-            }
-            .modal {
-                visibility: hidden;
-                opacity: 0;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background-color: var(--modal-backdrop-bg);
-                z-index: var(--z-index-modal);
-                transition: visibility var(--transition-duration-normal), opacity var(--transition-duration-normal);
-            }
-            .modal.active {
-                visibility: visible;
-                opacity: 1;
-            }
-            .modal-content {
-                background-color: var(--container-bg);
-                padding: 2rem;
-                border-radius: 8px;
-                box-shadow: var(--box-shadow);
-                width: 90%;
-                max-width: 500px;
-                position: relative;
-                transform: scale(0.9);
-                transition: transform var(--transition-duration-normal);
-            }
-            .modal.active .modal-content {
-                transform: scale(1);
-            }
-            .modal-close-btn {
-                position: absolute;
-                top: 10px;
-                right: 15px;
-                background: none;
-                border: none;
-                font-size: 1.8rem;
-                cursor: pointer;
-                color: var(--secondary-color);
-                transition: color var(--transition-duration-normal);
-            }
-            .modal-close-btn:hover {
-                color: var(--primary-color);
-            }
-            .accordion-item + .accordion-item {
-                border-top: 1px solid var(--border-color);
-            }
-            .accordion-header {
-                width: 100%;
-                background: none;
-                border: none;
-                padding: 1rem;
-                text-align: left;
-                cursor: pointer;
-                font-size: 1.1em;
-                font-weight: 600;
-                color: var(--text-color);
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                transition: background-color var(--transition-duration-normal), color var(--transition-duration-normal);
-            }
-            .accordion-header:hover,
-            .accordion-header.active {
-                background-color: var(--primary-color);
-                color: var(--primary-text-color);
-            }
-            .accordion-header::after {
-                content: "▼";
-                font-size: 0.8em;
-                transition: transform var(--transition-duration-normal);
-            }
-            .accordion-header.active::after {
-                transform: rotate(180deg);
-            }
-            .accordion-content {
-                max-height: 0;
-                overflow: hidden;
-                padding-left: 1rem;
-                padding-right: 1rem;
-                transition: max-height var(--transition-duration-slow) ease-out,
-                    padding var(--transition-duration-slow) ease-out;
-            }
-            .accordion-header.active + .accordion-content {
-                max-height: 500px;
-                padding-bottom: 1rem;
-            }
-            .accordion-content p {
-                margin: 0;
-            }
-            .progress-container {
-                margin-top: 1rem;
-            }
-            .progress-bar-wrapper {
-                width: 100%;
-                background-color: var(--border-color);
-                border-radius: var(--border-radius-sm);
-                overflow: hidden;
-            }
-            .progress-bar {
-                width: 0%;
-                height: 20px;
-                background-color: var(--primary-color);
-                text-align: center;
-                line-height: 20px;
-                color: var(--primary-text-color);
-                font-weight: bold;
-                transition: width 0.5s ease-in-out;
-            }
-            /* --- 頁籤 (Tabs) 樣式 --- */
-            .tabs-wrapper {
-                background-color: var(--section-header-bg);
-                border: 1px solid var(--border-color);
-                border-radius: var(--border-radius-md);
-                margin-top: 1rem;
-                transition: background-color var(--transition-duration-normal),
-                    border-color var(--transition-duration-normal);
-            }
-            .tab-nav {
-                display: flex;
-                border-bottom: 1px solid var(--border-color);
-                margin-bottom: 0;
-            }
-            .tab-btn {
-                background: none;
-                border: none;
-                border-bottom: 2px solid transparent;
-                padding: 0.8rem 1.2rem;
-                margin-bottom: -1px;
-                cursor: pointer;
-                font-size: 1em;
-                color: var(--secondary-color);
-                transition: color var(--transition-duration-normal), background-color var(--transition-duration-normal),
-                    border-color var(--transition-duration-normal);
-            }
-            .tab-btn.active {
-                background-color: var(--container-bg);
-                color: var(--text-color);
-                border-bottom-color: var(--primary-color);
-                border-top-left-radius: var(--border-radius-sm);
-                border-top-right-radius: var(--border-radius-sm);
-                font-weight: 600;
-            }
-            .tab-btn:not(.active):hover {
-                color: var(--text-color);
-                border-bottom-color: var(--border-color);
-            }
-            .tab-content-container {
-                background-color: var(--container-bg);
-                padding: 1.5rem;
-                border-bottom-left-radius: var(--border-radius-md);
-                border-bottom-right-radius: var(--border-radius-md);
-                transition: background-color var(--transition-duration-normal);
-            }
-            .tab-content {
-                display: none;
-            }
-            .tab-content.active {
-                display: block;
-            }
+      .option-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .option {
+        padding: 10px 15px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition:
+          background-color var(--transition-duration-normal),
+          border-color var(--transition-duration-normal),
+          color var(--transition-duration-normal);
+      }
+      .option.selected {
+        background-color: var(--primary-color);
+        color: var(--primary-text-color);
+        border-color: var(--primary-color);
+        font-weight: bold;
+      }
+      .message-block {
+        padding: 0.75rem 1rem;
+        border-radius: var(--border-radius-sm);
+        margin-top: 1rem;
+        border-left: 4px solid;
+      }
+      .hint-note {
+        font-size: 0.9em;
+        color: var(--note-color);
+        background-color: var(--note-bg);
+        border-color: var(--note-color);
+        transition: all var(--transition-duration-normal) ease-in-out;
+      }
+      .output-box {
+        padding: 1rem;
+        border-left-width: 5px;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .output-box + .output-box {
+        margin-top: 1rem;
+      }
+      .output-box.success {
+        color: var(--success-color);
+        border-color: var(--success-color);
+        background-color: var(--success-bg);
+      }
+      .output-box.error {
+        color: var(--error-color);
+        border-color: var(--error-color);
+        background-color: var(--error-bg);
+      }
+      .output-box.info {
+        color: var(--info-color);
+        border-color: var(--info-color);
+        background-color: var(--info-bg);
+      }
+      .modal {
+        visibility: hidden;
+        opacity: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--modal-backdrop-bg);
+        z-index: var(--z-index-modal);
+        transition:
+          visibility var(--transition-duration-normal),
+          opacity var(--transition-duration-normal);
+      }
+      .modal.active {
+        visibility: visible;
+        opacity: 1;
+      }
+      .modal-content {
+        background-color: var(--container-bg);
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: var(--box-shadow);
+        width: 90%;
+        max-width: 500px;
+        position: relative;
+        transform: scale(0.9);
+        transition: transform var(--transition-duration-normal);
+      }
+      .modal.active .modal-content {
+        transform: scale(1);
+      }
+      .modal-close-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        cursor: pointer;
+        color: var(--secondary-color);
+        transition: color var(--transition-duration-normal);
+      }
+      .modal-close-btn:hover {
+        color: var(--primary-color);
+      }
+      .accordion-item + .accordion-item {
+        border-top: 1px solid var(--border-color);
+      }
+      .accordion-header {
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 1rem;
+        text-align: left;
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: 600;
+        color: var(--text-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition:
+          background-color var(--transition-duration-normal),
+          color var(--transition-duration-normal);
+      }
+      .accordion-header:hover,
+      .accordion-header.active {
+        background-color: var(--primary-color);
+        color: var(--primary-text-color);
+      }
+      .accordion-header::after {
+        content: "▼";
+        font-size: 0.8em;
+        transition: transform var(--transition-duration-normal);
+      }
+      .accordion-header.active::after {
+        transform: rotate(180deg);
+      }
+      .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        transition:
+          max-height var(--transition-duration-slow) ease-out,
+          padding var(--transition-duration-slow) ease-out;
+      }
+      .accordion-header.active + .accordion-content {
+        max-height: 500px;
+        padding-bottom: 1rem;
+      }
+      .accordion-content p {
+        margin: 0;
+      }
+      .progress-container {
+        margin-top: 1rem;
+      }
+      .progress-bar-wrapper {
+        width: 100%;
+        background-color: var(--border-color);
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+      }
+      .progress-bar {
+        width: 0%;
+        height: 20px;
+        background-color: var(--primary-color);
+        text-align: center;
+        line-height: 20px;
+        color: var(--primary-text-color);
+        font-weight: bold;
+        transition: width 0.5s ease-in-out;
+      }
+      /* --- 頁籤 (Tabs) 樣式 --- */
+      .tabs-wrapper {
+        background-color: var(--section-header-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        margin-top: 1rem;
+        transition:
+          background-color var(--transition-duration-normal),
+          border-color var(--transition-duration-normal);
+      }
+      .tab-nav {
+        display: flex;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 0;
+      }
+      .tab-btn {
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 0.8rem 1.2rem;
+        margin-bottom: -1px;
+        cursor: pointer;
+        font-size: 1em;
+        color: var(--secondary-color);
+        transition:
+          color var(--transition-duration-normal),
+          background-color var(--transition-duration-normal),
+          border-color var(--transition-duration-normal);
+      }
+      .tab-btn.active {
+        background-color: var(--container-bg);
+        color: var(--text-color);
+        border-bottom-color: var(--primary-color);
+        border-top-left-radius: var(--border-radius-sm);
+        border-top-right-radius: var(--border-radius-sm);
+        font-weight: 600;
+      }
+      .tab-btn:not(.active):hover {
+        color: var(--text-color);
+        border-bottom-color: var(--border-color);
+      }
+      .tab-content-container {
+        background-color: var(--container-bg);
+        padding: 1.5rem;
+        border-bottom-left-radius: var(--border-radius-md);
+        border-bottom-right-radius: var(--border-radius-md);
+        transition: background-color var(--transition-duration-normal);
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
 
-            .toggle-container {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            .toggle-switch {
-                position: relative;
-                display: inline-block;
-                width: 50px;
-                height: 28px;
-            }
-            .toggle-switch .toggle-checkbox {
-                opacity: 0;
-                width: 0;
-                height: 0;
-            }
-            .toggle-label {
-                position: absolute;
-                cursor: pointer;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: var(--secondary-color);
-                border-radius: 34px;
-                transition: background-color var(--transition-duration-normal);
-            }
-            .toggle-label::before {
-                position: absolute;
-                content: "";
-                height: 20px;
-                width: 20px;
-                left: 4px;
-                top: 50%;
-                transform: translateY(-50%);
-                background-color: white;
-                border-radius: var(--border-radius-full);
-                transition: transform var(--transition-duration-normal);
-            }
-            .toggle-checkbox:checked + .toggle-label {
-                background-color: var(--primary-color);
-            }
-            .toggle-checkbox:checked + .toggle-label::before {
-                transform: translateX(22px) translateY(-50%);
-            }
-            footer {
-                text-align: center;
-                margin-top: auto;
-                padding-top: 2rem;
-                font-size: 0.9em;
-                color: var(--secondary-color);
-            }
-            .fab {
-                position: fixed;
-                z-index: var(--z-index-fixed);
-                width: 50px;
-                height: 50px;
-                background-color: var(--container-bg);
-                border: 1px solid var(--border-color);
-                border-radius: var(--border-radius-full);
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: var(--box-shadow);
-                transition: all var(--transition-duration-normal) ease;
-            }
-            .fab:hover {
-                transform: translateY(-2px) scale(1.05);
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            }
-            :root[data-theme="dark"] .fab:hover {
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            }
-            #themeToggleBtn {
-                top: 20px;
-                right: 20px;
-                color: var(--text-color);
-                font-size: 1.5em;
-            }
-            #scroll-to-top {
-                right: 25px;
-                bottom: 25px;
-                background-color: var(--primary-color);
-                border: none;
-                opacity: 0;
-                visibility: hidden;
-                transform: translateY(20px);
-                transition: opacity var(--transition-duration-normal) ease,
-                    visibility var(--transition-duration-normal) ease, transform var(--transition-duration-normal) ease,
-                    background-color var(--transition-duration-normal) ease;
-            }
-            #scroll-to-top:hover {
-                background-color: var(--primary-hover-color);
-                transform: translateY(-2px);
-            }
-            #scroll-to-top.active {
-                opacity: 0.9;
-                visibility: visible;
-                transform: translateY(0);
-            }
-            #scroll-to-top::after {
-                content: "";
-                width: 0;
-                height: 0;
-                border-left: 12px solid transparent;
-                border-right: 12px solid transparent;
-                border-bottom: 15px solid var(--primary-text-color);
-                margin-bottom: 4px;
-            }
-            #toast {
-                visibility: hidden;
-                opacity: 0;
-                min-width: 250px;
-                background-color: var(--toast-bg);
-                color: var(--toast-color);
-                text-align: center;
-                border-radius: var(--border-radius-sm);
-                padding: 16px;
-                position: fixed;
-                z-index: var(--z-index-toast);
-                left: 50%;
-                transform: translateX(-50%);
-                bottom: 30px;
-                font-size: 17px;
-                box-shadow: var(--box-shadow);
-                transition: opacity 0.5s, visibility 0.5s, bottom 0.5s;
-            }
-            #toast.show {
-                visibility: visible;
-                opacity: 1;
-            }
-            @media (max-width: 768px) {
-                body {
-                    font-size: 1em;
-                    padding: 1rem;
-                }
-                .container {
-                    padding: 0;
-                }
-                .button-group,
-                .tab-nav {
-                    flex-direction: column;
-                    align-items: stretch;
-                }
-                /* 針對行動裝置上，按鈕群組中的下拉選單進行優化 */
-                .button-group .dropdown {
-                    flex-grow: 1; /* 讓 dropdown 的容器自動填滿剩餘空間 */
-                }
-                .button-group .dropdown .dropdown-toggle {
-                    width: 100%; /* 讓下拉選單的按鈕填滿其父層容器 */
-                }
-                .card-content {
-                    padding: 1rem;
-                }
-                section.card > h2 {
-                    padding: 0.75rem 1rem;
-                }
-                .fab {
-                    width: 44px;
-                    height: 44px;
-                }
-                #themeToggleBtn {
-                    top: 15px;
-                    right: 15px;
-                    font-size: 1.3em;
-                }
-                #scroll-to-top {
-                    right: 15px;
-                    bottom: 15px;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <button id="themeToggleBtn" class="fab" title="切換主題">🌙</button>
+      .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 28px;
+      }
+      .toggle-switch .toggle-checkbox {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .toggle-label {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--secondary-color);
+        border-radius: 34px;
+        transition: background-color var(--transition-duration-normal);
+      }
+      .toggle-label::before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: white;
+        border-radius: var(--border-radius-full);
+        transition: transform var(--transition-duration-normal);
+      }
+      .toggle-checkbox:checked + .toggle-label {
+        background-color: var(--primary-color);
+      }
+      .toggle-checkbox:checked + .toggle-label::before {
+        transform: translateX(22px) translateY(-50%);
+      }
+      footer {
+        text-align: center;
+        margin-top: auto;
+        padding-top: 2rem;
+        font-size: 0.9em;
+        color: var(--secondary-color);
+      }
+      .fab {
+        position: fixed;
+        z-index: var(--z-index-fixed);
+        width: 50px;
+        height: 50px;
+        background-color: var(--container-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-full);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--box-shadow);
+        transition: all var(--transition-duration-normal) ease;
+      }
+      .fab:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      }
+      :root[data-theme="dark"] .fab:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      }
+      #themeToggleBtn {
+        top: 20px;
+        right: 20px;
+        color: var(--text-color);
+        font-size: 1.5em;
+      }
+      #scroll-to-top {
+        right: 25px;
+        bottom: 25px;
+        background-color: var(--primary-color);
+        border: none;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(20px);
+        transition:
+          opacity var(--transition-duration-normal) ease,
+          visibility var(--transition-duration-normal) ease,
+          transform var(--transition-duration-normal) ease,
+          background-color var(--transition-duration-normal) ease;
+      }
+      #scroll-to-top:hover {
+        background-color: var(--primary-hover-color);
+        transform: translateY(-2px);
+      }
+      #scroll-to-top.active {
+        opacity: 0.9;
+        visibility: visible;
+        transform: translateY(0);
+      }
+      #scroll-to-top::after {
+        content: "";
+        width: 0;
+        height: 0;
+        border-left: 12px solid transparent;
+        border-right: 12px solid transparent;
+        border-bottom: 15px solid var(--primary-text-color);
+        margin-bottom: 4px;
+      }
+      #toast {
+        visibility: hidden;
+        opacity: 0;
+        min-width: 250px;
+        background-color: var(--toast-bg);
+        color: var(--toast-color);
+        text-align: center;
+        border-radius: var(--border-radius-sm);
+        padding: 16px;
+        position: fixed;
+        z-index: var(--z-index-toast);
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 30px;
+        font-size: 17px;
+        box-shadow: var(--box-shadow);
+        transition:
+          opacity 0.5s,
+          visibility 0.5s,
+          bottom 0.5s;
+      }
+      #toast.show {
+        visibility: visible;
+        opacity: 1;
+      }
+      @media (max-width: 768px) {
+        body {
+          font-size: 1em;
+          padding: 1rem;
+        }
+        .container {
+          padding: 0;
+        }
+        .button-group,
+        .tab-nav {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        /* 針對行動裝置上，按鈕群組中的下拉選單進行優化 */
+        .button-group .dropdown {
+          flex-grow: 1; /* 讓 dropdown 的容器自動填滿剩餘空間 */
+        }
+        .button-group .dropdown .dropdown-toggle {
+          width: 100%; /* 讓下拉選單的按鈕填滿其父層容器 */
+        }
+        .card-content {
+          padding: 1rem;
+        }
+        section.card > h2 {
+          padding: 0.75rem 1rem;
+        }
+        .fab {
+          width: 44px;
+          height: 44px;
+        }
+        #themeToggleBtn {
+          top: 15px;
+          right: 15px;
+          font-size: 1.3em;
+        }
+        #scroll-to-top {
+          right: 15px;
+          bottom: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button id="themeToggleBtn" class="fab" title="切換主題">🌙</button>
 
-        <div class="container">
-            <header>
-                <h1>Zanta 的網頁風格樣板</h1>
-            </header>
+    <div class="container">
+      <header>
+        <h1>Zanta 的網頁風格樣板</h1>
+      </header>
 
-            <main>
-                <section class="card">
-                    <h2>基礎控制項</h2>
-                    <div class="card-content">
-                        <h3>按鈕 (Buttons)</h3>
-                        <div class="button-group">
-                            <button data-tooltip="點我開啟 Toast 提示訊息" data-toast-message="這是一個 Toast 提示！">
-                                主要按鈕
-                            </button>
-                            <button class="secondary" data-modal-target="#infoModal" data-tooltip="點我開啟互動視窗">
-                                次要按鈕
-                            </button>
-                            <button disabled>禁用按鈕</button>
-                        </div>
-
-                        <h3>選項 (Options)</h3>
-                        <div id="demoOptionGroup" class="option-group">
-                            <div class="option selected" data-value="opt1">選項一</div>
-                            <div class="option" data-value="opt2">選項二</div>
-                            <div class="option" data-value="opt3">選項三</div>
-                        </div>
-                        <div id="option1Hint" class="message-block hint-note">當「選項一」被選中時顯示此提示。</div>
-
-                        <h3>下拉式選單 (Dropdowns)</h3>
-                        <div class="button-group">
-                            <div class="dropdown">
-                                <button class="button dropdown-toggle" aria-haspopup="true" aria-expanded="false">
-                                    <span>操作選單</span>
-                                    <span style="font-size: 0.8em">▼</span>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a href="#" class="dropdown-item">編輯</a>
-                                    <a href="#" class="dropdown-item">分享</a>
-                                    <div class="dropdown-divider"></div>
-                                    <a href="#" class="dropdown-item" style="color: var(--error-color)">刪除</a>
-                                </div>
-                            </div>
-                            <div class="dropdown">
-                                <button
-                                    class="button secondary dropdown-toggle"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                >
-                                    <span>使用者</span>
-                                    <span style="font-size: 0.8em">▼</span>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu--right">
-                                    <a href="#" class="dropdown-item">個人檔案</a>
-                                    <a href="#" class="dropdown-item">帳戶設定</a>
-                                    <a href="#" class="dropdown-item">登出</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <h2>進階控制項</h2>
-                    <div class="card-content">
-                        <h3>頁籤 (Tabs)</h3>
-                        <div class="tabs-wrapper">
-                            <div class="tab-container">
-                                <div class="tab-nav" role="tablist">
-                                    <button class="tab-btn active" role="tab" aria-selected="true" data-tab="tab1">
-                                        分頁 1
-                                    </button>
-                                    <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab2">
-                                        分頁 2
-                                    </button>
-                                    <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab3">
-                                        分頁 3
-                                    </button>
-                                </div>
-                                <div class="tab-content-container">
-                                    <div id="tab1" class="tab-content active" role="tabpanel">
-                                        <p>這裡是<strong>個人資料</strong>的內容。</p>
-                                    </div>
-                                    <div id="tab2" class="tab-content" role="tabpanel">
-                                        <p>這裡是<strong>帳戶設定</strong>的內容。</p>
-                                    </div>
-                                    <div id="tab3" class="tab-content" role="tabpanel">
-                                        <p>這裡是<strong>通知</strong>設定。</p>
-                                        <div class="toggle-container">
-                                            <label for="emailToggle" style="margin-bottom: 0">接收郵件通知：</label>
-                                            <div class="toggle-switch">
-                                                <input
-                                                    type="checkbox"
-                                                    id="emailToggle"
-                                                    class="toggle-checkbox"
-                                                    checked
-                                                />
-                                                <label for="emailToggle" class="toggle-label"></label>
-                                            </div>
-                                            <span
-                                                id="emailToggleStatus"
-                                                class="message-block hint-note"
-                                                style="margin: 0; display: inline-block"
-                                                >開啟</span
-                                            >
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h3>可折疊內容 (Accordion)</h3>
-                        <div class="accordion">
-                            <div class="accordion-item">
-                                <button class="accordion-header" aria-expanded="false">第一項：這是什麼？</button>
-                                <div class="accordion-content" aria-hidden="true">
-                                    <p>這是一個可折疊的內容區塊。</p>
-                                </div>
-                            </div>
-                            <div class="accordion-item">
-                                <button class="accordion-header" aria-expanded="false">第二項：如何使用？</button>
-                                <div class="accordion-content" aria-hidden="true">
-                                    <p>點擊標題可以展開或收合內容。</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h3>進度條 (Progress Bar)</h3>
-                        <div class="progress-container">
-                            <div class="progress-bar-wrapper">
-                                <div id="demoProgressBar" class="progress-bar">0%</div>
-                            </div>
-                            <button id="progressBtn" style="margin-top: 1rem">模擬進度</button>
-                        </div>
-
-                        <h3>載入指示器 (Spinners)</h3>
-                        <div class="button-group">
-                            <div class="spinner spinner--sm"></div>
-                            <div class="spinner"></div>
-                            <div class="spinner spinner--lg"></div>
-                            <button id="loadingBtnExample">
-                                <span class="btn-text">點我載入</span>
-                                <span class="spinner spinner--sm"></span>
-                            </button>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <h2>表單輸入</h2>
-                    <div class="card-content">
-                        <h3>文字輸入框 (Text Input)</h3>
-                        <input type="text" id="sampleInput" placeholder="請在此輸入文字..." style="margin-top: 1rem" />
-
-                        <h3>文字方塊 (Textarea)</h3>
-                        <textarea id="sampleTextarea" placeholder="支援多行輸入..." style="margin-top: 1rem"></textarea>
-
-                        <h3 style="margin-top: 2rem">輸入框狀態 (Input States)</h3>
-                        <input type="text" class="is-success" value="成功狀態" style="margin-top: 1rem" />
-                        <input type="text" class="is-error" value="錯誤狀態" style="margin-top: 1rem" />
-                        <input type="text" value="禁用狀態" disabled style="margin-top: 1rem" />
-                        <textarea disabled style="margin-top: 1rem">這是禁用的文字方塊...</textarea>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <h2>訊息回饋</h2>
-                    <div class="card-content">
-                        <h3>輸出樣式 (Output Box)</h3>
-                        <div class="message-block output-box info">💡 這是一般通知性的訊息。</div>
-                        <div class="message-block output-box success">✅ 這是一條成功的訊息。</div>
-                        <div class="message-block output-box error">❌ 這是一條錯誤的訊息。</div>
-
-                        <h3>警告提示框 (Alerts)</h3>
-                        <div class="alert alert--info" role="alert">
-                            <span class="alert-icon">💡</span>
-                            <p class="alert-message">這是一條一般資訊的提示框，用於補充說明。</p>
-                            <button class="alert-close-btn" aria-label="關閉提示">&times;</button>
-                        </div>
-                        <div class="alert alert--warning" role="alert">
-                            <span class="alert-icon">⚠️</span>
-                            <p class="alert-message">請注意！您的密碼將在 5 天後過期。</p>
-                            <button class="alert-close-btn" aria-label="關閉提示">&times;</button>
-                        </div>
-                        <div class="alert alert--danger" role="alert">
-                            <span class="alert-icon">❌</span>
-                            <p class="alert-message">存檔失敗！無法連接到伺服器。</p>
-                            <button class="alert-close-btn" aria-label="關閉提示">&times;</button>
-                        </div>
-                    </div>
-                </section>
-            </main>
-        </div>
-
-        <footer>
-            <p>&copy; <span id="currentYear"></span> Zanta's Utilities</p>
-        </footer>
-
-        <div id="infoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-            <div class="modal-content">
-                <button class="modal-close-btn" aria-label="關閉視窗">&times;</button>
-                <h2 id="modalTitle" style="color: var(--primary-color); border: none; padding: 0; text-align: left">
-                    這是一個 Modal 視窗
-                </h2>
-                <p>Modal 用於顯示重要的資訊或需要使用者確認的操作。</p>
-                <button class="button" data-toast-message="Modal 內的按鈕被點擊了！">Modal 內的按鈕</button>
+      <main>
+        <section class="card">
+          <h2>基礎控制項</h2>
+          <div class="card-content">
+            <h3>按鈕 (Buttons)</h3>
+            <div class="button-group">
+              <button
+                data-tooltip="點我開啟 Toast 提示訊息"
+                data-toast-message="這是一個 Toast 提示！"
+              >
+                主要按鈕
+              </button>
+              <button
+                class="secondary"
+                data-modal-target="#infoModal"
+                data-tooltip="點我開啟互動視窗"
+              >
+                次要按鈕
+              </button>
+              <button disabled>禁用按鈕</button>
             </div>
-        </div>
-        <div id="toast"></div>
 
-        <button id="scroll-to-top" class="fab" title="回到頂端"></button>
+            <h3>選項 (Options)</h3>
+            <div id="demoOptionGroup" class="option-group">
+              <div class="option selected" data-value="opt1">選項一</div>
+              <div class="option" data-value="opt2">選項二</div>
+              <div class="option" data-value="opt3">選項三</div>
+            </div>
+            <div id="option1Hint" class="message-block hint-note">
+              當「選項一」被選中時顯示此提示。
+            </div>
 
-        <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                const app = {
-                    elements: {
-                        themeToggleBtn: document.getElementById("themeToggleBtn"),
-                        currentYear: document.getElementById("currentYear"),
-                        toast: document.getElementById("toast"),
-                        modals: document.querySelectorAll(".modal"),
-                        accordionContainer: document.querySelector(".accordion"),
-                        progressBar: document.getElementById("demoProgressBar"),
-                        progressBtn: document.getElementById("progressBtn"),
-                        tabContainers: document.querySelectorAll(".tab-container"),
-                        emailToggle: document.getElementById("emailToggle"),
-                        optionGroup: document.getElementById("demoOptionGroup"),
-                        option1Hint: document.getElementById("option1Hint"),
-                        scrollTopBtn: document.getElementById("scroll-to-top"),
-                        loadingBtnExample: document.getElementById("loadingBtnExample"),
-                    },
-                    state: {
-                        toastimer: null,
-                        progress: 0,
-                    },
+            <h3>下拉式選單 (Dropdowns)</h3>
+            <div class="button-group">
+              <div class="dropdown">
+                <button
+                  class="button dropdown-toggle"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                >
+                  <span>操作選單</span>
+                  <span style="font-size: 0.8em">▼</span>
+                </button>
+                <div class="dropdown-menu">
+                  <a href="#" class="dropdown-item">編輯</a>
+                  <a href="#" class="dropdown-item">分享</a>
+                  <div class="dropdown-divider"></div>
+                  <a
+                    href="#"
+                    class="dropdown-item"
+                    style="color: var(--error-color)"
+                    >刪除</a
+                  >
+                </div>
+              </div>
+              <div class="dropdown">
+                <button
+                  class="button secondary dropdown-toggle"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                >
+                  <span>使用者</span>
+                  <span style="font-size: 0.8em">▼</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu--right">
+                  <a href="#" class="dropdown-item">個人檔案</a>
+                  <a href="#" class="dropdown-item">帳戶設定</a>
+                  <a href="#" class="dropdown-item">登出</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-                    init() {
-                        this.elements.currentYear.textContent = new Date().getFullYear();
-                        this.theme.init();
-                        this.setupEventListeners();
-                        this.updateOptionStatus(); // 確保頁面載入時執行一次
-                    },
+        <section class="card">
+          <h2>進階控制項</h2>
+          <div class="card-content">
+            <h3>頁籤 (Tabs)</h3>
+            <div class="tabs-wrapper">
+              <div class="tab-container">
+                <div class="tab-nav" role="tablist">
+                  <button
+                    class="tab-btn active"
+                    role="tab"
+                    aria-selected="true"
+                    data-tab="tab1"
+                  >
+                    分頁 1
+                  </button>
+                  <button
+                    class="tab-btn"
+                    role="tab"
+                    aria-selected="false"
+                    data-tab="tab2"
+                  >
+                    分頁 2
+                  </button>
+                  <button
+                    class="tab-btn"
+                    role="tab"
+                    aria-selected="false"
+                    data-tab="tab3"
+                  >
+                    分頁 3
+                  </button>
+                </div>
+                <div class="tab-content-container">
+                  <div id="tab1" class="tab-content active" role="tabpanel">
+                    <p>這裡是<strong>個人資料</strong>的內容。</p>
+                  </div>
+                  <div id="tab2" class="tab-content" role="tabpanel">
+                    <p>這裡是<strong>帳戶設定</strong>的內容。</p>
+                  </div>
+                  <div id="tab3" class="tab-content" role="tabpanel">
+                    <p>這裡是<strong>通知</strong>設定。</p>
+                    <div class="toggle-container">
+                      <label for="emailToggle" style="margin-bottom: 0"
+                        >接收郵件通知：</label
+                      >
+                      <div class="toggle-switch">
+                        <input
+                          type="checkbox"
+                          id="emailToggle"
+                          class="toggle-checkbox"
+                          checked
+                        />
+                        <label for="emailToggle" class="toggle-label"></label>
+                      </div>
+                      <span
+                        id="emailToggleStatus"
+                        class="message-block hint-note"
+                        style="margin: 0; display: inline-block"
+                        >開啟</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                    setupEventListeners() {
-                        this.elements.themeToggleBtn.addEventListener("click", () => this.theme.toggle());
+            <h3>可折疊內容 (Accordion)</h3>
+            <div class="accordion">
+              <div class="accordion-item">
+                <button class="accordion-header" aria-expanded="false">
+                  第一項：這是什麼？
+                </button>
+                <div class="accordion-content" aria-hidden="true">
+                  <p>這是一個可折疊的內容區塊。</p>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <button class="accordion-header" aria-expanded="false">
+                  第二項：如何使用？
+                </button>
+                <div class="accordion-content" aria-hidden="true">
+                  <p>點擊標題可以展開或收合內容。</p>
+                </div>
+              </div>
+            </div>
 
-                        // --- 全域點擊事件委派 ---
-                        document.body.addEventListener("click", (e) => {
-                            const target = e.target;
+            <h3>進度條 (Progress Bar)</h3>
+            <div class="progress-container">
+              <div class="progress-bar-wrapper">
+                <div id="demoProgressBar" class="progress-bar">0%</div>
+              </div>
+              <button id="progressBtn" style="margin-top: 1rem">
+                模擬進度
+              </button>
+            </div>
 
-                            // Toast 觸發
-                            const toastTrigger = target.closest("[data-toast-message]");
-                            if (toastTrigger) this.toast.show(toastTrigger.dataset.toastMessage);
+            <h3>載入指示器 (Spinners)</h3>
+            <div class="button-group">
+              <div class="spinner spinner--sm"></div>
+              <div class="spinner"></div>
+              <div class="spinner spinner--lg"></div>
+              <button id="loadingBtnExample">
+                <span class="btn-text">點我載入</span>
+                <span class="spinner spinner--sm"></span>
+              </button>
+            </div>
+          </div>
+        </section>
 
-                            // Modal 觸發
-                            const modalTrigger = target.closest("[data-modal-target]");
-                            if (modalTrigger) this.modal.open(document.querySelector(modalTrigger.dataset.modalTarget));
+        <section class="card">
+          <h2>表單輸入</h2>
+          <div class="card-content">
+            <h3>文字輸入框 (Text Input)</h3>
+            <input
+              type="text"
+              id="sampleInput"
+              placeholder="請在此輸入文字..."
+              style="margin-top: 1rem"
+            />
 
-                            // Alert 關閉按鈕
-                            const alertCloseBtn = target.closest(".alert-close-btn");
-                            if (alertCloseBtn) {
-                                alertCloseBtn.parentElement.classList.add("is-hidden");
-                            }
+            <h3>文字方塊 (Textarea)</h3>
+            <textarea
+              id="sampleTextarea"
+              placeholder="支援多行輸入..."
+              style="margin-top: 1rem"
+            ></textarea>
 
-                            // Dropdown 點擊邏輯
-                            const dropdownToggle = target.closest(".dropdown-toggle");
-                            if (dropdownToggle) {
-                                const dropdown = dropdownToggle.closest(".dropdown");
-                                this.dropdown.toggle(dropdown);
-                            } else {
-                                const activeDropdown = document.querySelector(".dropdown.is-active");
-                                if (activeDropdown && !activeDropdown.contains(target)) {
-                                    this.dropdown.close(activeDropdown);
-                                }
-                            }
-                        });
+            <h3 style="margin-top: 2rem">輸入框狀態 (Input States)</h3>
+            <input
+              type="text"
+              class="is-success"
+              value="成功狀態"
+              style="margin-top: 1rem"
+            />
+            <input
+              type="text"
+              class="is-error"
+              value="錯誤狀態"
+              style="margin-top: 1rem"
+            />
+            <input
+              type="text"
+              value="禁用狀態"
+              disabled
+              style="margin-top: 1rem"
+            />
+            <textarea disabled style="margin-top: 1rem">
+這是禁用的文字方塊...</textarea
+            >
+          </div>
+        </section>
 
-                        // --- 特定元素事件監聽 ---
-                        this.elements.modals.forEach((modal) =>
-                            modal.addEventListener("click", (e) => {
-                                if (e.target === modal || e.target.closest(".modal-close-btn")) this.modal.close(modal);
-                            })
-                        );
-                        document.addEventListener("keydown", (e) => {
-                            if (e.key === "Escape") {
-                                const activeModal = document.querySelector(".modal.active");
-                                if (activeModal) this.modal.close(activeModal);
-                                const activeDropdown = document.querySelector(".dropdown.is-active");
-                                if (activeDropdown) this.dropdown.close(activeDropdown);
-                            }
-                        });
-                        if (this.elements.accordionContainer) {
-                            this.elements.accordionContainer.addEventListener("click", (e) => {
-                                const header = e.target.closest(".accordion-header");
-                                if (header) this.accordion.toggle(header);
-                            });
-                        }
-                        if (this.elements.progressBtn)
-                            this.elements.progressBtn.addEventListener("click", () => this.progressBar.simulate());
+        <section class="card">
+          <h2>訊息回饋</h2>
+          <div class="card-content">
+            <h3>輸出樣式 (Output Box)</h3>
+            <div class="message-block output-box info">
+              💡 這是一般通知性的訊息。
+            </div>
+            <div class="message-block output-box success">
+              ✅ 這是一條成功的訊息。
+            </div>
+            <div class="message-block output-box error">
+              ❌ 這是一條錯誤的訊息。
+            </div>
 
-                        this.elements.tabContainers.forEach((c) =>
-                            c.addEventListener("click", (e) => {
-                                const t = e.target.closest(".tab-btn");
-                                if (t && !t.classList.contains("active")) this.tabs.activate(c, t);
-                            })
-                        );
-                        if (this.elements.emailToggle)
-                            this.elements.emailToggle.addEventListener("change", (e) => {
-                                const statusEl = e.target
-                                    .closest(".toggle-container")
-                                    .querySelector("#emailToggleStatus");
-                                if (statusEl) statusEl.textContent = e.target.checked ? "開啟" : "關閉";
-                            });
+            <h3>警告提示框 (Alerts)</h3>
+            <div class="alert alert--info" role="alert">
+              <span class="alert-icon">💡</span>
+              <p class="alert-message">
+                這是一條一般資訊的提示框，用於補充說明。
+              </p>
+              <button class="alert-close-btn" aria-label="關閉提示">
+                &times;
+              </button>
+            </div>
+            <div class="alert alert--warning" role="alert">
+              <span class="alert-icon">⚠️</span>
+              <p class="alert-message">請注意！您的密碼將在 5 天後過期。</p>
+              <button class="alert-close-btn" aria-label="關閉提示">
+                &times;
+              </button>
+            </div>
+            <div class="alert alert--danger" role="alert">
+              <span class="alert-icon">❌</span>
+              <p class="alert-message">存檔失敗！無法連接到伺服器。</p>
+              <button class="alert-close-btn" aria-label="關閉提示">
+                &times;
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
 
-                        // [修正3] 選項 (Options) 事件監聽
-                        if (this.elements.optionGroup) {
-                            this.elements.optionGroup.addEventListener("click", (e) => {
-                                const option = e.target.closest(".option");
-                                if (option && !option.classList.contains("selected")) {
-                                    this.elements.optionGroup
-                                        .querySelectorAll(".option")
-                                        .forEach((opt) => opt.classList.remove("selected"));
-                                    option.classList.add("selected");
-                                    this.updateOptionStatus();
-                                }
-                            });
-                        }
+    <footer>
+      <p>&copy; <span id="currentYear"></span> Zanta's Utilities</p>
+    </footer>
 
-                        if (this.elements.scrollTopBtn) {
-                            window.addEventListener("scroll", () => {
-                                if (window.scrollY > 300) {
-                                    this.elements.scrollTopBtn.classList.add("active");
-                                } else {
-                                    this.elements.scrollTopBtn.classList.remove("active");
-                                }
-                            });
-                            this.elements.scrollTopBtn.addEventListener("click", () => {
-                                window.scrollTo({
-                                    top: 0,
-                                    behavior: "smooth",
-                                });
-                            });
-                        }
-                        if (this.elements.loadingBtnExample) {
-                            this.elements.loadingBtnExample.addEventListener("click", (e) => {
-                                const btn = e.currentTarget;
-                                btn.classList.add("is-loading");
-                                btn.disabled = true;
-                                setTimeout(() => {
-                                    btn.classList.remove("is-loading");
-                                    btn.disabled = false;
-                                }, 2000);
-                            });
-                        }
-                    },
-                    theme: {
-                        init() {
-                            const t = localStorage.getItem("my-app-theme") || "dark";
-                            this.apply(t);
-                        },
-                        apply(t) {
-                            document.documentElement.setAttribute("data-theme", t);
-                            app.elements.themeToggleBtn.textContent = t === "dark" ? "☀️" : "🌙";
-                            localStorage.setItem("my-app-theme", t);
-                        },
-                        toggle() {
-                            const t = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-                            this.apply(t);
-                        },
-                    },
-                    toast: {
-                        show(m) {
-                            if (app.state.toastTimer) clearTimeout(app.state.toastTimer);
-                            app.elements.toast.textContent = m;
-                            app.elements.toast.className = "show";
-                            app.state.toastTimer = setTimeout(() => {
-                                app.elements.toast.className = "";
-                                app.state.toastimer = null;
-                            }, 3000);
-                        },
-                    },
-                    modal: {
-                        open(m) {
-                            m.classList.add("active");
-                            document.body.classList.add("modal-is-open");
-                        },
-                        close(m) {
-                            m.classList.remove("active");
-                            document.body.classList.remove("modal-is-open");
-                        },
-                    },
-                    accordion: {
-                        toggle(h) {
-                            const isOpen = h.classList.contains("active");
-                            h.classList.toggle("active");
-                            h.setAttribute("aria-expanded", !isOpen);
-                            h.nextElementSibling.setAttribute("aria-hidden", isOpen);
-                        },
-                    },
-                    progressBar: {
-                        simulate() {
-                            app.state.progress = (app.state.progress + 20) % 120;
-                            this.update(app.state.progress);
-                            app.elements.progressBtn.disabled = true;
-                            setTimeout(() => (app.elements.progressBtn.disabled = false), 500);
-                        },
-                        update(p) {
-                            const n = Math.max(0, Math.min(100, p));
-                            app.elements.progressBar.style.width = n + "%";
-                            app.elements.progressBar.textContent = Math.round(n) + "%";
-                        },
-                    },
-                    tabs: {
-                        activate(c, t) {
-                            const i = t.dataset.tab;
-                            const contentContainer = c.querySelector(".tab-content-container");
-                            c.querySelectorAll(".tab-btn").forEach((b) => {
-                                b.classList.remove("active");
-                                b.setAttribute("aria-selected", "false");
-                            });
-                            if (contentContainer) {
-                                contentContainer
-                                    .querySelectorAll(".tab-content")
-                                    .forEach((p) => p.classList.remove("active"));
-                                const newActiveContent = contentContainer.querySelector(`#${i}`);
-                                if (newActiveContent) newActiveContent.classList.add("active");
-                            }
-                            t.classList.add("active");
-                            t.setAttribute("aria-selected", "true");
-                        },
-                    },
-                    updateOptionStatus() {
-                        if (this.elements.optionGroup && this.elements.option1Hint) {
-                            const selected = this.elements.optionGroup.querySelector(".option.selected");
-                            if (selected) {
-                                this.elements.option1Hint.style.display =
-                                    selected.dataset.value === "opt1" ? "block" : "none";
-                            }
-                        }
-                    },
-                    dropdown: {
-                        toggle(dropdown) {
-                            const isActive = dropdown.classList.contains("is-active");
-                            document.querySelectorAll(".dropdown.is-active").forEach((d) => this.close(d));
-                            if (!isActive) {
-                                this.open(dropdown);
-                            }
-                        },
-                        open(dropdown) {
-                            dropdown.classList.add("is-active");
-                            dropdown.querySelector(".dropdown-toggle").setAttribute("aria-expanded", "true");
-                        },
-                        close(dropdown) {
-                            dropdown.classList.remove("is-active");
-                            dropdown.querySelector(".dropdown-toggle").setAttribute("aria-expanded", "false");
-                        },
-                    },
-                };
+    <div
+      id="infoModal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+    >
+      <div class="modal-content">
+        <button class="modal-close-btn" aria-label="關閉視窗">&times;</button>
+        <h2
+          id="modalTitle"
+          style="
+            color: var(--primary-color);
+            border: none;
+            padding: 0;
+            text-align: left;
+          "
+        >
+          這是一個 Modal 視窗
+        </h2>
+        <p>Modal 用於顯示重要的資訊或需要使用者確認的操作。</p>
+        <button class="button" data-toast-message="Modal 內的按鈕被點擊了！">
+          Modal 內的按鈕
+        </button>
+      </div>
+    </div>
+    <div id="toast"></div>
 
-                app.init();
+    <button id="scroll-to-top" class="fab" title="回到頂端"></button>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const app = {
+          elements: {
+            themeToggleBtn: document.getElementById("themeToggleBtn"),
+            currentYear: document.getElementById("currentYear"),
+            toast: document.getElementById("toast"),
+            modals: document.querySelectorAll(".modal"),
+            accordionContainer: document.querySelector(".accordion"),
+            progressBar: document.getElementById("demoProgressBar"),
+            progressBtn: document.getElementById("progressBtn"),
+            tabContainers: document.querySelectorAll(".tab-container"),
+            emailToggle: document.getElementById("emailToggle"),
+            optionGroup: document.getElementById("demoOptionGroup"),
+            option1Hint: document.getElementById("option1Hint"),
+            scrollTopBtn: document.getElementById("scroll-to-top"),
+            loadingBtnExample: document.getElementById("loadingBtnExample"),
+          },
+          state: {
+            toastimer: null,
+            progress: 0,
+          },
+
+          init() {
+            this.elements.currentYear.textContent = new Date().getFullYear();
+            this.theme.init();
+            this.setupEventListeners();
+            this.updateOptionStatus(); // 確保頁面載入時執行一次
+          },
+
+          setupEventListeners() {
+            this.elements.themeToggleBtn.addEventListener("click", () =>
+              this.theme.toggle(),
+            );
+
+            // --- 全域點擊事件委派 ---
+            document.body.addEventListener("click", (e) => {
+              const target = e.target;
+
+              // Toast 觸發
+              const toastTrigger = target.closest("[data-toast-message]");
+              if (toastTrigger)
+                this.toast.show(toastTrigger.dataset.toastMessage);
+
+              // Modal 觸發
+              const modalTrigger = target.closest("[data-modal-target]");
+              if (modalTrigger)
+                this.modal.open(
+                  document.querySelector(modalTrigger.dataset.modalTarget),
+                );
+
+              // Alert 關閉按鈕
+              const alertCloseBtn = target.closest(".alert-close-btn");
+              if (alertCloseBtn) {
+                alertCloseBtn.parentElement.classList.add("is-hidden");
+              }
+
+              // Dropdown 點擊邏輯
+              const dropdownToggle = target.closest(".dropdown-toggle");
+              if (dropdownToggle) {
+                const dropdown = dropdownToggle.closest(".dropdown");
+                this.dropdown.toggle(dropdown);
+              } else {
+                const activeDropdown = document.querySelector(
+                  ".dropdown.is-active",
+                );
+                if (activeDropdown && !activeDropdown.contains(target)) {
+                  this.dropdown.close(activeDropdown);
+                }
+              }
             });
-        </script>
-    </body>
+
+            // --- 特定元素事件監聽 ---
+            this.elements.modals.forEach((modal) =>
+              modal.addEventListener("click", (e) => {
+                if (e.target === modal || e.target.closest(".modal-close-btn"))
+                  this.modal.close(modal);
+              }),
+            );
+            document.addEventListener("keydown", (e) => {
+              if (e.key === "Escape") {
+                const activeModal = document.querySelector(".modal.active");
+                if (activeModal) this.modal.close(activeModal);
+                const activeDropdown = document.querySelector(
+                  ".dropdown.is-active",
+                );
+                if (activeDropdown) this.dropdown.close(activeDropdown);
+              }
+            });
+            if (this.elements.accordionContainer) {
+              this.elements.accordionContainer.addEventListener(
+                "click",
+                (e) => {
+                  const header = e.target.closest(".accordion-header");
+                  if (header) this.accordion.toggle(header);
+                },
+              );
+            }
+            if (this.elements.progressBtn)
+              this.elements.progressBtn.addEventListener("click", () =>
+                this.progressBar.simulate(),
+              );
+
+            this.elements.tabContainers.forEach((c) =>
+              c.addEventListener("click", (e) => {
+                const t = e.target.closest(".tab-btn");
+                if (t && !t.classList.contains("active"))
+                  this.tabs.activate(c, t);
+              }),
+            );
+            if (this.elements.emailToggle)
+              this.elements.emailToggle.addEventListener("change", (e) => {
+                const statusEl = e.target
+                  .closest(".toggle-container")
+                  .querySelector("#emailToggleStatus");
+                if (statusEl)
+                  statusEl.textContent = e.target.checked ? "開啟" : "關閉";
+              });
+
+            // [修正3] 選項 (Options) 事件監聽
+            if (this.elements.optionGroup) {
+              this.elements.optionGroup.addEventListener("click", (e) => {
+                const option = e.target.closest(".option");
+                if (option && !option.classList.contains("selected")) {
+                  this.elements.optionGroup
+                    .querySelectorAll(".option")
+                    .forEach((opt) => opt.classList.remove("selected"));
+                  option.classList.add("selected");
+                  this.updateOptionStatus();
+                }
+              });
+            }
+
+            if (this.elements.scrollTopBtn) {
+              window.addEventListener("scroll", () => {
+                if (window.scrollY > 300) {
+                  this.elements.scrollTopBtn.classList.add("active");
+                } else {
+                  this.elements.scrollTopBtn.classList.remove("active");
+                }
+              });
+              this.elements.scrollTopBtn.addEventListener("click", () => {
+                window.scrollTo({
+                  top: 0,
+                  behavior: "smooth",
+                });
+              });
+            }
+            if (this.elements.loadingBtnExample) {
+              this.elements.loadingBtnExample.addEventListener("click", (e) => {
+                const btn = e.currentTarget;
+                btn.classList.add("is-loading");
+                btn.disabled = true;
+                setTimeout(() => {
+                  btn.classList.remove("is-loading");
+                  btn.disabled = false;
+                }, 2000);
+              });
+            }
+          },
+          theme: {
+            init() {
+              const t = localStorage.getItem("my-app-theme") || "dark";
+              this.apply(t);
+            },
+            apply(t) {
+              document.documentElement.setAttribute("data-theme", t);
+              app.elements.themeToggleBtn.textContent =
+                t === "dark" ? "☀️" : "🌙";
+              localStorage.setItem("my-app-theme", t);
+            },
+            toggle() {
+              const t =
+                document.documentElement.getAttribute("data-theme") === "dark"
+                  ? "light"
+                  : "dark";
+              this.apply(t);
+            },
+          },
+          toast: {
+            show(m) {
+              if (app.state.toastTimer) clearTimeout(app.state.toastTimer);
+              app.elements.toast.textContent = m;
+              app.elements.toast.className = "show";
+              app.state.toastTimer = setTimeout(() => {
+                app.elements.toast.className = "";
+                app.state.toastimer = null;
+              }, 3000);
+            },
+          },
+          modal: {
+            open(m) {
+              m.classList.add("active");
+              document.body.classList.add("modal-is-open");
+            },
+            close(m) {
+              m.classList.remove("active");
+              document.body.classList.remove("modal-is-open");
+            },
+          },
+          accordion: {
+            toggle(h) {
+              const isOpen = h.classList.contains("active");
+              h.classList.toggle("active");
+              h.setAttribute("aria-expanded", !isOpen);
+              h.nextElementSibling.setAttribute("aria-hidden", isOpen);
+            },
+          },
+          progressBar: {
+            simulate() {
+              app.state.progress = (app.state.progress + 20) % 120;
+              this.update(app.state.progress);
+              app.elements.progressBtn.disabled = true;
+              setTimeout(
+                () => (app.elements.progressBtn.disabled = false),
+                500,
+              );
+            },
+            update(p) {
+              const n = Math.max(0, Math.min(100, p));
+              app.elements.progressBar.style.width = n + "%";
+              app.elements.progressBar.textContent = Math.round(n) + "%";
+            },
+          },
+          tabs: {
+            activate(c, t) {
+              const i = t.dataset.tab;
+              const contentContainer = c.querySelector(
+                ".tab-content-container",
+              );
+              c.querySelectorAll(".tab-btn").forEach((b) => {
+                b.classList.remove("active");
+                b.setAttribute("aria-selected", "false");
+              });
+              if (contentContainer) {
+                contentContainer
+                  .querySelectorAll(".tab-content")
+                  .forEach((p) => p.classList.remove("active"));
+                const newActiveContent = contentContainer.querySelector(
+                  `#${i}`,
+                );
+                if (newActiveContent) newActiveContent.classList.add("active");
+              }
+              t.classList.add("active");
+              t.setAttribute("aria-selected", "true");
+            },
+          },
+          updateOptionStatus() {
+            if (this.elements.optionGroup && this.elements.option1Hint) {
+              const selected =
+                this.elements.optionGroup.querySelector(".option.selected");
+              if (selected) {
+                this.elements.option1Hint.style.display =
+                  selected.dataset.value === "opt1" ? "block" : "none";
+              }
+            }
+          },
+          dropdown: {
+            toggle(dropdown) {
+              const isActive = dropdown.classList.contains("is-active");
+              document
+                .querySelectorAll(".dropdown.is-active")
+                .forEach((d) => this.close(d));
+              if (!isActive) {
+                this.open(dropdown);
+              }
+            },
+            open(dropdown) {
+              dropdown.classList.add("is-active");
+              dropdown
+                .querySelector(".dropdown-toggle")
+                .setAttribute("aria-expanded", "true");
+            },
+            close(dropdown) {
+              dropdown.classList.remove("is-active");
+              dropdown
+                .querySelector(".dropdown-toggle")
+                .setAttribute("aria-expanded", "false");
+            },
+          },
+        };
+
+        app.init();
+      });
+    </script>
+  </body>
 </html>

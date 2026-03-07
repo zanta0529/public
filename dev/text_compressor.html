@@ -1,572 +1,643 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant" data-theme="dark">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>文字壓縮/解壓縮工具</title>
-        <style>
-            /* --- CSS 變數定義 (淺色 & 深色主題) --- */
-            :root {
-                /* 淺色主題 (Light Theme) */
-                --primary-color: #007bff;
-                --primary-hover-color: #0056b3;
-                --secondary-color: #6c757d;
-                --bg-color: #f8f9fa;
-                --container-bg: #ffffff;
-                --text-color: #212529;
-                --border-color: #ced4da;
-                --input-bg: #fff;
-                --input-focus-shadow: rgba(0, 123, 255, 0.25);
-                --stats-bg: #e9ecef;
-                --stats-text: #495057;
-                --stats-strong-text: var(--primary-hover-color); /* Default color for stat values */
-                --button-copy-bg: #28a745;
-                --button-copy-hover-bg: #218838;
-                --button-disabled-bg: #ccc;
-                --box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.07);
-                --ratio-good-color: #28a745;
-                --ratio-bad-color: #dc3545;
-                --toast-bg: #323232;
-                --toast-color: #fff;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文字壓縮/解壓縮工具</title>
+    <style>
+      /* --- CSS 變數定義 (淺色 & 深色主題) --- */
+      :root {
+        /* 淺色主題 (Light Theme) */
+        --primary-color: #007bff;
+        --primary-hover-color: #0056b3;
+        --secondary-color: #6c757d;
+        --bg-color: #f8f9fa;
+        --container-bg: #ffffff;
+        --text-color: #212529;
+        --border-color: #ced4da;
+        --input-bg: #fff;
+        --input-focus-shadow: rgba(0, 123, 255, 0.25);
+        --stats-bg: #e9ecef;
+        --stats-text: #495057;
+        --stats-strong-text: var(
+          --primary-hover-color
+        ); /* Default color for stat values */
+        --button-copy-bg: #28a745;
+        --button-copy-hover-bg: #218838;
+        --button-disabled-bg: #ccc;
+        --box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.07);
+        --ratio-good-color: #28a745;
+        --ratio-bad-color: #dc3545;
+        --toast-bg: #323232;
+        --toast-color: #fff;
+      }
+
+      :root[data-theme="dark"] {
+        /* 深色主題 (Dark Theme) */
+        --primary-color: #1e90ff;
+        --primary-hover-color: #4ca8ff;
+        --secondary-color: #778899;
+        --bg-color: #1e1e2f;
+        --container-bg: #2f2f4f;
+        --text-color: #e8e8f0;
+        --border-color: #4a4a5f;
+        --input-bg: #444;
+        --input-focus-shadow: rgba(30, 144, 255, 0.4);
+        --stats-bg: #252540;
+        --stats-text: #c0c0e0;
+        --stats-strong-text: var(
+          --primary-color
+        ); /* Default color for stat values */
+        --button-copy-bg: #2a9d8f;
+        --button-copy-hover-bg: #268c7f;
+        --button-disabled-bg: #5a5a70;
+        --box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        --ratio-good-color: #60d978;
+        --ratio-bad-color: #ff7f7f;
+        --toast-bg: #eaec6e;
+        --toast-color: #1e1e2f;
+      }
+
+      /* --- 基礎 & 佈局樣式 --- */
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        margin: 0;
+        padding: 2rem;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+      }
+
+      .container {
+        background-color: var(--container-bg);
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: var(--box-shadow);
+        width: 100%;
+        max-width: 80%;
+        margin-bottom: 2rem;
+        box-sizing: border-box;
+        border: 1px solid var(--border-color);
+        transition:
+          background-color 0.3s,
+          border-color 0.3s;
+      }
+
+      h1 {
+        text-align: center;
+        color: var(--text-color);
+        margin-bottom: 2rem;
+        font-weight: 700;
+      }
+
+      /* --- 模式選擇器 --- */
+      .mode-selector {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .mode-selector label {
+        background-color: var(--input-bg);
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition:
+          background-color 0.2s ease,
+          transform 0.1s ease,
+          border-color 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+      }
+
+      .mode-selector input[type="radio"]:checked + label {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+      }
+
+      .mode-selector input[type="radio"] {
+        display: none;
+      }
+
+      /* --- 表單 & 輸入框 --- */
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 200px;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        font-size: 1em;
+        resize: vertical;
+        box-sizing: border-box;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        transition:
+          border-color 0.2s ease,
+          box-shadow 0.2s ease,
+          background-color 0.3s;
+      }
+
+      textarea:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
+        outline: none;
+      }
+
+      /* --- 按鈕群組 --- */
+      .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .button-group button {
+        flex: 1;
+        padding: 0.75rem 1.5rem;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: 600;
+        transition:
+          background-color 0.3s ease,
+          transform 0.1s ease;
+        box-sizing: border-box;
+      }
+
+      .button-group button:hover:not(:disabled) {
+        background-color: var(--primary-hover-color);
+        transform: translateY(-2px);
+      }
+      .button-group button:disabled {
+        background-color: var(--button-disabled-bg);
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+
+      #copyButton {
+        background-color: var(--button-copy-bg);
+      }
+
+      #copyButton:hover:not(:disabled) {
+        background-color: var(--button-copy-hover-bg);
+      }
+
+      /* --- 壓縮比率顯示結果 --- */
+      .stats {
+        margin-top: 1.5rem;
+        font-size: 0.95em;
+        background-color: var(--stats-bg);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border-color);
+        color: var(--stats-text);
+        transition:
+          background-color 0.3s,
+          border-color 0.3s;
+      }
+
+      .stats p {
+        margin: 0.5rem 0;
+      }
+
+      .stats .stat-value {
+        /* 包含數字和單位的部分 */
+        font-family:
+          "SF Mono", "Menlo", "Monaco", "Consolas", "Liberation Mono",
+          "Courier New", monospace;
+        color: var(--stats-strong-text); /* 預設顏色 */
+        font-weight: 700;
+      }
+      .stats .stat-value .unit {
+        /* 單位文字的樣式 */
+        color: var(--stats-text); /* 保持與周圍文字顏色一致 */
+        font-size: 0.9em;
+        font-weight: normal; /* 單位文字不需要加粗 */
+        margin-left: 0.25rem;
+      }
+      .ratio-good {
+        color: var(--ratio-good-color) !important;
+      }
+      .ratio-bad {
+        color: var(--ratio-bad-color) !important;
+      }
+
+      footer {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+        width: 100%;
+        max-width: 1024px;
+        box-sizing: border-box;
+        text-align: center;
+        color: var(--secondary-color);
+        font-size: 0.9em;
+        transition: border-color 0.3s;
+      }
+
+      #themeToggleBtn {
+        background: none;
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1.2em;
+        margin-left: 10px;
+        vertical-align: middle;
+        transition:
+          background-color 0.3s,
+          border-color 0.3s;
+      }
+
+      #themeToggleBtn:hover {
+        background-color: var(--border-color);
+      }
+
+      /* --- Toast Notification (新增) --- */
+      #toast {
+        visibility: hidden;
+        min-width: 250px;
+        background-color: var(--toast-bg);
+        color: var(--toast-color);
+        text-align: center;
+        border-radius: 5px;
+        padding: 16px;
+        position: fixed;
+        z-index: 1001;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 30px;
+        font-size: 17px;
+        opacity: 0;
+        transition:
+          opacity 0.5s,
+          visibility 0.5s,
+          bottom 0.5s;
+      }
+
+      #toast.show {
+        visibility: visible;
+        opacity: 1;
+        bottom: 50px;
+      }
+
+      /* --- 響應式設計 --- */
+      @media (max-width: 600px) {
+        body {
+          padding: 1rem;
+        }
+        .container {
+          padding: 1rem;
+          max-width: 95%;
+        }
+        .mode-selector {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .button-group {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>文字壓縮 / 解壓縮工具</h1>
+
+      <div class="mode-selector">
+        <input
+          type="radio"
+          id="compressMode"
+          name="mode"
+          value="compress"
+          checked
+        />
+        <label for="compressMode">壓縮模式</label>
+
+        <input
+          type="radio"
+          id="decompressMode"
+          name="mode"
+          value="decompress"
+        />
+        <label for="decompressMode">解壓縮模式</label>
+      </div>
+
+      <div class="form-group">
+        <label for="inputText">輸入文字</label>
+        <textarea id="inputText" placeholder="在此輸入文字..."></textarea>
+      </div>
+
+      <div class="button-group">
+        <button id="actionButton">壓縮</button>
+      </div>
+
+      <div class="form-group">
+        <label for="outputText">結果</label>
+        <textarea
+          id="outputText"
+          readonly
+          placeholder="結果將顯示在此..."
+        ></textarea>
+      </div>
+
+      <div class="button-group">
+        <button id="copyButton" disabled>複製結果</button>
+      </div>
+
+      <div
+        id="stats"
+        class="stats"
+        role="status"
+        aria-live="polite"
+        style="display: none"
+      >
+        <p>
+          <span class="stat-label">結果大小：</span>
+          <span class="stat-value"
+            ><span id="resultSize">0</span
+            ><span class="unit"> characters</span></span
+          >
+        </p>
+        <p>
+          <span class="stat-label">原始大小：</span>
+          <span class="stat-value"
+            ><span id="originalSize">0</span
+            ><span class="unit"> bytes</span></span
+          >
+        </p>
+        <p>
+          <span class="stat-label">壓縮比率：</span>
+          <span class="stat-value">
+            <span id="compressionRatioValue">N/A</span>
+            <span class="unit">（結果大小/原始大小）</span>
+          </span>
+        </p>
+      </div>
+    </div>
+
+    <footer>
+      <p>
+        &copy; <span id="currentYear"></span> Zanta's Utilities
+        <button id="themeToggleBtn" title="切換主題">🌙</button>
+      </p>
+    </footer>
+
+    <div id="toast"></div>
+
+    <script>
+      // --- DOM 元素引用 ---
+      const inputText = document.getElementById("inputText");
+      const outputText = document.getElementById("outputText");
+      const actionButton = document.getElementById("actionButton");
+      const copyButton = document.getElementById("copyButton");
+      const modeRadios = document.querySelectorAll('input[name="mode"]');
+      const statsDiv = document.getElementById("stats");
+      const originalSizeSpan = document.getElementById("originalSize");
+      const resultSizeSpan = document.getElementById("resultSize");
+      const compressionRatioSpan = document.getElementById(
+        "compressionRatioValue",
+      );
+      const themeToggleBtn = document.getElementById("themeToggleBtn");
+      const toast = document.getElementById("toast"); // (新增)
+      document.getElementById("currentYear").textContent =
+        new Date().getFullYear();
+
+      let currentMode = "compress";
+      let toastTimer; // (新增) 用於管理 Toast 的計時器
+
+      // --- 核心功能 (壓縮/解壓縮) ---
+      async function streamToUint8Array(readableStream) {
+        const reader = readableStream.getReader();
+        const chunks = [];
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+        }
+        const blob = new Blob(chunks);
+        return new Uint8Array(await blob.arrayBuffer());
+      }
+
+      async function compressText(text) {
+        if (!text) {
+          outputText.value = "錯誤：輸入文字不能為空。";
+          statsDiv.style.display = "none";
+          copyButton.disabled = true;
+          return;
+        }
+        actionButton.disabled = true;
+        actionButton.textContent = "壓縮中...";
+        copyButton.disabled = true;
+
+        try {
+          const data = new TextEncoder().encode(text);
+          const compressionStream = new CompressionStream("gzip");
+          const writer = compressionStream.writable.getWriter();
+          writer.write(data);
+          writer.close();
+          const compressedData = await streamToUint8Array(
+            compressionStream.readable,
+          );
+          const base64Encoded = btoa(
+            String.fromCharCode.apply(null, compressedData),
+          );
+
+          outputText.value = base64Encoded;
+          copyButton.disabled = false;
+
+          const originalByteLength = data.byteLength;
+          const resultCharLength = base64Encoded.length;
+
+          originalSizeSpan.textContent =
+            originalByteLength.toLocaleString("en-US");
+          resultSizeSpan.textContent = resultCharLength.toLocaleString("en-US");
+
+          compressionRatioSpan.classList.remove("ratio-good", "ratio-bad");
+
+          if (originalByteLength > 0) {
+            const ratio = resultCharLength / originalByteLength;
+            compressionRatioSpan.textContent = `${(ratio * 100).toFixed(2)}%`;
+            if (ratio < 1) {
+              compressionRatioSpan.classList.add("ratio-good");
+            } else if (ratio >= 1) {
+              compressionRatioSpan.classList.add("ratio-bad");
             }
+          } else {
+            compressionRatioSpan.textContent = "N/A";
+          }
+          statsDiv.style.display = "block";
+        } catch (error) {
+          console.error("壓縮錯誤:", error);
+          outputText.value = `壓縮錯誤: ${error.message}`;
+          statsDiv.style.display = "none";
+          copyButton.disabled = true;
+        } finally {
+          actionButton.disabled = false;
+          actionButton.textContent = "壓縮";
+        }
+      }
 
-            :root[data-theme="dark"] {
-                /* 深色主題 (Dark Theme) */
-                --primary-color: #1e90ff;
-                --primary-hover-color: #4ca8ff;
-                --secondary-color: #778899;
-                --bg-color: #1e1e2f;
-                --container-bg: #2f2f4f;
-                --text-color: #e8e8f0;
-                --border-color: #4a4a5f;
-                --input-bg: #444;
-                --input-focus-shadow: rgba(30, 144, 255, 0.4);
-                --stats-bg: #252540;
-                --stats-text: #c0c0e0;
-                --stats-strong-text: var(--primary-color); /* Default color for stat values */
-                --button-copy-bg: #2a9d8f;
-                --button-copy-hover-bg: #268c7f;
-                --button-disabled-bg: #5a5a70;
-                --box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-                --ratio-good-color: #60d978;
-                --ratio-bad-color: #ff7f7f;
-                --toast-bg: #eaec6e;
-                --toast-color: #1e1e2f;
-            }
+      async function decompressText(base64Text) {
+        if (!base64Text) {
+          outputText.value = "錯誤：輸入文字不能為空。";
+          copyButton.disabled = true;
+          return;
+        }
+        actionButton.disabled = true;
+        actionButton.textContent = "解壓縮中...";
+        copyButton.disabled = true;
 
-            /* --- 基礎 & 佈局樣式 --- */
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                margin: 0;
-                padding: 2rem;
-                background-color: var(--bg-color);
-                color: var(--text-color);
-                line-height: 1.6;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                min-height: 100vh;
-                box-sizing: border-box;
-                transition: background-color 0.3s, color 0.3s;
-            }
+        try {
+          const binaryString = atob(base64Text);
+          const compressedData = Uint8Array.from(binaryString, (char) =>
+            char.charCodeAt(0),
+          );
+          const decompressionStream = new DecompressionStream("gzip");
+          const writer = decompressionStream.writable.getWriter();
+          writer.write(compressedData);
+          writer.close();
+          const decompressedData = await streamToUint8Array(
+            decompressionStream.readable,
+          );
+          const originalText = new TextDecoder().decode(decompressedData);
 
-            .container {
-                background-color: var(--container-bg);
-                padding: 2rem;
-                border-radius: 0.5rem;
-                box-shadow: var(--box-shadow);
-                width: 100%;
-                max-width: 80%;
-                margin-bottom: 2rem;
-                box-sizing: border-box;
-                border: 1px solid var(--border-color);
-                transition: background-color 0.3s, border-color 0.3s;
-            }
+          outputText.value = originalText;
+          copyButton.disabled = false;
+          statsDiv.style.display = "none";
+        } catch (error) {
+          console.error("解壓縮錯誤:", error);
+          outputText.value = `解壓縮錯誤: ${error.message}. 請確認輸入的是有效的 Base64 編碼 Gzip 壓縮字串。`;
+          statsDiv.style.display = "none";
+          copyButton.disabled = true;
+        } finally {
+          actionButton.disabled = false;
+          actionButton.textContent = "解壓縮";
+        }
+      }
 
-            h1 {
-                text-align: center;
-                color: var(--text-color);
-                margin-bottom: 2rem;
-                font-weight: 700;
-            }
+      // --- UI 功能 & 事件處理 (新增與修改) ---
+      function showToast(message) {
+        // 如果已有計時器，先清除，避免閃爍
+        if (toastTimer) {
+          clearTimeout(toastTimer);
+        }
+        toast.textContent = message;
+        toast.className = "show";
+        toastTimer = setTimeout(() => {
+          toast.className = toast.className.replace("show", "");
+          toastTimer = null;
+        }, 3000); // 3 秒後自動隱藏
+      }
 
-            /* --- 模式選擇器 --- */
-            .mode-selector {
-                display: flex;
-                justify-content: center;
-                gap: 1rem;
-                margin-bottom: 1.5rem;
-            }
+      function handleModeChange() {
+        currentMode = document.querySelector(
+          'input[name="mode"]:checked',
+        ).value;
+        inputText.value = "";
+        outputText.value = "";
+        statsDiv.style.display = "none";
+        copyButton.disabled = true;
 
-            .mode-selector label {
-                background-color: var(--input-bg);
-                padding: 0.75rem 1.25rem;
-                border-radius: 0.5rem;
-                border: 1px solid var(--border-color);
-                cursor: pointer;
-                transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                font-weight: 500;
-            }
+        if (currentMode === "compress") {
+          actionButton.textContent = "壓縮";
+          inputText.placeholder = "在此輸入要壓縮的文字...";
+          outputText.placeholder = "壓縮後的 Base64 結果將顯示在此...";
+        } else {
+          actionButton.textContent = "解壓縮";
+          inputText.placeholder = "在此貼上 Base64 編碼的壓縮文字...";
+          outputText.placeholder = "解壓縮後的原始文字將顯示在此...";
+        }
+      }
 
-            .mode-selector input[type="radio"]:checked + label {
-                background-color: var(--primary-color);
-                color: white;
-                border-color: var(--primary-color);
-                transform: translateY(-2px);
-            }
+      function handleActionButtonClick() {
+        const text = inputText.value.trim();
+        if (currentMode === "compress") {
+          compressText(text);
+        } else {
+          decompressText(text);
+        }
+      }
 
-            .mode-selector input[type="radio"] {
-                display: none;
-            }
+      async function copyOutputText() {
+        if (!outputText.value) return;
+        try {
+          await navigator.clipboard.writeText(outputText.value);
+          // (修改) 使用 Toast 提示
+          showToast("結果已複製到剪貼簿！");
+        } catch (err) {
+          console.error("無法複製文字: ", err);
+          // (修改) 使用 Toast 提示
+          showToast("複製失敗，請手動複製。");
+        }
+      }
 
-            /* --- 表單 & 輸入框 --- */
-            .form-group {
-                margin-bottom: 1rem;
-            }
+      // --- 主題切換邏輯 ---
+      function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+        localStorage.setItem("compressor_theme", theme);
+      }
 
-            label {
-                display: block;
-                margin-bottom: 0.5rem;
-                font-weight: 600;
-            }
+      function toggleTheme() {
+        const currentTheme =
+          document.documentElement.getAttribute("data-theme") || "dark";
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        applyTheme(newTheme);
+      }
 
-            textarea {
-                width: 100%;
-                min-height: 200px;
-                padding: 0.75rem;
-                border: 1px solid var(--border-color);
-                border-radius: 0.5rem;
-                font-size: 1em;
-                resize: vertical;
-                box-sizing: border-box;
-                background-color: var(--input-bg);
-                color: var(--text-color);
-                transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s;
-            }
+      // --- 事件監聽器 ---
+      actionButton.addEventListener("click", handleActionButtonClick);
+      copyButton.addEventListener("click", copyOutputText);
+      modeRadios.forEach((radio) => {
+        radio.addEventListener("change", handleModeChange);
+      });
+      themeToggleBtn.addEventListener("click", toggleTheme);
 
-            textarea:focus {
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
-                outline: none;
-            }
-
-            /* --- 按鈕群組 --- */
-            .button-group {
-                display: flex;
-                gap: 1rem;
-                margin-top: 1rem;
-                margin-bottom: 1rem;
-            }
-
-            .button-group button {
-                flex: 1;
-                padding: 0.75rem 1.5rem;
-                background-color: var(--primary-color);
-                color: white;
-                border: none;
-                border-radius: 0.5rem;
-                cursor: pointer;
-                font-size: 1.1em;
-                font-weight: 600;
-                transition: background-color 0.3s ease, transform 0.1s ease;
-                box-sizing: border-box;
-            }
-
-            .button-group button:hover:not(:disabled) {
-                background-color: var(--primary-hover-color);
-                transform: translateY(-2px);
-            }
-            .button-group button:disabled {
-                background-color: var(--button-disabled-bg);
-                cursor: not-allowed;
-                opacity: 0.7;
-            }
-
-            #copyButton {
-                background-color: var(--button-copy-bg);
-            }
-
-            #copyButton:hover:not(:disabled) {
-                background-color: var(--button-copy-hover-bg);
-            }
-
-            /* --- 壓縮比率顯示結果 --- */
-            .stats {
-                margin-top: 1.5rem;
-                font-size: 0.95em;
-                background-color: var(--stats-bg);
-                padding: 1rem;
-                border-radius: 0.5rem;
-                border: 1px solid var(--border-color);
-                color: var(--stats-text);
-                transition: background-color 0.3s, border-color 0.3s;
-            }
-
-            .stats p {
-                margin: 0.5rem 0;
-            }
-
-            .stats .stat-value {
-                /* 包含數字和單位的部分 */
-                font-family: "SF Mono", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;
-                color: var(--stats-strong-text); /* 預設顏色 */
-                font-weight: 700;
-            }
-            .stats .stat-value .unit {
-                /* 單位文字的樣式 */
-                color: var(--stats-text); /* 保持與周圍文字顏色一致 */
-                font-size: 0.9em;
-                font-weight: normal; /* 單位文字不需要加粗 */
-                margin-left: 0.25rem;
-            }
-            .ratio-good {
-                color: var(--ratio-good-color) !important;
-            }
-            .ratio-bad {
-                color: var(--ratio-bad-color) !important;
-            }
-
-            footer {
-                margin-top: 2rem;
-                padding-top: 1.5rem;
-                border-top: 1px solid var(--border-color);
-                width: 100%;
-                max-width: 1024px;
-                box-sizing: border-box;
-                text-align: center;
-                color: var(--secondary-color);
-                font-size: 0.9em;
-                transition: border-color 0.3s;
-            }
-
-            #themeToggleBtn {
-                background: none;
-                border: 1px solid var(--border-color);
-                color: var(--text-color);
-                padding: 5px 10px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 1.2em;
-                margin-left: 10px;
-                vertical-align: middle;
-                transition: background-color 0.3s, border-color 0.3s;
-            }
-
-            #themeToggleBtn:hover {
-                background-color: var(--border-color);
-            }
-
-            /* --- Toast Notification (新增) --- */
-            #toast {
-                visibility: hidden;
-                min-width: 250px;
-                background-color: var(--toast-bg);
-                color: var(--toast-color);
-                text-align: center;
-                border-radius: 5px;
-                padding: 16px;
-                position: fixed;
-                z-index: 1001;
-                left: 50%;
-                transform: translateX(-50%);
-                bottom: 30px;
-                font-size: 17px;
-                opacity: 0;
-                transition: opacity 0.5s, visibility 0.5s, bottom 0.5s;
-            }
-
-            #toast.show {
-                visibility: visible;
-                opacity: 1;
-                bottom: 50px;
-            }
-
-            /* --- 響應式設計 --- */
-            @media (max-width: 600px) {
-                body {
-                    padding: 1rem;
-                }
-                .container {
-                    padding: 1rem;
-                    max-width: 95%;
-                }
-                .mode-selector {
-                    flex-direction: column;
-                    gap: 0.5rem;
-                }
-                .button-group {
-                    flex-direction: column;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>文字壓縮 / 解壓縮工具</h1>
-
-            <div class="mode-selector">
-                <input type="radio" id="compressMode" name="mode" value="compress" checked />
-                <label for="compressMode">壓縮模式</label>
-
-                <input type="radio" id="decompressMode" name="mode" value="decompress" />
-                <label for="decompressMode">解壓縮模式</label>
-            </div>
-
-            <div class="form-group">
-                <label for="inputText">輸入文字</label>
-                <textarea id="inputText" placeholder="在此輸入文字..."></textarea>
-            </div>
-
-            <div class="button-group">
-                <button id="actionButton">壓縮</button>
-            </div>
-
-            <div class="form-group">
-                <label for="outputText">結果</label>
-                <textarea id="outputText" readonly placeholder="結果將顯示在此..."></textarea>
-            </div>
-
-            <div class="button-group">
-                <button id="copyButton" disabled>複製結果</button>
-            </div>
-
-            <div id="stats" class="stats" role="status" aria-live="polite" style="display: none">
-                <p>
-                    <span class="stat-label">結果大小：</span>
-                    <span class="stat-value"><span id="resultSize">0</span><span class="unit"> characters</span></span>
-                </p>
-                <p>
-                    <span class="stat-label">原始大小：</span>
-                    <span class="stat-value"><span id="originalSize">0</span><span class="unit"> bytes</span></span>
-                </p>
-                <p>
-                    <span class="stat-label">壓縮比率：</span>
-                    <span class="stat-value">
-                        <span id="compressionRatioValue">N/A</span>
-                        <span class="unit">（結果大小/原始大小）</span>
-                    </span>
-                </p>
-            </div>
-        </div>
-
-        <footer>
-            <p>
-                &copy; <span id="currentYear"></span> Zanta's Utilities
-                <button id="themeToggleBtn" title="切換主題">🌙</button>
-            </p>
-        </footer>
-
-        <div id="toast"></div>
-
-        <script>
-            // --- DOM 元素引用 ---
-            const inputText = document.getElementById("inputText");
-            const outputText = document.getElementById("outputText");
-            const actionButton = document.getElementById("actionButton");
-            const copyButton = document.getElementById("copyButton");
-            const modeRadios = document.querySelectorAll('input[name="mode"]');
-            const statsDiv = document.getElementById("stats");
-            const originalSizeSpan = document.getElementById("originalSize");
-            const resultSizeSpan = document.getElementById("resultSize");
-            const compressionRatioSpan = document.getElementById("compressionRatioValue");
-            const themeToggleBtn = document.getElementById("themeToggleBtn");
-            const toast = document.getElementById("toast"); // (新增)
-            document.getElementById("currentYear").textContent = new Date().getFullYear();
-
-            let currentMode = "compress";
-            let toastTimer; // (新增) 用於管理 Toast 的計時器
-
-            // --- 核心功能 (壓縮/解壓縮) ---
-            async function streamToUint8Array(readableStream) {
-                const reader = readableStream.getReader();
-                const chunks = [];
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    chunks.push(value);
-                }
-                const blob = new Blob(chunks);
-                return new Uint8Array(await blob.arrayBuffer());
-            }
-
-            async function compressText(text) {
-                if (!text) {
-                    outputText.value = "錯誤：輸入文字不能為空。";
-                    statsDiv.style.display = "none";
-                    copyButton.disabled = true;
-                    return;
-                }
-                actionButton.disabled = true;
-                actionButton.textContent = "壓縮中...";
-                copyButton.disabled = true;
-
-                try {
-                    const data = new TextEncoder().encode(text);
-                    const compressionStream = new CompressionStream("gzip");
-                    const writer = compressionStream.writable.getWriter();
-                    writer.write(data);
-                    writer.close();
-                    const compressedData = await streamToUint8Array(compressionStream.readable);
-                    const base64Encoded = btoa(String.fromCharCode.apply(null, compressedData));
-
-                    outputText.value = base64Encoded;
-                    copyButton.disabled = false;
-
-                    const originalByteLength = data.byteLength;
-                    const resultCharLength = base64Encoded.length;
-
-                    originalSizeSpan.textContent = originalByteLength.toLocaleString("en-US");
-                    resultSizeSpan.textContent = resultCharLength.toLocaleString("en-US");
-
-                    compressionRatioSpan.classList.remove("ratio-good", "ratio-bad");
-
-                    if (originalByteLength > 0) {
-                        const ratio = resultCharLength / originalByteLength;
-                        compressionRatioSpan.textContent = `${(ratio * 100).toFixed(2)}%`;
-                        if (ratio < 1) {
-                            compressionRatioSpan.classList.add("ratio-good");
-                        } else if (ratio >= 1) {
-                            compressionRatioSpan.classList.add("ratio-bad");
-                        }
-                    } else {
-                        compressionRatioSpan.textContent = "N/A";
-                    }
-                    statsDiv.style.display = "block";
-                } catch (error) {
-                    console.error("壓縮錯誤:", error);
-                    outputText.value = `壓縮錯誤: ${error.message}`;
-                    statsDiv.style.display = "none";
-                    copyButton.disabled = true;
-                } finally {
-                    actionButton.disabled = false;
-                    actionButton.textContent = "壓縮";
-                }
-            }
-
-            async function decompressText(base64Text) {
-                if (!base64Text) {
-                    outputText.value = "錯誤：輸入文字不能為空。";
-                    copyButton.disabled = true;
-                    return;
-                }
-                actionButton.disabled = true;
-                actionButton.textContent = "解壓縮中...";
-                copyButton.disabled = true;
-
-                try {
-                    const binaryString = atob(base64Text);
-                    const compressedData = Uint8Array.from(binaryString, (char) => char.charCodeAt(0));
-                    const decompressionStream = new DecompressionStream("gzip");
-                    const writer = decompressionStream.writable.getWriter();
-                    writer.write(compressedData);
-                    writer.close();
-                    const decompressedData = await streamToUint8Array(decompressionStream.readable);
-                    const originalText = new TextDecoder().decode(decompressedData);
-
-                    outputText.value = originalText;
-                    copyButton.disabled = false;
-                    statsDiv.style.display = "none";
-                } catch (error) {
-                    console.error("解壓縮錯誤:", error);
-                    outputText.value = `解壓縮錯誤: ${error.message}. 請確認輸入的是有效的 Base64 編碼 Gzip 壓縮字串。`;
-                    statsDiv.style.display = "none";
-                    copyButton.disabled = true;
-                } finally {
-                    actionButton.disabled = false;
-                    actionButton.textContent = "解壓縮";
-                }
-            }
-
-            // --- UI 功能 & 事件處理 (新增與修改) ---
-            function showToast(message) {
-                // 如果已有計時器，先清除，避免閃爍
-                if (toastTimer) {
-                    clearTimeout(toastTimer);
-                }
-                toast.textContent = message;
-                toast.className = "show";
-                toastTimer = setTimeout(() => {
-                    toast.className = toast.className.replace("show", "");
-                    toastTimer = null;
-                }, 3000); // 3 秒後自動隱藏
-            }
-
-            function handleModeChange() {
-                currentMode = document.querySelector('input[name="mode"]:checked').value;
-                inputText.value = "";
-                outputText.value = "";
-                statsDiv.style.display = "none";
-                copyButton.disabled = true;
-
-                if (currentMode === "compress") {
-                    actionButton.textContent = "壓縮";
-                    inputText.placeholder = "在此輸入要壓縮的文字...";
-                    outputText.placeholder = "壓縮後的 Base64 結果將顯示在此...";
-                } else {
-                    actionButton.textContent = "解壓縮";
-                    inputText.placeholder = "在此貼上 Base64 編碼的壓縮文字...";
-                    outputText.placeholder = "解壓縮後的原始文字將顯示在此...";
-                }
-            }
-
-            function handleActionButtonClick() {
-                const text = inputText.value.trim();
-                if (currentMode === "compress") {
-                    compressText(text);
-                } else {
-                    decompressText(text);
-                }
-            }
-
-            async function copyOutputText() {
-                if (!outputText.value) return;
-                try {
-                    await navigator.clipboard.writeText(outputText.value);
-                    // (修改) 使用 Toast 提示
-                    showToast("結果已複製到剪貼簿！");
-                } catch (err) {
-                    console.error("無法複製文字: ", err);
-                    // (修改) 使用 Toast 提示
-                    showToast("複製失敗，請手動複製。");
-                }
-            }
-
-            // --- 主題切換邏輯 ---
-            function applyTheme(theme) {
-                document.documentElement.setAttribute("data-theme", theme);
-                themeToggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
-                localStorage.setItem("compressor_theme", theme);
-            }
-
-            function toggleTheme() {
-                const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
-                const newTheme = currentTheme === "dark" ? "light" : "dark";
-                applyTheme(newTheme);
-            }
-
-            // --- 事件監聽器 ---
-            actionButton.addEventListener("click", handleActionButtonClick);
-            copyButton.addEventListener("click", copyOutputText);
-            modeRadios.forEach((radio) => {
-                radio.addEventListener("change", handleModeChange);
-            });
-            themeToggleBtn.addEventListener("click", toggleTheme);
-
-            // --- 初始設定 ---
-            document.addEventListener("DOMContentLoaded", () => {
-                const initialModeRadio = document.querySelector('input[name="mode"]:checked');
-                if (initialModeRadio) {
-                    handleModeChange.call(initialModeRadio);
-                }
-                let initialTheme = localStorage.getItem("compressor_theme");
-                if (!initialTheme) {
-                    initialTheme = "dark";
-                }
-                applyTheme(initialTheme);
-            });
-        </script>
-    </body>
+      // --- 初始設定 ---
+      document.addEventListener("DOMContentLoaded", () => {
+        const initialModeRadio = document.querySelector(
+          'input[name="mode"]:checked',
+        );
+        if (initialModeRadio) {
+          handleModeChange.call(initialModeRadio);
+        }
+        let initialTheme = localStorage.getItem("compressor_theme");
+        if (!initialTheme) {
+          initialTheme = "dark";
+        }
+        applyTheme(initialTheme);
+      });
+    </script>
+  </body>
 </html>

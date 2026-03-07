@@ -1,1 +1,7 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/public/flashcards/sw.js', { scope: '/public/flashcards/' })})}
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/public/flashcards/sw.js", {
+      scope: "/public/flashcards/",
+    });
+  });
+}

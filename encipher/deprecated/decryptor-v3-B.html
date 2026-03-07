@@ -12,7 +12,7 @@
       }
 
       body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
         display: flex;
@@ -76,19 +76,19 @@
       }
 
       textarea,
-      input[type='password'] {
+      input[type="password"] {
         width: 100%;
         padding: 15px;
         border: 2px solid #e1e5e9;
         border-radius: 12px;
         font-size: 14px;
-        font-family: 'Courier New', monospace;
+        font-family: "Courier New", monospace;
         transition: all 0.3s ease;
         background: #f8f9fa;
       }
 
       textarea:focus,
-      input[type='password']:focus {
+      input[type="password"]:focus {
         outline: none;
         border-color: #667eea;
         background: white;
@@ -153,7 +153,7 @@
         background: rgba(255, 255, 255, 0.9);
         padding: 15px;
         border-radius: 8px;
-        font-family: 'Courier New', monospace;
+        font-family: "Courier New", monospace;
         white-space: pre-wrap;
         word-break: break-word;
         max-height: 300px;
@@ -225,7 +225,8 @@
       <div class="info-section">
         <div class="info-title">📋 使用說明</div>
         <div class="info-content">
-          此工具專門用於解密由「進階加密、解密器 v3.0」產生的加密資料。請貼上完整的 Base64
+          此工具專門用於解密由「進階加密、解密器
+          v3.0」產生的加密資料。請貼上完整的 Base64
           加密字串，並輸入正確的密碼短語進行解密。所有運算均在您的瀏覽器中執行，不會上傳任何資料。
         </div>
       </div>
@@ -233,15 +234,26 @@
       <form id="decryptForm">
         <div class="form-group">
           <label for="encryptedData">加密資料 (Base64)：</label>
-          <textarea id="encryptedData" placeholder="請貼上完整的 Base64 加密字串..." required></textarea>
+          <textarea
+            id="encryptedData"
+            placeholder="請貼上完整的 Base64 加密字串..."
+            required
+          ></textarea>
         </div>
 
         <div class="form-group">
           <label for="passphrase">密碼短語：</label>
-          <input type="password" id="passphrase" placeholder="輸入解密密碼" required />
+          <input
+            type="password"
+            id="passphrase"
+            placeholder="輸入解密密碼"
+            required
+          />
         </div>
 
-        <button type="submit" class="decrypt-btn" id="decryptBtn">🔓 開始解密</button>
+        <button type="submit" class="decrypt-btn" id="decryptBtn">
+          🔓 開始解密
+        </button>
       </form>
 
       <div id="resultSection" class="result-section">
@@ -259,27 +271,31 @@
         }
 
         initializeEventListeners() {
-          document.getElementById('decryptForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.decrypt();
-          });
+          document
+            .getElementById("decryptForm")
+            .addEventListener("submit", (e) => {
+              e.preventDefault();
+              this.decrypt();
+            });
         }
 
         async decrypt() {
-          const encryptedData = document.getElementById('encryptedData').value.trim();
-          const passphrase = document.getElementById('passphrase').value;
-          const decryptBtn = document.getElementById('decryptBtn');
-          const resultSection = document.getElementById('resultSection');
+          const encryptedData = document
+            .getElementById("encryptedData")
+            .value.trim();
+          const passphrase = document.getElementById("passphrase").value;
+          const decryptBtn = document.getElementById("decryptBtn");
+          const resultSection = document.getElementById("resultSection");
 
           if (!encryptedData || !passphrase) {
-            this.showError('請輸入加密資料和密碼短語');
+            this.showError("請輸入加密資料和密碼短語");
             return;
           }
 
           // 顯示載入狀態
           decryptBtn.disabled = true;
           decryptBtn.innerHTML = '<span class="loading"></span>解密中...';
-          resultSection.style.display = 'none';
+          resultSection.style.display = "none";
 
           try {
             // 步驟 1: Base64 解碼並解析 JSON
@@ -292,31 +308,41 @@
             this.displayMetadata(jsonData);
 
             // 步驟 3: 金鑰衍生
-            const key = await this.deriveKey(jsonData.keyDerivation, passphrase);
+            const key = await this.deriveKey(
+              jsonData.keyDerivation,
+              passphrase,
+            );
 
             // 步驟 4: 重建 AAD
             const aad = this.buildAAD(jsonData);
 
             // 步驟 5: 執行解密
-            const plaintext = await this.performDecryption(jsonData.encryption, key, aad);
+            const plaintext = await this.performDecryption(
+              jsonData.encryption,
+              key,
+              aad,
+            );
 
             // 步驟 6: 顯示結果
             this.showSuccess(plaintext);
           } catch (error) {
-            console.error('解密錯誤:', error);
+            console.error("解密錯誤:", error);
             this.showError(error.message);
           } finally {
             decryptBtn.disabled = false;
-            decryptBtn.innerHTML = '🔓 開始解密';
+            decryptBtn.innerHTML = "🔓 開始解密";
           }
         }
 
         decodeBase64ToJson(base64String) {
           try {
             // URL-Safe Base64 解碼
-            const normalizedBase64 = base64String.replace(/-/g, '+').replace(/_/g, '/');
+            const normalizedBase64 = base64String
+              .replace(/-/g, "+")
+              .replace(/_/g, "/");
             const padding = normalizedBase64.length % 4;
-            const paddedBase64 = normalizedBase64 + '='.repeat(padding ? 4 - padding : 0);
+            const paddedBase64 =
+              normalizedBase64 + "=".repeat(padding ? 4 - padding : 0);
 
             const binaryString = atob(paddedBase64);
             const bytes = new Uint8Array(binaryString.length);
@@ -324,27 +350,31 @@
               bytes[i] = binaryString.charCodeAt(i);
             }
 
-            const jsonString = new TextDecoder('utf-8').decode(bytes);
+            const jsonString = new TextDecoder("utf-8").decode(bytes);
             return JSON.parse(jsonString);
           } catch (error) {
-            throw new Error('無效的 Base64 格式或 JSON 結構');
+            throw new Error("無效的 Base64 格式或 JSON 結構");
           }
         }
 
         validateAndExtractParams(jsonData) {
           if (!jsonData.version || jsonData.version !== 3) {
-            throw new Error(`不支援的版本格式: ${jsonData.version}。此工具僅支援 v3.0 格式。`);
+            throw new Error(
+              `不支援的版本格式: ${jsonData.version}。此工具僅支援 v3.0 格式。`,
+            );
           }
 
           if (!jsonData.keyDerivation || !jsonData.encryption) {
-            throw new Error('缺少必要的加密參數');
+            throw new Error("缺少必要的加密參數");
           }
 
-          const supportedKDFs = ['Argon2id', 'PBKDF2'];
-          const supportedCiphers = ['AES-GCM', 'ChaCha20-Poly1305'];
+          const supportedKDFs = ["Argon2id", "PBKDF2"];
+          const supportedCiphers = ["AES-GCM", "ChaCha20-Poly1305"];
 
           if (!supportedKDFs.includes(jsonData.keyDerivation.name)) {
-            throw new Error(`不支援的金鑰衍生函數: ${jsonData.keyDerivation.name}`);
+            throw new Error(
+              `不支援的金鑰衍生函數: ${jsonData.keyDerivation.name}`,
+            );
           }
 
           if (!supportedCiphers.includes(jsonData.encryption.name)) {
@@ -353,7 +383,7 @@
         }
 
         displayMetadata(jsonData) {
-          const metadataSection = document.getElementById('metadataSection');
+          const metadataSection = document.getElementById("metadataSection");
           const kdf = jsonData.keyDerivation;
           const enc = jsonData.encryption;
 
@@ -369,7 +399,7 @@
                     </div>
                 `;
 
-          if (kdf.name === 'Argon2id') {
+          if (kdf.name === "Argon2id") {
             metadataHTML += `
                         <div class="metadata-item">
                             <span class="metadata-label">記憶體使用:</span> ${(kdf.memory / 1024).toFixed(1)} MB
@@ -387,14 +417,14 @@
                 `;
 
           metadataSection.innerHTML = metadataHTML;
-          metadataSection.style.display = 'block';
+          metadataSection.style.display = "block";
         }
 
         async deriveKey(kdfParams, passphrase) {
           const salt = this.base64ToBytes(kdfParams.salt);
           const passphraseBytes = new TextEncoder().encode(passphrase);
 
-          if (kdfParams.name === 'Argon2id') {
+          if (kdfParams.name === "Argon2id") {
             const result = await argon2.hash({
               pass: passphraseBytes,
               salt: salt,
@@ -405,18 +435,24 @@
               hashLen: 32,
             });
             return result.hash;
-          } else if (kdfParams.name === 'PBKDF2') {
-            const keyMaterial = await crypto.subtle.importKey('raw', passphraseBytes, 'PBKDF2', false, ['deriveBits']);
+          } else if (kdfParams.name === "PBKDF2") {
+            const keyMaterial = await crypto.subtle.importKey(
+              "raw",
+              passphraseBytes,
+              "PBKDF2",
+              false,
+              ["deriveBits"],
+            );
 
             const keyBits = await crypto.subtle.deriveBits(
               {
-                name: 'PBKDF2',
+                name: "PBKDF2",
                 salt: salt,
                 iterations: kdfParams.iterations,
-                hash: 'SHA-256',
+                hash: "SHA-256",
               },
               keyMaterial,
-              256
+              256,
             );
 
             return new Uint8Array(keyBits);
@@ -438,11 +474,11 @@
           aadObj.keyDerivation.name = kdf.name;
           aadObj.keyDerivation.iterations = kdf.iterations;
 
-          if (kdf.name === 'Argon2id') {
+          if (kdf.name === "Argon2id") {
             aadObj.keyDerivation.memory = kdf.memory;
             aadObj.keyDerivation.parallelism = kdf.parallelism;
-          } else if (kdf.name === 'PBKDF2') {
-            aadObj.keyDerivation.hash = kdf.hash || 'SHA-256';
+          } else if (kdf.name === "PBKDF2") {
+            aadObj.keyDerivation.hash = kdf.hash || "SHA-256";
           }
 
           // 遞迴排序物件鍵
@@ -456,7 +492,7 @@
         }
 
         sortObjectKeys(obj) {
-          if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+          if (obj === null || typeof obj !== "object" || Array.isArray(obj)) {
             return obj;
           }
 
@@ -475,30 +511,38 @@
           const ciphertext = this.base64ToBytes(encParams.ciphertext);
           const tag = this.base64ToBytes(encParams.tag);
 
-          if (encParams.name === 'AES-GCM') {
+          if (encParams.name === "AES-GCM") {
             // 組合 ciphertext 和 tag
             const combined = new Uint8Array(ciphertext.length + tag.length);
             combined.set(ciphertext, 0);
             combined.set(tag, ciphertext.length);
 
-            const cryptoKey = await crypto.subtle.importKey('raw', key, 'AES-GCM', false, ['decrypt']);
+            const cryptoKey = await crypto.subtle.importKey(
+              "raw",
+              key,
+              "AES-GCM",
+              false,
+              ["decrypt"],
+            );
 
             const decrypted = await crypto.subtle.decrypt(
               {
-                name: 'AES-GCM',
+                name: "AES-GCM",
                 iv: nonce,
                 additionalData: aad,
                 tagLength: 128,
               },
               cryptoKey,
-              combined
+              combined,
             );
 
-            return new TextDecoder('utf-8').decode(decrypted);
-          } else if (encParams.name === 'ChaCha20-Poly1305') {
+            return new TextDecoder("utf-8").decode(decrypted);
+          } else if (encParams.name === "ChaCha20-Poly1305") {
             // 注意：Web Crypto API 原生不支援 ChaCha20-Poly1305
             // 這裡需要使用第三方函式庫或提示使用者
-            throw new Error('瀏覽器原生不支援 ChaCha20-Poly1305，請使用其他工具');
+            throw new Error(
+              "瀏覽器原生不支援 ChaCha20-Poly1305，請使用其他工具",
+            );
           }
 
           throw new Error(`不支援的加密演算法: ${encParams.name}`);
@@ -506,9 +550,12 @@
 
         base64ToBytes(base64String) {
           // URL-Safe Base64 解碼
-          const normalizedBase64 = base64String.replace(/-/g, '+').replace(/_/g, '/');
+          const normalizedBase64 = base64String
+            .replace(/-/g, "+")
+            .replace(/_/g, "/");
           const padding = normalizedBase64.length % 4;
-          const paddedBase64 = normalizedBase64 + '='.repeat(padding ? 4 - padding : 0);
+          const paddedBase64 =
+            normalizedBase64 + "=".repeat(padding ? 4 - padding : 0);
 
           const binaryString = atob(paddedBase64);
           const bytes = new Uint8Array(binaryString.length);
@@ -519,32 +566,32 @@
         }
 
         showSuccess(plaintext) {
-          const resultSection = document.getElementById('resultSection');
-          const resultTitle = document.getElementById('resultTitle');
-          const resultContent = document.getElementById('resultContent');
+          const resultSection = document.getElementById("resultSection");
+          const resultTitle = document.getElementById("resultTitle");
+          const resultContent = document.getElementById("resultContent");
 
-          resultSection.className = 'result-section result-success';
-          resultTitle.textContent = '✅ 解密成功';
+          resultSection.className = "result-section result-success";
+          resultTitle.textContent = "✅ 解密成功";
           resultContent.textContent = plaintext;
-          resultSection.style.display = 'block';
+          resultSection.style.display = "block";
         }
 
         showError(message) {
-          const resultSection = document.getElementById('resultSection');
-          const resultTitle = document.getElementById('resultTitle');
-          const resultContent = document.getElementById('resultContent');
-          const metadataSection = document.getElementById('metadataSection');
+          const resultSection = document.getElementById("resultSection");
+          const resultTitle = document.getElementById("resultTitle");
+          const resultContent = document.getElementById("resultContent");
+          const metadataSection = document.getElementById("metadataSection");
 
-          resultSection.className = 'result-section result-error';
-          resultTitle.textContent = '❌ 解密失敗';
+          resultSection.className = "result-section result-error";
+          resultTitle.textContent = "❌ 解密失敗";
           resultContent.textContent = message;
-          metadataSection.style.display = 'none';
-          resultSection.style.display = 'block';
+          metadataSection.style.display = "none";
+          resultSection.style.display = "block";
         }
       }
 
       // 初始化解密器
-      document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener("DOMContentLoaded", () => {
         new AdvancedDecryptor();
       });
     </script>

@@ -1,1 +1,7 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/public/encipher/sw.js', { scope: '/public/encipher/' })})}
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/public/encipher/sw.js", {
+      scope: "/public/encipher/",
+    });
+  });
+}
