@@ -10,22 +10,9 @@
     <link rel="icon" href="/public/shamir/logo.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/public/shamir/logo.svg" />
     <title>Shamir's Secret Sharing</title>
-    <script
-      type="module"
-      crossorigin
-      src="/public/shamir/assets/index-C5nyMZdG.js"
-    ></script>
-    <link
-      rel="stylesheet"
-      crossorigin
-      href="/public/shamir/assets/index-BwVL6Jug.css"
-    />
-    <link rel="manifest" href="/public/shamir/manifest.webmanifest" />
-    <script
-      id="vite-plugin-pwa:register-sw"
-      src="/public/shamir/registerSW.js"
-    ></script>
-  </head>
+    <script type="module" crossorigin src="/public/shamir/assets/index-C5nyMZdG.js"></script>
+    <link rel="stylesheet" crossorigin href="/public/shamir/assets/index-BwVL6Jug.css">
+  <link rel="manifest" href="/public/shamir/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/public/shamir/registerSW.js"></script></head>
   <body>
     <div class="container">
       <h1>Shamir's Secret Sharing v1.2</h1>
@@ -67,17 +54,10 @@
           <div class="accordion-content" style="display: none">
             <div class="tech-specs">
               <ul>
+                <li><b>演算法基礎:</b> 本工具基於 Adi Shamir 秘密分享演算法，並在 <b>GF(2^8)</b> 有限域上運算。</li>
+                <li><b>質多項式:</b> 使用的質多項式為 <b>0x1D</b> (x⁸+x⁴+x³+x+1)，此為 AES 加密標準採用的通用選項。</li>
                 <li>
-                  <b>演算法基礎:</b> 本工具基於 Adi Shamir 秘密分享演算法，並在
-                  <b>GF(2^8)</b> 有限域上運算。
-                </li>
-                <li>
-                  <b>質多項式:</b> 使用的質多項式為
-                  <b>0x1D</b> (x⁸+x⁴+x³+x+1)，此為 AES 加密標準採用的通用選項。
-                </li>
-                <li>
-                  <b>編碼與填充:</b> 秘密字串 (UTF-8)
-                  被轉換為二進位字串，前方附加一個 "1" 位元標記，並補零至 8
+                  <b>編碼與填充:</b> 秘密字串 (UTF-8) 被轉換為二進位字串，前方附加一個 "1" 位元標記，並補零至 8
                   位元的倍數 (規格 ID: `secrets.js-1bit`)。
                 </li>
                 <li>
@@ -91,15 +71,8 @@
               </ul>
             </div>
 
-            <p
-              style="
-                border-top: 1px solid var(--border-color);
-                padding-top: 1rem;
-                margin-top: 1rem;
-              "
-            >
-              為確保互操作性，本工具產生的分割值為 Base64 或 Base58Check
-              編碼後資料，解碼後均為一個包含元資料的 JSON
+            <p style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem">
+              為確保互操作性，本工具產生的分割值為 Base64 或 Base58Check 編碼後資料，解碼後均為一個包含元資料的 JSON
               字串。第三方工具必須能解析此結構以正確重建祕密。
             </p>
             <h4>分片 (Share) JSON 結構</h4>
@@ -117,46 +90,26 @@
 }</code></pre>
             <h4>重建步驟</h4>
             <ol>
-              <li>
-                取得至少 <strong>k</strong> 份分割值字串 (Base64 or
-                Base58Check)。
-              </li>
-              <li>
-                將分割值字串解碼為 JSON 字串 (Base64: <code>atob()</code> |
-                Base58Check: <code>decode()</code>)。
-              </li>
+              <li>取得至少 <strong>k</strong> 份分割值字串 (Base64 or Base58Check)。</li>
+              <li>將分割值字串解碼為 JSON 字串 (Base64: <code>atob()</code> | Base58Check: <code>decode()</code>)。</li>
               <li>將 JSON 字串解析為物件 (<code>JSON.parse()</code>)。</li>
               <li>
-                <b>[重要] 驗證校驗碼 (chk):</b> 移除
-                <code>chk</code> 欄位後，對剩餘物件進行
-                <code>JSON.stringify()</code>，計算其 SHA-256 雜湊，取前 8
-                個字元，必須與 <code>chk</code> 欄位的值完全相符。
+                <b>[重要] 驗證校驗碼 (chk):</b> 移除 <code>chk</code> 欄位後，對剩餘物件進行
+                <code>JSON.stringify()</code>，計算其 SHA-256 雜湊，取前 8 個字元，必須與
+                <code>chk</code> 欄位的值完全相符。
+              </li>
+              <li>檢查所有分片的 <code>v</code>, <code>n</code>, <code>k</code>, <code>p</code> 等參數是否一致。</li>
+              <li>收集至少 <strong>k</strong> 組 <code>id</code> (X座標) 與 <code>share</code> (Y座標陣列)。</li>
+              <li>
+                使用拉格朗日插值法 (Lagrange Interpolation) 在 GF(2^8) 有限域 (質多項式 0x1D) 上，對
+                <code>share</code> 陣列中的每一位元組，在 X=0 處求值，以還原祕密的位元組陣列。
               </li>
               <li>
-                檢查所有分片的 <code>v</code>, <code>n</code>, <code>k</code>,
-                <code>p</code> 等參數是否一致。
+                <b>[重要] 解除填充 (Padding):</b> 根據 <code>pad</code> 欄位 (<code>secrets.js-1bit</code>)
+                移除填充。本工具的填充方案是在原始祕密的二進位字串前附加一個 "1" 位元，然後補零至 8
+                的倍數。解碼時，找到第一個 "1"，其後的所有位元即為原始祕密的二進位字串。
               </li>
-              <li>
-                收集至少 <strong>k</strong> 組 <code>id</code> (X座標) 與
-                <code>share</code> (Y座標陣列)。
-              </li>
-              <li>
-                使用拉格朗日插值法 (Lagrange Interpolation) 在 GF(2^8) 有限域
-                (質多項式 0x1D) 上，對
-                <code>share</code> 陣列中的每一位元組，在 X=0
-                處求值，以還原祕密的位元組陣列。
-              </li>
-              <li>
-                <b>[重要] 解除填充 (Padding):</b> 根據 <code>pad</code> 欄位
-                (<code>secrets.js-1bit</code>)
-                移除填充。本工具的填充方案是在原始祕密的二進位字串前附加一個 "1"
-                位元，然後補零至 8 的倍數。解碼時，找到第一個
-                "1"，其後的所有位元即為原始祕密的二進位字串。
-              </li>
-              <li>
-                將解碼後的二進位字串依 <code>enc</code> (<code>utf8</code>)
-                格式轉回原始字串。
-              </li>
+              <li>將解碼後的二進位字串依 <code>enc</code> (<code>utf8</code>) 格式轉回原始字串。</li>
             </ol>
           </div>
         </div>
@@ -171,45 +124,21 @@
         <h2>分割秘密</h2>
         <div class="form-group">
           <label for="originalString">原始字串</label>
-          <textarea
-            id="originalString"
-            rows="3"
-            placeholder="請在此輸入任何您想加密保護的文字..."
-          ></textarea>
+          <textarea id="originalString" rows="3" placeholder="請在此輸入任何您想加密保護的文字..."></textarea>
         </div>
         <div class_name="form-grid">
           <div class_name="form-group">
             <label for="n">總分割數 (n)</label>
-            <input
-              type="number"
-              id="n"
-              min="2"
-              max="255"
-              placeholder="e.g., 5"
-              inputmode="numeric"
-              pattern="[0-9]*"
-            />
+            <input type="number" id="n" min="2" max="255" placeholder="e.g., 5" inputmode="numeric" pattern="[0-9]*" />
             <div id="nErrorMessage" class="input-error-message"></div>
           </div>
           <div class_name="form-group">
             <label for="k">重建門檻值 (k)</label>
-            <input
-              type="number"
-              id="k"
-              min="2"
-              max="255"
-              placeholder="e.g., 3"
-              inputmode="numeric"
-              pattern="[0-9]*"
-            />
+            <input type="number" id="k" min="2" max="255" placeholder="e.g., 3" inputmode="numeric" pattern="[0-9]*" />
             <div id="kErrorMessage" class="input-error-message"></div>
           </div>
         </div>
-        <div
-          id="splitError"
-          class="output-box error"
-          style="display: none"
-        ></div>
+        <div id="splitError" class="output-box error" style="display: none"></div>
         <div class="button-group">
           <button id="generateBtn">產生分割值</button>
           <button id="clearSplitBtn" class="secondary">清除</button>
@@ -248,40 +177,23 @@
         <h2>重建秘密</h2>
 
         <div id="reconstructionQueue">
-          <div id="queueProgress" class="queue-progress">
-            請從「分割」頁面加入分割值，或從下方手動貼上
-          </div>
+          <div id="queueProgress" class="queue-progress">請從「分割」頁面加入分割值，或從下方手動貼上</div>
           <div id="queueList"></div>
         </div>
 
         <div class_name="form-group">
-          <label for="customShareInput"
-            >手動貼上 Base64 / Base58Check 分割值</label
-          >
+          <label for="customShareInput">手動貼上 Base64 / Base58Check 分割值</label>
           <textarea
             id="customShareInput"
             rows="2"
             placeholder="貼上符合 v1.2+ 規範，包含元資料與校驗碼的 Base64 或 Base58Check 編碼分割值..."
           ></textarea>
-          <div
-            class="button-group"
-            style="margin-top: 0.5rem; justify-content: flex-end"
-          >
-            <button
-              id="addCustomShareBtn"
-              class="secondary"
-              style="flex: 0 1 auto"
-            >
-              加入佇列
-            </button>
+          <div class="button-group" style="margin-top: 0.5rem; justify-content: flex-end">
+            <button id="addCustomShareBtn" class="secondary" style="flex: 0 1 auto">加入佇列</button>
           </div>
         </div>
 
-        <div
-          id="reconstructionResult"
-          class="output-box"
-          style="display: none"
-        ></div>
+        <div id="reconstructionResult" class="output-box" style="display: none"></div>
 
         <div class="button-group">
           <button id="reconstructBtn">重建秘密</button>
