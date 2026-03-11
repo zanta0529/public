@@ -75,7 +75,7 @@
         padding: 12px;
         border: 2px solid #e1e5e9;
         border-radius: 8px;
-        font-family: "Consolas", "Monaco", monospace;
+        font-family: 'Consolas', 'Monaco', monospace;
         font-size: 13px;
         transition: border-color 0.3s ease;
       }
@@ -125,7 +125,7 @@
         word-wrap: break-word;
         max-height: 300px;
         overflow: auto;
-        font-family: "Consolas", "Monaco", monospace;
+        font-family: 'Consolas', 'Monaco', monospace;
         font-size: 13px;
         white-space: pre-wrap;
       }
@@ -202,17 +202,12 @@
       </div>
 
       <div class="info-box">
-        💡 本工具會自動偵測您的加密資料使用的金鑰派生函數，支援 Argon2id 和
-        PBKDF2 兩種演算法。
+        💡 本工具會自動偵測您的加密資料使用的金鑰派生函數，支援 Argon2id 和 PBKDF2 兩種演算法。
       </div>
 
       <div class="group">
         <label for="ciphertext">加密資料：</label>
-        <textarea
-          id="ciphertext"
-          placeholder="請貼上您的 Base64 編碼加密資料..."
-          rows="8"
-        ></textarea>
+        <textarea id="ciphertext" placeholder="請貼上您的 Base64 編碼加密資料..." rows="8"></textarea>
       </div>
 
       <div class="group">
@@ -230,8 +225,8 @@
 
     <script>
       function setStatus(message, type, kdfType = null) {
-        const statusEl = document.getElementById("status");
-        statusEl.className = "status " + type;
+        const statusEl = document.getElementById('status');
+        statusEl.className = 'status ' + type;
         let displayMessage = message;
 
         if (kdfType) {
@@ -242,19 +237,19 @@
       }
 
       function setResult(content, type) {
-        const resultEl = document.getElementById("result");
-        resultEl.className = "result-box " + type;
+        const resultEl = document.getElementById('result');
+        resultEl.className = 'result-box ' + type;
         resultEl.textContent = content;
-        resultEl.style.display = content ? "block" : "none";
+        resultEl.style.display = content ? 'block' : 'none';
       }
 
       function base64UrlDecode(str) {
         // 處理 base64url 和標準 base64 格式
-        str = str.replace(/-/g, "+").replace(/_/g, "/");
+        str = str.replace(/-/g, '+').replace(/_/g, '/');
 
         // 補齊 padding
         while (str.length % 4) {
-          str += "=";
+          str += '=';
         }
 
         const binaryString = atob(str);
@@ -278,11 +273,11 @@
         };
 
         // 根據不同的 KDF 加入相應參數
-        if (params.keyDerivation.name === "Argon2id") {
+        if (params.keyDerivation.name === 'Argon2id') {
           keyDerivation.iterations = params.keyDerivation.iterations;
           keyDerivation.memory = params.keyDerivation.memory;
           keyDerivation.parallelism = params.keyDerivation.parallelism;
-        } else if (params.keyDerivation.name === "PBKDF2") {
+        } else if (params.keyDerivation.name === 'PBKDF2') {
           keyDerivation.iterations = params.keyDerivation.iterations;
           if (params.keyDerivation.hash) {
             keyDerivation.hash = params.keyDerivation.hash;
@@ -295,15 +290,9 @@
         return new TextEncoder().encode(JSON.stringify(aadObj));
       }
 
-      async function deriveKeyArgon2(
-        passphrase,
-        salt,
-        iterations,
-        memory,
-        parallelism,
-      ) {
-        if (typeof argon2 === "undefined") {
-          throw new Error("Argon2 庫載入失敗，無法使用 Argon2id 解密");
+      async function deriveKeyArgon2(passphrase, salt, iterations, memory, parallelism) {
+        if (typeof argon2 === 'undefined') {
+          throw new Error('Argon2 庫載入失敗，無法使用 Argon2id 解密');
         }
 
         const result = await argon2.hash({
@@ -322,35 +311,29 @@
       async function deriveKeyPBKDF2(passphrase, salt, iterations) {
         const encoder = new TextEncoder();
         const keyMaterial = await crypto.subtle.importKey(
-          "raw",
+          'raw',
           encoder.encode(passphrase),
-          { name: "PBKDF2" },
+          { name: 'PBKDF2' },
           false,
-          ["deriveBits"],
+          ['deriveBits']
         );
 
         const derivedBits = await crypto.subtle.deriveBits(
           {
-            name: "PBKDF2",
+            name: 'PBKDF2',
             salt: salt,
             iterations: iterations,
-            hash: "SHA-256",
+            hash: 'SHA-256',
           },
           keyMaterial,
-          256,
+          256
         );
 
         return new Uint8Array(derivedBits);
       }
 
       async function decryptAESGCM(key, iv, ciphertext, tag, aad) {
-        const cryptoKey = await crypto.subtle.importKey(
-          "raw",
-          key,
-          { name: "AES-GCM" },
-          false,
-          ["decrypt"],
-        );
+        const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'AES-GCM' }, false, ['decrypt']);
 
         // 組合 ciphertext 和 tag
         const combinedData = new Uint8Array(ciphertext.length + tag.length);
@@ -359,38 +342,36 @@
 
         const decryptedBuffer = await crypto.subtle.decrypt(
           {
-            name: "AES-GCM",
+            name: 'AES-GCM',
             iv: iv,
             additionalData: aad,
             tagLength: 128,
           },
           cryptoKey,
-          combinedData,
+          combinedData
         );
 
         return new Uint8Array(decryptedBuffer);
       }
 
       async function decrypt() {
-        const ciphertextInput = document
-          .getElementById("ciphertext")
-          .value.trim();
-        const password = document.getElementById("password").value;
+        const ciphertextInput = document.getElementById('ciphertext').value.trim();
+        const password = document.getElementById('password').value;
 
         // 清空之前的結果
-        setResult("", "");
+        setResult('', '');
 
         if (!ciphertextInput) {
-          setStatus("❌ 請輸入加密資料", "error");
+          setStatus('❌ 請輸入加密資料', 'error');
           return;
         }
 
         if (!password) {
-          setStatus("❌ 請輸入密碼短語", "error");
+          setStatus('❌ 請輸入密碼短語', 'error');
           return;
         }
 
-        setStatus("🔄 解析加密資料中...", "loading");
+        setStatus('🔄 解析加密資料中...', 'loading');
 
         try {
           // 解碼 Base64 資料
@@ -399,18 +380,16 @@
           const params = JSON.parse(jsonString);
 
           // 檢查支援的演算法
-          if (params.encryption.name !== "AES-GCM") {
-            throw new Error("不支援的加密演算法：" + params.encryption.name);
+          if (params.encryption.name !== 'AES-GCM') {
+            throw new Error('不支援的加密演算法：' + params.encryption.name);
           }
 
           const kdfName = params.keyDerivation.name;
-          if (!["Argon2id", "PBKDF2"].includes(kdfName)) {
-            throw new Error(
-              `不支援的金鑰派生函數：${kdfName}（僅支援 Argon2id 和 PBKDF2）`,
-            );
+          if (!['Argon2id', 'PBKDF2'].includes(kdfName)) {
+            throw new Error(`不支援的金鑰派生函數：${kdfName}（僅支援 Argon2id 和 PBKDF2）`);
           }
 
-          setStatus(`🔄 使用 ${kdfName} 派生金鑰中...`, "loading", kdfName);
+          setStatus(`🔄 使用 ${kdfName} 派生金鑰中...`, 'loading', kdfName);
 
           // 解碼必要的資料
           const salt = base64UrlDecode(params.keyDerivation.salt);
@@ -420,23 +399,19 @@
 
           // 根據 KDF 類型派生金鑰
           let key;
-          if (kdfName === "Argon2id") {
+          if (kdfName === 'Argon2id') {
             key = await deriveKeyArgon2(
               password,
               salt,
               params.keyDerivation.iterations,
               params.keyDerivation.memory,
-              params.keyDerivation.parallelism,
+              params.keyDerivation.parallelism
             );
-          } else if (kdfName === "PBKDF2") {
-            key = await deriveKeyPBKDF2(
-              password,
-              salt,
-              params.keyDerivation.iterations,
-            );
+          } else if (kdfName === 'PBKDF2') {
+            key = await deriveKeyPBKDF2(password, salt, params.keyDerivation.iterations);
           }
 
-          setStatus(`🔄 執行 AES-GCM 解密中...`, "loading", kdfName);
+          setStatus(`🔄 執行 AES-GCM 解密中...`, 'loading', kdfName);
 
           // 建構 AAD（如果是版本 2）
           let aad = null;
@@ -452,41 +427,33 @@
             // 如果不是版本 2，嘗試不使用 AAD
             if (params.version !== 2) {
               try {
-                decryptedData = await decryptAESGCM(
-                  key,
-                  iv,
-                  ciphertext,
-                  tag,
-                  null,
-                );
+                decryptedData = await decryptAESGCM(key, iv, ciphertext, tag, null);
               } catch (retryError) {
-                throw new Error("密碼錯誤或加密資料已損毀");
+                throw new Error('密碼錯誤或加密資料已損毀');
               }
             } else {
-              throw new Error("密碼錯誤或加密資料已損毀");
+              throw new Error('密碼錯誤或加密資料已損毀');
             }
           }
 
           // 轉換為文字
           const plaintext = new TextDecoder().decode(decryptedData);
 
-          setStatus("✅ 解密成功！", "success", kdfName);
-          setResult(plaintext, "success");
+          setStatus('✅ 解密成功！', 'success', kdfName);
+          setResult(plaintext, 'success');
         } catch (error) {
-          console.error("解密錯誤：", error);
-          setStatus("❌ 解密失敗：" + error.message, "error");
-          setResult("", "");
+          console.error('解密錯誤：', error);
+          setStatus('❌ 解密失敗：' + error.message, 'error');
+          setResult('', '');
         }
       }
 
       // 允許按 Enter 鍵執行解密
-      document
-        .getElementById("password")
-        .addEventListener("keypress", function (event) {
-          if (event.key === "Enter") {
-            decrypt();
-          }
-        });
+      document.getElementById('password').addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+          decrypt();
+        }
+      });
     </script>
   </body>
 </html>

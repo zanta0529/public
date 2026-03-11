@@ -12,9 +12,7 @@
       }
 
       body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei",
-          sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
         line-height: 1.5;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
@@ -65,7 +63,7 @@
         font-size: 1.1em;
       }
 
-      input[type="password"],
+      input[type='password'],
       textarea {
         width: 100%;
         padding: 15px;
@@ -73,11 +71,11 @@
         border-radius: 12px;
         font-size: 16px;
         transition: all 0.3s ease;
-        font-family: "Consolas", "Monaco", monospace;
+        font-family: 'Consolas', 'Monaco', monospace;
         background: #f8f9fa;
       }
 
-      input[type="password"]:focus,
+      input[type='password']:focus,
       textarea:focus {
         outline: none;
         border-color: #3498db;
@@ -118,7 +116,7 @@
         padding: 20px;
         border-radius: 12px;
         min-height: 100px;
-        font-family: "Consolas", "Monaco", monospace;
+        font-family: 'Consolas', 'Monaco', monospace;
       }
 
       .result-header {
@@ -225,11 +223,7 @@
         <form id="decryptForm">
           <div class="form-group">
             <label for="jweString">JWE 加密字串</label>
-            <textarea
-              id="jweString"
-              rows="5"
-              placeholder="eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..."
-            ></textarea>
+            <textarea id="jweString" rows="5" placeholder="eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..."></textarea>
           </div>
 
           <div class="form-group">
@@ -248,37 +242,28 @@
 
     <script src="https://unpkg.com/argon2-browser/dist/argon2-bundled.min.js"></script>
     <script type="module">
-      import {
-        compactDecrypt,
-        decodeProtectedHeader,
-      } from "https://esm.sh/jose";
+      import { compactDecrypt, decodeProtectedHeader } from 'https://esm.sh/jose';
 
       // Base64URL 解碼函數
       function base64urlDecode(str) {
-        str = str.replace(/-/g, "+").replace(/_/g, "/");
-        while (str.length % 4) str += "=";
+        str = str.replace(/-/g, '+').replace(/_/g, '/');
+        while (str.length % 4) str += '=';
         return Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
       }
 
       // HTML escaping function to prevent XSS
       function escapeHTML(str) {
-        if (typeof str !== "string") return "";
+        if (typeof str !== 'string') return '';
         return str
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#039;");
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
       }
 
       // Argon2id 金鑰衍生
-      async function deriveKeyArgon2id(
-        password,
-        salt,
-        memory,
-        iterations,
-        parallelism,
-      ) {
+      async function deriveKeyArgon2id(password, salt, memory, iterations, parallelism) {
         const result = await argon2.hash({
           pass: password,
           salt: Array.from(salt),
@@ -289,40 +274,30 @@
           type: argon2.ArgonType.Argon2id,
         });
 
-        return await crypto.subtle.importKey(
-          "raw",
-          result.hash,
-          { name: "AES-GCM" },
-          false,
-          ["decrypt"],
-        );
+        return await crypto.subtle.importKey('raw', result.hash, { name: 'AES-GCM' }, false, ['decrypt']);
       }
 
       // JWE 解密主函數
       async function decryptJWE(jweString, password) {
         try {
-          const parts = jweString.split(".");
+          const parts = jweString.split('.');
           if (parts.length !== 5) {
-            throw new Error("無效的 JWE 格式：應包含 5 個部分");
+            throw new Error('無效的 JWE 格式：應包含 5 個部分');
           }
 
           // 解析 Protected Header
           const protectedHeader = decodeProtectedHeader(jweString);
-          console.log("JWE Header:", protectedHeader);
+          console.log('JWE Header:', protectedHeader);
 
-          if (protectedHeader.enc !== "A256GCM") {
-            throw new Error(
-              `不支援的內容加密演算法: enc=${protectedHeader.enc}`,
-            );
+          if (protectedHeader.enc !== 'A256GCM') {
+            throw new Error(`不支援的內容加密演算法: enc=${protectedHeader.enc}`);
           }
 
           let decrypted;
 
-          if (protectedHeader.alg === "dir") {
-            if (protectedHeader.kdf !== "Argon2id") {
-              throw new Error(
-                `alg: "dir" 模式下不支援的 KDF: ${protectedHeader.kdf}`,
-              );
+          if (protectedHeader.alg === 'dir') {
+            if (protectedHeader.kdf !== 'Argon2id') {
+              throw new Error(`alg: "dir" 模式下不支援的 KDF: ${protectedHeader.kdf}`);
             }
             const salt = base64urlDecode(protectedHeader.salt);
             const key = await deriveKeyArgon2id(
@@ -330,58 +305,50 @@
               salt,
               protectedHeader.m,
               protectedHeader.t,
-              protectedHeader.p,
+              protectedHeader.p
             );
             const { plaintext } = await compactDecrypt(jweString, key);
             decrypted = plaintext;
-          } else if (protectedHeader.alg === "PBES2-HS512+A256KW") {
+          } else if (protectedHeader.alg === 'PBES2-HS512+A256KW') {
             const passphraseBytes = new TextEncoder().encode(password);
-            const { plaintext } = await compactDecrypt(
-              jweString,
-              passphraseBytes,
-              {
-                keyManagementAlgorithms: ["PBES2-HS512+A256KW"],
-              },
-            );
+            const { plaintext } = await compactDecrypt(jweString, passphraseBytes, {
+              keyManagementAlgorithms: ['PBES2-HS512+A256KW'],
+            });
             decrypted = plaintext;
           } else {
-            throw new Error(
-              `不支援的金鑰管理演算法: alg=${protectedHeader.alg}`,
-            );
+            throw new Error(`不支援的金鑰管理演算法: alg=${protectedHeader.alg}`);
           }
 
           return new TextDecoder().decode(decrypted);
         } catch (error) {
-          console.error("解密錯誤:", error);
+          console.error('解密錯誤:', error);
           throw new Error(`解密失敗: ${error.message}`);
         }
       }
 
       // 表單提交處理
-      document
-        .getElementById("decryptForm")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
+      document.getElementById('decryptForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
 
-          const jweString = document.getElementById("jweString").value.trim();
-          const password = document.getElementById("password").value;
-          const resultDiv = document.getElementById("result");
-          const loading = document.getElementById("loading");
+        const jweString = document.getElementById('jweString').value.trim();
+        const password = document.getElementById('password').value;
+        const resultDiv = document.getElementById('result');
+        const loading = document.getElementById('loading');
 
-          if (!jweString || !password) {
-            resultDiv.className = "result error";
-            resultDiv.textContent = "請輸入 JWE 字串和密碼";
-            return;
-          }
+        if (!jweString || !password) {
+          resultDiv.className = 'result error';
+          resultDiv.textContent = '請輸入 JWE 字串和密碼';
+          return;
+        }
 
-          loading.style.display = "block";
-          resultDiv.style.display = "none";
+        loading.style.display = 'block';
+        resultDiv.style.display = 'none';
 
-          try {
-            const plaintext = await decryptJWE(jweString, password);
-            const safePlaintext = escapeHTML(plaintext);
-            resultDiv.className = "result success";
-            resultDiv.innerHTML = `
+        try {
+          const plaintext = await decryptJWE(jweString, password);
+          const safePlaintext = escapeHTML(plaintext);
+          resultDiv.className = 'result success';
+          resultDiv.innerHTML = `
                         <div class="result-header">
                             <strong>✅ 解密成功</strong>
                             <button id="copyBtn" class="btn-copy" title="複製到剪貼簿">複製內文</button>
@@ -389,36 +356,34 @@
                         <pre class="plaintext-content">${safePlaintext}</pre>
                     `;
 
-            document
-              .getElementById("copyBtn")
-              .addEventListener("click", function () {
-                navigator.clipboard.writeText(plaintext).then(() => {
-                  this.textContent = "已複製！";
-                  this.disabled = true;
-                  setTimeout(() => {
-                    this.textContent = "複製內文";
-                    this.disabled = false;
-                  }, 2000);
-                });
-              });
-          } catch (error) {
-            const safeErrorMessage = escapeHTML(error.message);
-            resultDiv.className = "result error";
-            resultDiv.innerHTML = `
+          document.getElementById('copyBtn').addEventListener('click', function () {
+            navigator.clipboard.writeText(plaintext).then(() => {
+              this.textContent = '已複製！';
+              this.disabled = true;
+              setTimeout(() => {
+                this.textContent = '複製內文';
+                this.disabled = false;
+              }, 2000);
+            });
+          });
+        } catch (error) {
+          const safeErrorMessage = escapeHTML(error.message);
+          resultDiv.className = 'result error';
+          resultDiv.innerHTML = `
                         <div class="result-header">
                             <strong>❌ 解密失敗</strong>
                         </div>
                         <pre class="plaintext-content">${safeErrorMessage}</pre>
                     `;
-          } finally {
-            loading.style.display = "none";
-            resultDiv.style.display = "block";
-          }
-        });
+        } finally {
+          loading.style.display = 'none';
+          resultDiv.style.display = 'block';
+        }
+      });
 
       // 頁面載入完成提示
-      window.addEventListener("load", function () {
-        console.log("JWE v4.1 解密工具已載入完成");
+      window.addEventListener('load', function () {
+        console.log('JWE v4.1 解密工具已載入完成');
       });
     </script>
   </body>
