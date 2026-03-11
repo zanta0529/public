@@ -1,7 +1,1 @@
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/public/lucky_draw/sw.js", {
-      scope: "/public/lucky_draw/",
-    });
-  });
-}
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/public/lucky_draw/sw.js', { scope: '/public/lucky_draw/' })})}
