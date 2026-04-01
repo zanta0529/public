@@ -7,11 +7,13 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self';"
     />
+    <meta name="theme-color" content="#0f1117" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f0f4f8" media="(prefers-color-scheme: light)" />
     <link rel="icon" href="/public/comparator/logo.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/public/comparator/logo.svg" />
-    <title>Price Comparator</title>
-    <script type="module" crossorigin src="/public/comparator/assets/index-Cim5ZTIK.js"></script>
-    <link rel="stylesheet" crossorigin href="/public/comparator/assets/index-NooMtaH2.css">
+    <title>單位比價</title>
+    <script type="module" crossorigin src="/public/comparator/assets/index-DCtjw-7K.js"></script>
+    <link rel="stylesheet" crossorigin href="/public/comparator/assets/index-zC67_kcW.css">
   <link rel="manifest" href="/public/comparator/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/public/comparator/registerSW.js"></script></head>
   <body>
     <div id="app">
@@ -22,14 +24,14 @@
       <div class="container">
         <div class="comparator-grid">
           <div class="card" id="cardA">
-            <h2>商品 A</h2>
+            <h2><span class="card-badge">A</span>商品 A</h2>
             <div class="input-group">
               <label for="priceA">價格 (Price)</label>
-              <input type="number" inputmode="decimal" id="priceA" placeholder="例如：100" />
+              <input type="number" inputmode="decimal" id="priceA" placeholder="例如：100" autocomplete="off" />
             </div>
             <div class="input-group">
               <label for="unitA">單位 (Unit)</label>
-              <input type="number" inputmode="decimal" id="unitA" placeholder="例如：500 (個/ml)" />
+              <input type="number" inputmode="decimal" id="unitA" placeholder="例如：500 (個/ml)" autocomplete="off" />
             </div>
             <div class="result-group">
               <label>單位價格</label>
@@ -41,14 +43,14 @@
           </div>
 
           <div class="card" id="cardB">
-            <h2>商品 B</h2>
+            <h2><span class="card-badge">B</span>商品 B</h2>
             <div class="input-group">
               <label for="priceB">價格 (Price)</label>
-              <input type="number" inputmode="decimal" id="priceB" placeholder="例如：150" />
+              <input type="number" inputmode="decimal" id="priceB" placeholder="例如：150" autocomplete="off" />
             </div>
             <div class="input-group">
               <label for="unitB">單位 (Unit)</label>
-              <input type="number" inputmode="decimal" id="unitB" placeholder="例如：800 (個/ml)" />
+              <input type="number" inputmode="decimal" id="unitB" placeholder="例如：800 (個/ml)" autocomplete="off" />
             </div>
             <div class="result-group">
               <label>單位價格</label>
