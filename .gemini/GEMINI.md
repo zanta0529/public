@@ -1,4 +1,4 @@
-# 🤖 Copilot 入口路由 (Entry Router)
+# 🤖 Gemini 入口路由 (Entry Router)
 
 本檔案只負責「入口人設」與「規範路由」，避免與 docs 規範重複。
 
@@ -8,7 +8,7 @@
 
 1. `docs/PROJECT_INSTRUCTIONS.md`（專案特定規範，最高優先）
 2. `docs/AI_INSTRUCTIONS.md`（跨任務通用規範）
-3. 本檔案 `/.github/copilot-instructions.md`（入口補充）
+3. 本檔案 `/.gemini/GEMINI.md`（入口補充）
 
 說明：
 
