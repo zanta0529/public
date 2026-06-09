@@ -1,84 +1,207 @@
 <!doctype html>
-<html lang="zh-TW">
+<html lang="zh-TW" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>圖片壓縮品質分析工具</title>
     <style>
-      /* 基礎樣式重置與變數 */
-      :root {
-        --primary: #2563eb;
-        --primary-hover: #1d4ed8;
-        --success: #16a34a;
-        --success-bg: #f0fdf4;
-        --success-border: #bbf7d0;
-        --warning: #ca8a04;
-        --warning-bg: #fefce8;
-        --warning-border: #fef08a;
-        --danger: #dc2626;
-        --danger-bg: #fef2f2;
-        --danger-border: #fecaca;
-        --text-main: #1f2937;
-        --text-sub: #4b5563;
-        --bg-gradient-start: #eff6ff;
-        --bg-gradient-end: #e0e7ff;
+      /* 引入現代 Google Fonts */
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+      /* CSS 變數定義 (石墨灰/莫蘭迪護眼深色與柔和淺色主題) */
+      :root[data-theme="light"] {
+        --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        --card-bg: rgba(255, 255, 255, 0.85);
+        --card-border: rgba(0, 0, 0, 0.08);
+        --text-main: #0f172a;
+        --text-sub: #475569;
+        
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --primary-bg: rgba(79, 70, 229, 0.08);
+        --primary-border: rgba(79, 70, 229, 0.2);
+        
+        --success: #10b981;
+        --success-border: rgba(16, 185, 129, 0.25);
+        --success-bg: rgba(16, 185, 129, 0.06);
+        
+        --warning: #f59e0b;
+        --warning-border: rgba(245, 158, 11, 0.25);
+        --warning-bg: rgba(245, 158, 11, 0.06);
+        
+        --danger: #ef4444;
+        --danger-border: rgba(239, 68, 68, 0.25);
+        --danger-bg: rgba(239, 68, 68, 0.06);
+        
+        --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+        --shadow-hover: 0 20px 40px -15px rgba(0, 0, 0, 0.12);
+        
+        --metrics-psnr-border: rgba(147, 51, 234, 0.2);
+        --metrics-ssim-border: rgba(79, 70, 229, 0.2);
+        --metrics-mse-border: rgba(219, 39, 119, 0.2);
+        
+        --metrics-psnr-bg: rgba(147, 51, 234, 0.03);
+        --metrics-ssim-bg: rgba(79, 70, 229, 0.03);
+        --metrics-mse-bg: rgba(219, 39, 119, 0.03);
       }
 
+      :root[data-theme="dark"] {
+        /* 使用莫蘭迪溫和藍灰 Slate 底色，護眼、防眩光，降低明暗對比 */
+        --bg-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        --card-bg: rgba(30, 41, 59, 0.7);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --text-main: #e2e8f0; /* 溫和粉白，非高對比刺眼純白 */
+        --text-sub: #94a3b8;
+        
+        --primary: #818cf8; /* 柔化藍紫主調 */
+        --primary-hover: #6366f1;
+        --primary-bg: rgba(129, 140, 248, 0.12);
+        --primary-border: rgba(129, 140, 248, 0.25);
+        
+        --success: #34d399; /* 柔和翠綠 */
+        --success-border: rgba(52, 211, 153, 0.2);
+        --success-bg: rgba(52, 211, 153, 0.06);
+        
+        --warning: #fbbf24; /* 柔和琥珀黃 */
+        --warning-border: rgba(251, 191, 36, 0.2);
+        --warning-bg: rgba(251, 191, 36, 0.06);
+        
+        --danger: #f87171; /* 柔和紅 */
+        --danger-border: rgba(248, 113, 113, 0.2);
+        --danger-bg: rgba(248, 113, 113, 0.06);
+        
+        --shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-hover: 0 25px 45px -15px rgba(129, 140, 248, 0.12);
+        
+        --metrics-psnr-border: rgba(192, 132, 252, 0.25);
+        --metrics-ssim-border: rgba(129, 140, 248, 0.25);
+        --metrics-mse-border: rgba(244, 114, 182, 0.25);
+        
+        --metrics-psnr-bg: rgba(192, 132, 252, 0.06);
+        --metrics-ssim-bg: rgba(129, 140, 248, 0.06);
+        --metrics-mse-bg: rgba(244, 114, 182, 0.06);
+      }
+
+      /* 重置與全域樣式 */
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
       }
 
       body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          "Helvetica Neue", Arial, sans-serif;
-        background: linear-gradient(
-          135deg,
-          var(--bg-gradient-start),
-          var(--bg-gradient-end)
-        );
+        font-family: 'Outfit', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--bg-gradient);
         min-height: 100vh;
-        padding: 20px;
+        padding: 1rem;
         color: var(--text-main);
         display: flex;
         justify-content: center;
         align-items: flex-start;
       }
 
+      /* 頁面容器 */
       .container {
         width: 100%;
-        max-width: 900px;
-        background: white;
-        border-radius: 12px;
-        box-shadow:
-          0 10px 15px -3px rgba(0, 0, 0, 0.1),
-          0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        padding: 2rem;
-        margin-top: 2rem;
+        max-width: 960px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 1.5rem;
+        box-shadow: var(--shadow);
+        padding: 1.5rem;
+        margin: 1rem 0;
+        position: relative;
       }
 
-      header {
-        margin-bottom: 2rem;
+      @media (min-width: 768px) {
+        body { padding: 2.5rem 1.5rem; }
+        .container { padding: 3rem; margin-top: 1.5rem; }
       }
-      h1 {
-        font-size: 1.875rem;
-        font-weight: 700;
+
+      /* 主題切換懸浮按鈕 */
+      .theme-toggle-btn {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 50%;
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
+        justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: var(--shadow);
+        z-index: 100;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+      }
+      .theme-toggle-btn:hover {
+        transform: rotate(30deg) scale(1.1);
+        border-color: var(--primary);
+      }
+      .theme-toggle-btn:active {
+        transform: rotate(30deg) scale(0.95);
+      }
+
+      /* 頁首樣式與行動端防折行優化 */
+      header {
+        margin-bottom: 2.5rem;
+        padding-right: 3.5rem; /* 避開主題按鈕 */
+      }
+      .title-container {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: nowrap; /* 強制圖示與標題排在同一行 */
+      }
+      .header-icon {
+        color: var(--primary);
+        flex-shrink: 0;
+      }
+      h1 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--text-main) 0%, var(--primary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.5px;
+        line-height: 1.3;
+        word-break: keep-all; /* 防止單個字折行 */
+      }
+      @media (min-width: 768px) {
+        h1 { font-size: 2.1rem; }
+      }
+      @media (max-width: 480px) {
+        h1 { font-size: 1.2rem; }
+        .theme-toggle-btn {
+          top: 1rem;
+          right: 1rem;
+          width: 2.5rem;
+          height: 2.5rem;
+        }
+        header {
+          padding-right: 3rem;
+          margin-bottom: 1.75rem;
+        }
       }
       .subtitle {
         color: var(--text-sub);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-top: 0.5rem;
       }
 
+      /* 拖曳上傳網格 */
       .upload-grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
+        gap: 1.25rem;
+        margin-bottom: 2rem;
       }
       @media (min-width: 768px) {
         .upload-grid {
@@ -86,181 +209,295 @@
         }
       }
 
+      /* 拖曳卡片設計 */
       .upload-box {
-        border: 2px dashed #d1d5db;
-        border-radius: 0.5rem;
-        padding: 1.5rem;
+        border: 2px dashed var(--card-border);
+        background: rgba(255, 255, 255, 0.01);
+        border-radius: 1.25rem;
+        padding: 2rem 1.5rem;
         text-align: center;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
-        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 250px;
       }
-
-      /* 新增：拖曳時的樣式 */
-      .upload-box.drag-over {
-        border-color: var(--primary);
-        background-color: #eff6ff;
-        transform: scale(1.02);
-      }
-
       .upload-box:hover {
+        border-color: var(--primary-border);
+        background: var(--primary-bg);
+        transform: translateY(-2px);
+      }
+      .upload-box.drag-over {
+        border-style: solid;
         border-color: var(--primary);
-        background-color: #f8fafc;
+        background: var(--primary-bg);
+        box-shadow: 0 0 25px rgba(99, 102, 241, 0.25);
+        transform: scale(1.02);
       }
       .upload-box input {
         display: none;
       }
+      
+      /* 上傳前佔位樣式 */
+      .upload-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+      }
       .upload-icon {
-        color: #9ca3af;
-        width: 48px;
-        height: 48px;
-        margin-bottom: 0.75rem;
+        color: var(--text-sub);
+        width: 44px;
+        height: 44px;
+        margin-bottom: 1rem;
+        transition: color 0.3s, transform 0.3s;
+      }
+      .upload-box:hover .upload-icon {
+        color: var(--primary);
+        transform: translateY(-4px);
       }
       .upload-text {
-        color: var(--primary);
+        font-size: 1.05rem;
+        color: var(--text-main);
         font-weight: 600;
         display: block;
         margin-bottom: 0.5rem;
       }
-      .file-name {
-        font-size: 0.875rem;
-        color: var(--success);
-        margin-top: 0.5rem;
-        word-break: break-all;
-        font-weight: 600;
+      .upload-hint {
+        font-size: 0.8rem;
+        color: var(--text-sub);
       }
 
-      .btn-analyze {
+      /* 圖片預覽容器 */
+      .preview-container {
         width: 100%;
-        background-color: var(--primary);
-        color: white;
-        padding: 0.75rem;
-        border: none;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: background-color 0.2s;
-      }
-      .btn-analyze:hover {
-        background-color: var(--primary-hover);
-      }
-      .btn-analyze:disabled {
-        background-color: #d1d5db;
-        cursor: not-allowed;
-      }
-
-      #resultsSection {
         display: none;
-        margin-top: 2rem;
-        animation: fadeIn 0.5s ease-out;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.4s ease-out;
+      }
+      .preview-img {
+        max-width: 100%;
+        max-height: 160px;
+        border-radius: 0.75rem;
+        object-fit: contain;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--card-border);
+        margin-bottom: 1rem;
       }
       @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
-      .rating-card {
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        border-width: 2px;
-        border-style: solid;
-        margin-bottom: 1.5rem;
+      /* 上傳成功之 Badge */
+      .file-name {
+        font-size: 0.8rem;
+        color: var(--success);
+        background: var(--success-bg);
+        border: 1px solid var(--success-border);
+        padding: 0.35rem 0.75rem;
+        border-radius: 2rem;
+        word-break: break-all;
+        font-weight: 500;
+        display: inline-block;
+        max-width: 90%;
+      }
+
+      /* 分析按鈕 */
+      .btn-analyze {
+        width: 100%;
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+        padding: 1.1rem;
+        border: none;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1.05rem;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+      .btn-analyze:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+        background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+      }
+      .btn-analyze:active {
+        transform: translateY(0);
+      }
+      .btn-analyze:disabled {
+        background: var(--card-border);
+        color: var(--text-sub);
+        box-shadow: none;
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* 分析結果區段 */
+      #resultsSection {
+        display: none;
+        margin-top: 3rem;
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* 評級卡片 */
+      .rating-card {
+        padding: 1.75rem;
+        border-radius: 1.25rem;
+        border: 1px solid var(--card-border);
+        margin-bottom: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        transition: all 0.4s ease;
+      }
+      @media (min-width: 480px) {
+        .rating-card {
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+        }
       }
       .rating-title {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
         font-weight: 600;
         color: var(--text-sub);
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
       }
       .rating-value {
+        font-size: 1.75rem;
+        font-weight: 700;
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 1.5rem;
-        font-weight: 700;
-      }
-      .size-stat {
-        text-align: right;
-      }
-      .size-percent {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--primary);
       }
 
+      /* 根據評級自適應色彩 */
+      .rating-card[data-quality="excellent"] {
+        background: linear-gradient(135deg, var(--success-bg) 0%, rgba(16, 185, 129, 0.01) 100%);
+        border-color: var(--success-border);
+        --quality-color: var(--success);
+      }
+      .rating-card[data-quality="good"] {
+        background: linear-gradient(135deg, var(--primary-bg) 0%, rgba(99, 102, 241, 0.01) 100%);
+        border-color: var(--primary-border);
+        --quality-color: var(--primary);
+      }
+      .rating-card[data-quality="acceptable"] {
+        background: linear-gradient(135deg, var(--warning-bg) 0%, rgba(245, 158, 11, 0.01) 100%);
+        border-color: var(--warning-border);
+        --quality-color: var(--warning);
+      }
+      .rating-card[data-quality="poor"] {
+        background: linear-gradient(135deg, var(--danger-bg) 0%, rgba(239, 68, 68, 0.01) 100%);
+        border-color: var(--danger-border);
+        --quality-color: var(--danger);
+      }
+      .rating-value-text {
+        color: var(--quality-color);
+      }
+
+      .size-stat {
+        text-align: left;
+      }
+      @media (min-width: 480px) {
+        .size-stat { text-align: right; }
+      }
+      .size-percent {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--text-main) 0%, var(--primary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      /* 指標網格 */
       .metrics-grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
+        gap: 1.25rem;
+        margin-bottom: 2rem;
       }
-      @media (min-width: 768px) {
+      @media (min-width: 600px) {
         .metrics-grid {
           grid-template-columns: 1fr 1fr 1fr;
         }
       }
 
+      /* 指標卡片 */
       .metric-card {
-        background: white;
-        border: 2px solid;
-        border-radius: 0.5rem;
-        padding: 1.25rem;
+        background: rgba(255, 255, 255, 0.01);
+        border: 1px solid;
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--shadow);
       }
       .metric-card.psnr {
-        border-color: #e9d5ff;
+        border-color: var(--metrics-psnr-border);
+        background: var(--metrics-psnr-bg);
+        --metric-color: #a855f7;
       }
       .metric-card.ssim {
-        border-color: #c7d2fe;
+        border-color: var(--metrics-ssim-border);
+        background: var(--metrics-ssim-bg);
+        --metric-color: var(--primary);
       }
       .metric-card.mse {
-        border-color: #fbcfe8;
+        border-color: var(--metrics-mse-border);
+        background: var(--metrics-mse-bg);
+        --metric-color: #ec4899;
       }
-
       .metric-label {
-        font-size: 0.875rem;
+        font-size: 0.85rem;
         font-weight: 600;
         color: var(--text-sub);
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
       }
       .metric-value {
-        font-size: 1.875rem;
+        font-size: 2rem;
         font-weight: 700;
+        color: var(--metric-color);
         margin-bottom: 0.5rem;
       }
-      .psnr .metric-value {
-        color: #9333ea;
-      }
-      .ssim .metric-value {
-        color: #4f46e5;
-      }
-      .mse .metric-value {
-        color: #db2777;
-      }
       .metric-desc {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         color: var(--text-sub);
+        font-weight: 500;
       }
 
+      /* 檔案資訊 */
       .info-section {
-        background-color: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.5rem;
-        padding: 1.25rem;
-        margin-bottom: 1.5rem;
+        background: rgba(255, 255, 255, 0.01);
+        border: 1px solid var(--card-border);
+        border-radius: 1.25rem;
+        padding: 1.75rem;
+        margin-bottom: 2rem;
       }
       .info-title {
+        font-size: 1.05rem;
         font-weight: 600;
-        margin-bottom: 0.75rem;
+        margin-bottom: 1.25rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -268,41 +505,93 @@
       .info-grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 1rem;
-        font-size: 0.875rem;
+        gap: 1.25rem;
+        font-size: 0.9rem;
       }
-      @media (min-width: 768px) {
+      @media (min-width: 540px) {
         .info-grid {
           grid-template-columns: 1fr 1fr;
         }
       }
-
-      .suggestion-box {
-        background-color: #eff6ff;
-        border-left: 4px solid var(--primary);
-        padding: 1.25rem;
-        border-radius: 0.25rem;
-        margin-bottom: 1.5rem;
+      .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px dashed var(--card-border);
       }
-      .suggestion-text {
-        font-size: 0.875rem;
-        color: #1e40af;
-        line-height: 1.5;
+      .info-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
       }
-
-      .glossary {
-        background-color: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.5rem;
-        padding: 1.25rem;
-      }
-      .glossary p {
-        font-size: 0.875rem;
-        margin-bottom: 0.5rem;
+      .info-label {
         color: var(--text-sub);
       }
-      .glossary strong {
+      .info-val {
+        font-weight: 600;
+      }
+
+      /* 使用建議框 */
+      .suggestion-box {
+        background: var(--primary-bg);
+        border-left: 4px solid var(--primary);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+      }
+      .suggestion-title {
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+      }
+      .suggestion-text {
+        font-size: 0.9rem;
         color: var(--text-main);
+        line-height: 1.6;
+        font-weight: 500;
+      }
+
+      /* 指標詞彙說明 */
+      .glossary {
+        border-top: 1px solid var(--card-border);
+        padding-top: 2rem;
+        margin-top: 2rem;
+      }
+      .glossary-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+      }
+      .glossary-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+      }
+      @media (min-width: 600px) {
+        .glossary-grid {
+          grid-template-columns: 1fr 1fr 1fr;
+        }
+      }
+      .glossary-item {
+        background: rgba(255, 255, 255, 0.005);
+        border: 1px solid var(--card-border);
+        padding: 1.25rem;
+        border-radius: 1rem;
+      }
+      .glossary-name {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .glossary-desc {
+        font-size: 0.825rem;
+        color: var(--text-sub);
+        line-height: 1.5;
       }
 
       svg {
@@ -311,74 +600,84 @@
     </style>
   </head>
   <body>
+    <!-- 主題切換按鈕 (純 SVG 設計，防字型空白問題) -->
+    <button id="themeToggleBtn" class="theme-toggle-btn" title="切換主題">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" id="themeIcon">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.364 17.636l-.707.707M16.243 16.243l.707.707M7.757 7.757l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path>
+      </svg>
+    </button>
+
     <div class="container">
       <header>
-        <h1>📊 圖片壓縮品質分析工具</h1>
-        <p class="subtitle">使用 PSNR、MSE、SSIM 指標量化分析圖片壓縮品質</p>
+        <div class="title-container">
+          <!-- 📊 (品質分析標題) 以 100% 相容的 SVG 向量圖取代 emoji -->
+          <svg class="header-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <h1>圖片壓縮品質分析工具</h1>
+        </div>
+        <p class="subtitle">採用學術級 MSE、PSNR、SSIM 指標量化對比分析圖片壓縮前後的畫質損失</p>
       </header>
 
+      <!-- 拖曳上傳區域 (新增圖片縮圖預覽功能，防空白) -->
       <div class="upload-grid">
         <label class="upload-box" id="dropZoneOriginal">
-          <svg
-            class="upload-icon"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-            ></path>
-          </svg>
-          <span class="upload-text">上傳原始圖片</span>
-          <span style="font-size: 0.8rem; color: #666"
-            >點擊或將圖片拖曳至此</span
-          >
+          <div class="upload-placeholder">
+            <svg class="upload-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+            <span class="upload-text">上傳原始圖片</span>
+            <span class="upload-hint">點擊或將圖片拖曳至此</span>
+          </div>
+          <div class="preview-container">
+            <img class="preview-img" alt="原始圖片預覽" />
+            <p id="originalName" class="file-name"></p>
+          </div>
           <input type="file" accept="image/*" id="originalInput" />
-          <p id="originalName" class="file-name"></p>
         </label>
 
         <label class="upload-box" id="dropZoneCompressed">
-          <svg
-            class="upload-icon"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-            ></path>
-          </svg>
-          <span class="upload-text">上傳壓縮圖片</span>
-          <span style="font-size: 0.8rem; color: #666"
-            >點擊或將圖片拖曳至此</span
-          >
+          <div class="upload-placeholder">
+            <svg class="upload-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+            <span class="upload-text">上傳壓縮圖片</span>
+            <span class="upload-hint">點擊或將圖片拖曳至此</span>
+          </div>
+          <div class="preview-container">
+            <img class="preview-img" alt="壓縮圖片預覽" />
+            <p id="compressedName" class="file-name"></p>
+          </div>
           <input type="file" accept="image/*" id="compressedInput" />
-          <p id="compressedName" class="file-name"></p>
         </label>
       </div>
 
-      <button id="analyzeBtn" class="btn-analyze" disabled>開始分析</button>
+      <!-- 分析按鈕 -->
+      <button id="analyzeBtn" class="btn-analyze" disabled>
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2"></path>
+        </svg>
+        <span>開始分析品質</span>
+      </button>
 
+      <!-- 分析結果區段 -->
       <div id="resultsSection">
         <div id="ratingCard" class="rating-card">
           <div>
-            <h3 class="rating-title">壓縮品質評級</h3>
-            <div class="rating-value" id="ratingValue"></div>
+            <h3 class="rating-title">畫質評級 Rating</h3>
+            <div class="rating-value" id="ratingValue">
+              <span class="rating-value-text">--</span>
+            </div>
           </div>
           <div class="size-stat">
-            <p style="font-size: 0.875rem; color: var(--text-sub)">
-              檔案大小減少
-            </p>
+            <p class="rating-title">體積減少 Size</p>
             <p class="size-percent" id="sizeReduction">0%</p>
           </div>
         </div>
 
+        <!-- 數據卡片網格 -->
         <div class="metrics-grid">
           <div class="metric-card psnr">
             <h4 class="metric-label">PSNR（峰值訊噪比）</h4>
@@ -397,82 +696,81 @@
           </div>
         </div>
 
+        <!-- 檔案資訊面板 -->
         <div class="info-section">
-          <h4 class="info-title">📁 檔案資訊</h4>
+          <h4 class="info-title">
+            <!-- 📁 (檔案資訊) SVG 圖示 -->
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right: 0.25rem;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+            </svg>
+            檔案細節資訊
+          </h4>
           <div class="info-grid">
             <div>
-              <p>
-                圖片尺寸：<span style="font-weight: 600" id="imgDimensions"
-                  >-- x -- px</span
-                >
-              </p>
-              <p>
-                原始檔案：<span style="font-weight: 600" id="infoOrigSize"
-                  >0 KB</span
-                >
-              </p>
+              <div class="info-item">
+                <span class="info-label">圖片尺寸 (Resolution)</span>
+                <span class="info-val" id="imgDimensions">-- x -- px</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">原始大小 (Original Size)</span>
+                <span class="info-val" id="infoOrigSize">0 KB</span>
+              </div>
             </div>
             <div>
-              <p>
-                壓縮後檔案：<span style="font-weight: 600" id="infoCompSize"
-                  >0 KB</span
-                >
-              </p>
-              <p>
-                節省空間：<span
-                  style="font-weight: 600; color: var(--success)"
-                  id="infoSaved"
-                  >0 KB</span
-                >
-              </p>
+              <div class="info-item">
+                <span class="info-label">壓縮大小 (Compressed Size)</span>
+                <span class="info-val" id="infoCompSize">0 KB</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">省下空間 (Space Saved)</span>
+                <span class="info-val" style="color: var(--success);" id="infoSaved">0 KB</span>
+              </div>
             </div>
           </div>
         </div>
 
+        <!-- 使用建議 -->
         <div class="suggestion-box">
-          <h4
-            style="
-              font-weight: 600;
-              color: #1e3a8a;
-              margin-bottom: 0.5rem;
-              display: flex;
-              align-items: center;
-              gap: 0.5rem;
-            "
-          >
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+          <h4 class="suggestion-title">
+            <!-- 💡 (建議) SVG 圖示 -->
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right: 0.25rem;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
             </svg>
-            使用建議
+            分析結論與優化建議
           </h4>
-          <div id="suggestionText" class="suggestion-text"></div>
+          <div id="suggestionText" class="suggestion-text">--</div>
         </div>
       </div>
 
+      <!-- 指標詞彙 glossary -->
       <div class="glossary">
-        <h4 style="font-weight: 600; margin-bottom: 0.75rem">📚 指標說明</h4>
-        <div>
-          <strong>PSNR：</strong>
-          <p>數值越高越好。40 dB 以上為優秀。</p>
-        </div>
-        <div>
-          <strong>SSIM：</strong>
-          <p>範圍 0-1。0.98 以上為極佳。</p>
-        </div>
-        <div>
-          <strong>MSE：</strong>
-          <p>數值越小越好。</p>
+        <h4 class="glossary-title">
+          <!-- 📚 (指標說明) SVG 圖示 -->
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.4rem;">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          影像分析指標說明
+        </h4>
+        <div class="glossary-grid">
+          <div class="glossary-item">
+            <div class="glossary-name" style="color: #a855f7;">
+              <span>PSNR (峰值訊噪比)</span>
+            </div>
+            <p class="glossary-desc">利用對數分貝 (dB) 表示兩圖像素差異。數值越高代表失真越少。大於 40 dB 在人眼視覺上即為無損等級。</p>
+          </div>
+          <div class="glossary-item">
+            <div class="glossary-name" style="color: var(--primary);">
+              <span>SSIM (結構相似性)</span>
+            </div>
+            <p class="glossary-desc">高度符合人類視覺特性的感知指標，範圍為 0 ~ 1。大於 0.98 代表影像結構、亮度和對比度幾乎完全相同。</p>
+          </div>
+          <div class="glossary-item">
+            <div class="glossary-name" style="color: #ec4899;">
+              <span>MSE (均方誤差)</span>
+            </div>
+            <p class="glossary-desc">計算兩圖對應像素通道數值差異的均方值。數值越低越接近原圖（若 MSE 為 0 代表兩圖完全相同）。</p>
+          </div>
         </div>
       </div>
     </div>
@@ -483,11 +781,37 @@
       let compressedFile = null;
       const analyzeBtn = document.getElementById("analyzeBtn");
 
-      // 統一處理檔案邏輯
-      function handleFileSelection(file, type, nameId) {
+      // 主題切換邏輯
+      const themeToggleBtn = document.getElementById("themeToggleBtn");
+      const currentTheme = localStorage.getItem("theme") || "dark"; // 預設深色
+      document.documentElement.setAttribute("data-theme", currentTheme);
+      updateThemeButtonIcon(currentTheme);
+
+      themeToggleBtn.addEventListener("click", () => {
+        const activeTheme = document.documentElement.getAttribute("data-theme");
+        const newTheme = activeTheme === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+        updateThemeButtonIcon(newTheme);
+      });
+
+      function updateThemeButtonIcon(theme) {
+        const themeIcon = document.getElementById("themeIcon");
+        if (theme === "dark") {
+          // 太陽圖標 SVG (切換為深色時按鈕顯示太陽)
+          themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.364 17.636l-.707.707M16.243 16.243l.707.707M7.757 7.757l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path>`;
+          themeToggleBtn.setAttribute("title", "切換為淺色模式");
+        } else {
+          // 月亮圖標 SVG (切換為淺色時按鈕顯示月亮)
+          themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>`;
+          themeToggleBtn.setAttribute("title", "切換為深色模式");
+        }
+      }
+
+      // 統一處理檔案選擇與樣式/圖片預覽反饋
+      function handleFileSelection(file, type, nameId, zoneId) {
         if (!file) return;
 
-        // 檢查是否為圖片
         if (!file.type.startsWith("image/")) {
           alert("請上傳圖片檔案");
           return;
@@ -496,27 +820,38 @@
         if (type === "original") originalFile = file;
         else compressedFile = file;
 
+        // 取得該上傳區與圖片預覽相關 DOM 元件
+        const zone = document.getElementById(zoneId);
+        const placeholder = zone.querySelector(".upload-placeholder");
+        const previewContainer = zone.querySelector(".preview-container");
+        const previewImg = zone.querySelector(".preview-img");
+
+        // 建立預覽圖並顯示
+        const objectUrl = URL.createObjectURL(file);
+        previewImg.src = objectUrl;
+        
+        // 隱藏 Icon 與文字，顯示圖片預覽
+        placeholder.style.display = "none";
+        previewContainer.style.display = "flex";
+
         const nameDisplay = document.getElementById(nameId);
         nameDisplay.textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
 
         if (originalFile && compressedFile) {
           analyzeBtn.disabled = false;
-          analyzeBtn.textContent = "開始分析";
+          analyzeBtn.querySelector("span").textContent = "開始分析品質";
         }
       }
 
-      // 設定拖曳與點擊上傳功能
+      // 拖曳與點擊設定
       function setupInteraction(zoneId, inputId, nameId, type) {
         const dropZone = document.getElementById(zoneId);
         const input = document.getElementById(inputId);
 
-        // 1. 處理點擊上傳 (Input change)
         input.addEventListener("change", (e) => {
-          handleFileSelection(e.target.files[0], type, nameId);
+          handleFileSelection(e.target.files[0], type, nameId, zoneId);
         });
 
-        // 2. 處理拖曳上傳 (Drag & Drop)
-        // 必須阻止以下事件的預設行為，瀏覽器才不會直接開圖
         ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
           dropZone.addEventListener(eventName, preventDefaults, false);
         });
@@ -526,51 +861,31 @@
           e.stopPropagation();
         }
 
-        // 視覺回饋：當檔案拖曳進來時 highlight
         ["dragenter", "dragover"].forEach((eventName) => {
-          dropZone.addEventListener(
-            eventName,
-            () => dropZone.classList.add("drag-over"),
-            false,
-          );
+          dropZone.addEventListener(eventName, () => dropZone.classList.add("drag-over"), false);
         });
 
         ["dragleave", "drop"].forEach((eventName) => {
-          dropZone.addEventListener(
-            eventName,
-            () => dropZone.classList.remove("drag-over"),
-            false,
-          );
+          dropZone.addEventListener(eventName, () => dropZone.classList.remove("drag-over"), false);
         });
 
-        // 處理放開檔案 (Drop)
         dropZone.addEventListener("drop", (e) => {
           const dt = e.dataTransfer;
           const files = dt.files;
-          handleFileSelection(files[0], type, nameId);
+          handleFileSelection(files[0], type, nameId, zoneId);
         });
       }
 
-      // 初始化兩個上傳區
-      setupInteraction(
-        "dropZoneOriginal",
-        "originalInput",
-        "originalName",
-        "original",
-      );
-      setupInteraction(
-        "dropZoneCompressed",
-        "compressedInput",
-        "compressedName",
-        "compressed",
-      );
+      // 初始化上傳框互動
+      setupInteraction("dropZoneOriginal", "originalInput", "originalName", "original");
+      setupInteraction("dropZoneCompressed", "compressedInput", "compressedName", "compressed");
 
-      // 核心分析按鈕
+      // 分析按鈕點擊事件
       analyzeBtn.addEventListener("click", async () => {
         if (!originalFile || !compressedFile) return;
 
         analyzeBtn.disabled = true;
-        analyzeBtn.textContent = "分析中...";
+        analyzeBtn.querySelector("span").textContent = "分析比對中...";
 
         try {
           await performAnalysis();
@@ -581,7 +896,7 @@
           alert(error.message);
         } finally {
           analyzeBtn.disabled = false;
-          analyzeBtn.textContent = "重新分析";
+          analyzeBtn.querySelector("span").textContent = "重新分析";
         }
       });
 
@@ -609,60 +924,62 @@
         return ctx.getImageData(0, 0, img.width, img.height);
       }
 
-      function calculateMSE(data1, data2) {
-        let sum = 0;
-        const pixels = data1.length / 4;
-        for (let i = 0; i < data1.length; i += 4) {
-          const r = data1[i] - data2[i];
-          const g = data1[i + 1] - data2[i + 1];
-          const b = data1[i + 2] - data2[i + 2];
-          sum += (r * r + g * g + b * b) / 3;
-        }
-        return sum / pixels;
-      }
+      // 使用 Inline Worker 的 Worker 程式碼字串
+      const workerCode = `
+        self.onmessage = function(e) {
+          const { data1, data2, width, height } = e.data;
+          const array1 = new Uint8ClampedArray(data1);
+          const array2 = new Uint8ClampedArray(data2);
+          const pixels = array1.length / 4;
 
-      function calculatePSNR(mse) {
-        if (mse === 0) return Infinity;
-        const maxPixelValue = 255;
-        return 20 * Math.log10(maxPixelValue / Math.sqrt(mse));
-      }
+          // 1. 計算 MSE
+          let sum = 0;
+          for (let i = 0; i < array1.length; i += 4) {
+            const r = array1[i] - array2[i];
+            const g = array1[i + 1] - array2[i + 1];
+            const b = array1[i + 2] - array2[i + 2];
+            sum += (r * r + g * g + b * b) / 3;
+          }
+          const mse = sum / pixels;
 
-      function calculateSSIM(data1, data2, width, height) {
-        const c1 = (0.01 * 255) ** 2;
-        const c2 = (0.03 * 255) ** 2;
+          // 2. 計算 PSNR
+          let psnr = Infinity;
+          if (mse > 0) {
+            psnr = 20 * Math.log10(255 / Math.sqrt(mse));
+          }
 
-        let meanX = 0,
-          meanY = 0,
-          varX = 0,
-          varY = 0,
-          covar = 0;
-        const pixels = width * height;
+          // 3. 計算 SSIM (使用標準 ITU-R BT.601 人眼光敏加權灰階公式)
+          const c1 = (0.01 * 255) ** 2;
+          const c2 = (0.03 * 255) ** 2;
 
-        for (let i = 0; i < data1.length; i += 4) {
-          const gray1 = (data1[i] + data1[i + 1] + data1[i + 2]) / 3;
-          const gray2 = (data2[i] + data2[i + 1] + data2[i + 2]) / 3;
-          meanX += gray1;
-          meanY += gray2;
-        }
-        meanX /= pixels;
-        meanY /= pixels;
+          let meanX = 0, meanY = 0;
+          for (let i = 0; i < array1.length; i += 4) {
+            const gray1 = 0.299 * array1[i] + 0.587 * array1[i + 1] + 0.114 * array1[i + 2];
+            const gray2 = 0.299 * array2[i] + 0.587 * array2[i + 1] + 0.114 * array2[i + 2];
+            meanX += gray1;
+            meanY += gray2;
+          }
+          meanX /= pixels;
+          meanY /= pixels;
 
-        for (let i = 0; i < data1.length; i += 4) {
-          const gray1 = (data1[i] + data1[i + 1] + data1[i + 2]) / 3;
-          const gray2 = (data2[i] + data2[i + 1] + data2[i + 2]) / 3;
-          varX += (gray1 - meanX) ** 2;
-          varY += (gray2 - meanY) ** 2;
-          covar += (gray1 - meanX) * (gray2 - meanY);
-        }
-        varX /= pixels;
-        varY /= pixels;
-        covar /= pixels;
+          let varX = 0, varY = 0, covar = 0;
+          for (let i = 0; i < array1.length; i += 4) {
+            const gray1 = 0.299 * array1[i] + 0.587 * array1[i + 1] + 0.114 * array1[i + 2];
+            const gray2 = 0.299 * array2[i] + 0.587 * array2[i + 1] + 0.114 * array2[i + 2];
+            varX += (gray1 - meanX) ** 2;
+            varY += (gray2 - meanY) ** 2;
+            covar += (gray1 - meanX) * (gray2 - meanY);
+          }
+          varX /= pixels;
+          varY /= pixels;
+          covar /= pixels;
 
-        return (
-          ((2 * meanX * meanY + c1) * (2 * covar + c2)) /
-          ((meanX ** 2 + meanY ** 2 + c1) * (varX + varY + c2))
-        );
-      }
+          const ssim = ((2 * meanX * meanY + c1) * (2 * covar + c2)) / 
+                       ((meanX ** 2 + meanY ** 2 + c1) * (varX + varY + c2));
+
+          self.postMessage({ mse, psnr, ssim });
+        };
+      `;
 
       async function performAnalysis() {
         const img1 = await loadImage(originalFile);
@@ -676,20 +993,43 @@
 
         const data1 = getImageData(img1).data;
         const data2 = getImageData(img2).data;
-
-        const mse = calculateMSE(data1, data2);
-        const psnr = calculatePSNR(mse);
-        const ssim = calculateSSIM(data1, data2, img1.width, img1.height);
+        const width = img1.width;
+        const height = img1.height;
         const reduction =
           ((originalFile.size - compressedFile.size) / originalFile.size) * 100;
 
-        updateUI(mse, psnr, ssim, reduction, img1.width, img1.height);
+        return new Promise((resolve, reject) => {
+          // 動態建立 Inline Worker Blob URL
+          const blob = new Blob([workerCode], { type: "application/javascript" });
+          const workerUrl = URL.createObjectURL(blob);
+          const worker = new Worker(workerUrl);
+
+          worker.onmessage = function(e) {
+            const { mse, psnr, ssim } = e.data;
+            updateUI(mse, psnr, ssim, reduction, width, height);
+            worker.terminate();
+            URL.revokeObjectURL(workerUrl);
+            resolve();
+          };
+
+          worker.onerror = function(err) {
+            worker.terminate();
+            URL.revokeObjectURL(workerUrl);
+            reject(new Error("分析計算時發生 Worker 錯誤。"));
+          };
+
+          // 複製並將 Uint8ClampedArray 的 buffer 轉換為 Transferable Objects 以進行零複製傳遞
+          // 因為這是比對後的消耗性資料，傳入後主執行緒中該 buffer 會被清空釋放，有助於降低大圖記憶體佔用
+          const buffer1 = data1.buffer.slice(0);
+          const buffer2 = data2.buffer.slice(0);
+          worker.postMessage({ data1: buffer1, data2: buffer2, width, height }, [buffer1, buffer2]);
+        });
       }
 
       function updateUI(mse, psnr, ssim, reduction, width, height) {
         document.getElementById("mseValue").textContent = mse.toFixed(2);
         document.getElementById("psnrValue").textContent =
-          psnr === Infinity ? "無限大" : psnr.toFixed(2) + " dB";
+          psnr === Infinity ? "無窮大" : psnr.toFixed(2) + " dB";
         document.getElementById("ssimValue").textContent = ssim.toFixed(4);
         document.getElementById("sizeReduction").textContent =
           reduction.toFixed(2) + "%";
@@ -708,42 +1048,39 @@
         let qualityText = "",
           suggestionHTML = "";
 
+        // 以高相容性、防空白方塊的 SVG 圖示作為結論前綴
+        const successSvg = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success); margin-right: 0.5rem; vertical-align: text-bottom; flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        const warningSvg = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" style="color: var(--warning); margin-right: 0.5rem; vertical-align: text-bottom; flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>`;
+        const dangerSvg = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" style="color: var(--danger); margin-right: 0.5rem; vertical-align: text-bottom; flex-shrink: 0;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+
         if (psnr >= 40 && ssim >= 0.98) {
           qualityText = "優秀 (Excellent)";
-          ratingCard.style.backgroundColor = "var(--success-bg)";
-          ratingCard.style.borderColor = "var(--success-border)";
-          ratingValue.style.color = "var(--success)";
-          suggestionHTML = `<p>✓ 適合所有裝置觀看，肉眼幾乎無差異。</p>`;
+          ratingCard.setAttribute("data-quality", "excellent");
+          suggestionHTML = `<div style="display: flex; align-items: flex-start; gap: 0.25rem;">${successSvg}<span><b>畫質達到極致「視覺無損」等級</b>。MSE 低且 PSNR 突破 40 dB，代表像素差異完全無法被肉眼察覺，適合要求苛刻的專業儲存用途。</span></div>`;
         } else if (psnr >= 35 && ssim >= 0.95) {
           qualityText = "良好 (Good)";
-          ratingCard.style.backgroundColor = "#eff6ff";
-          ratingCard.style.borderColor = "#bfdbfe";
-          ratingValue.style.color = "var(--primary)";
-          suggestionHTML = `<p>✓ 適合網路分享，細節保留良好。</p>`;
+          ratingCard.setAttribute("data-quality", "good");
+          suggestionHTML = `<div style="display: flex; align-items: flex-start; gap: 0.25rem;">${successSvg}<span><b>畫質良好且體積配置均衡</b>。結構相似性高，極為適合一般網路傳輸、社群分享，在大部分標準顯示器上表現完美。</span></div>`;
         } else if (psnr >= 30 && ssim >= 0.9) {
           qualityText = "可接受 (Acceptable)";
-          ratingCard.style.backgroundColor = "var(--warning-bg)";
-          ratingCard.style.borderColor = "var(--warning-border)";
-          ratingValue.style.color = "var(--warning)";
-          suggestionHTML = `<p>△ 適合手機小螢幕，大螢幕可見瑕疵。</p>`;
+          ratingCard.setAttribute("data-quality", "acceptable");
+          suggestionHTML = `<div style="display: flex; align-items: flex-start; gap: 0.25rem;">${warningSvg}<span><b>輕微失真，但具備空間節省優勢</b>。在手機小螢幕上觀看影響不大，但若放大或在高解析度螢幕下，文字邊緣可能會出現些微馬賽克或噪點。</span></div>`;
         } else {
           qualityText = "需改善 (Poor)";
-          ratingCard.style.backgroundColor = "var(--danger-bg)";
-          ratingCard.style.borderColor = "var(--danger-border)";
-          ratingValue.style.color = "var(--danger)";
-          suggestionHTML = `<p>✗ 品質損失明顯，建議調整壓縮參數。</p>`;
+          ratingCard.setAttribute("data-quality", "poor");
+          suggestionHTML = `<div style="display: flex; align-items: flex-start; gap: 0.25rem;">${dangerSvg}<span><b>畫質損失顯著，不建議使用此壓縮設定</b>。影像出現肉眼可見的模糊與色彩失真。建議提高壓縮品質 (Quality) 參數重新壓縮。</span></div>`;
         }
 
-        ratingValue.textContent = qualityText;
+        ratingValue.innerHTML = `<span class="rating-value-text">${qualityText}</span>`;
         document.getElementById("suggestionText").innerHTML = suggestionHTML;
 
-        // 更新描述
+        // 更新各指標個別評分描述 (移除了 emoji，避免在特定系統顯示為白色方塊)
         document.getElementById("psnrDesc").textContent =
-          psnr >= 40 ? "✓ 優秀" : psnr >= 30 ? "△ 可接受" : "✗ 較差";
+          psnr >= 40 ? "優秀 (視覺無損)" : psnr >= 30 ? "可接受 (有些微失真)" : "較差 (噪訊明顯)";
         document.getElementById("ssimDesc").textContent =
-          ssim >= 0.98 ? "✓ 優秀" : ssim >= 0.9 ? "△ 可接受" : "✗ 較差";
+          ssim >= 0.98 ? "優秀 (結構一致)" : ssim >= 0.9 ? "可接受 (邊緣稍模糊)" : "較差 (結構破壞)";
         document.getElementById("mseDesc").textContent =
-          mse <= 50 ? "✓ 優秀" : mse <= 200 ? "△ 可接受" : "✗ 差異大";
+          mse <= 50 ? "優秀 (物理色差極低)" : mse <= 200 ? "可接受 (有輕微色偏)" : "較差 (像素差值顯著)";
       }
     </script>
   </body>
