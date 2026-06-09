@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/public/media-compressor/sw.js', { scope: '/public/media-compressor/' })})}
