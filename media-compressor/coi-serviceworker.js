@@ -1,39 +1,13 @@
-/*! coi-serviceworker v0.1.7 | MIT License | https://github.com/gzgavin/coi-serviceworker */
-if (typeof window === 'undefined') {
-    self.addEventListener("install", () => self.skipWaiting());
-    self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
-    self.addEventListener("fetch", (event) => {
-        if (event.request.cache === "only-if-cached" && event.request.mode !== "same-origin") {
-            return;
-        }
-        event.respondWith(
-            fetch(event.request)
-                .then((response) => {
-                    if (response.status === 0) {
-                        return response;
-                    }
-                    const newHeaders = new Headers(response.headers);
-                    newHeaders.set("Cross-Origin-Embedder-Policy", "require-corp");
-                    newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
-                    return new Response(response.body, {
-                        status: response.status,
-                        statusText: response.statusText,
-                        headers: newHeaders,
-                    });
-                })
-                .catch((e) => console.error(e))
-        );
-    });
-} else {
-    // Main thread registration and auto-reload logic
+// coi-serviceworker.js - 只在主執行緒運行，負責註冊 PWA 的 sw.js 並在需要時重新整理網頁以套用 COI
+if (typeof window !== "undefined") {
     const coi = {
-        shouldRegister: () => true,
+        shouldRegister: () => !window.__TAURI__ && !window.__TAURI_INTERNALS__,
         shouldDeregister: () => false,
         doReload: () => window.location.reload(),
-        quiet: false
+        quiet: false,
     };
 
-    if (coi.shouldDeregister() && 'serviceWorker' in navigator) {
+    if (coi.shouldDeregister() && "serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations().then((registrations) => {
             for (let registration of registrations) {
                 registration.unregister();
@@ -41,19 +15,38 @@ if (typeof window === 'undefined') {
         });
     }
 
-    if (coi.shouldRegister() && 'serviceWorker' in navigator && !window.crossOriginIsolated) {
-        navigator.serviceWorker.register(window.document.currentScript.src).then((registration) => {
-            if (!coi.quiet) console.log("COI Service Worker registered", registration.scope);
+    if (coi.shouldRegister() && "serviceWorker" in navigator) {
+        // 透過 currentScript 的 src 計算出 sw.js 的絕對路徑，以適應不同的 base path 部署
+        const swUrl = window.document.currentScript.src.replace("coi-serviceworker.js", "sw.js");
 
-            // Reload the page once active to let headers take effect
-            registration.addEventListener("updatefound", () => {
-                coi.doReload();
+        navigator.serviceWorker
+            .register(swUrl)
+            .then((registration) => {
+                if (!coi.quiet) console.log("PWA & COI Service Worker registered", registration.scope);
+
+                // 只有在 !window.crossOriginIsolated 時才需要重載網頁以套用 headers
+                if (!window.crossOriginIsolated) {
+                    registration.addEventListener("updatefound", () => {
+                        const newWorker = registration.installing;
+                        if (newWorker) {
+                            newWorker.addEventListener("statechange", () => {
+                                if (newWorker.state === "activated") {
+                                    if (!coi.quiet) console.log("Service Worker activated, reloading page for COI...");
+                                    coi.doReload();
+                                }
+                            });
+                        }
+                    });
+
+                    if (navigator.serviceWorker.controller) {
+                        if (!coi.quiet)
+                            console.log("Service Worker controller already exists, reloading page for COI...");
+                        coi.doReload();
+                    }
+                }
+            })
+            .catch((err) => {
+                if (!coi.quiet) console.error("Service Worker registration failed", err);
             });
-            if (navigator.serviceWorker.controller) {
-                coi.doReload();
-            }
-        }).catch((err) => {
-            if (!coi.quiet) console.error("COI Service Worker registration failed", err);
-        });
     }
 }

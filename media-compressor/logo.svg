@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    
+    <!-- Neon Cyan to Blue Gradient -->
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="50%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+
+    <!-- Glossy Overlay Gradient -->
+    <linearGradient id="glossGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.5"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#06b6d4" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Base Rounded Rectangle for App Icon -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" stroke="#1e293b" stroke-width="6"/>
+
+  <!-- Icon Design Group with shadow -->
+  <g filter="url(#shadow)">
+    <!-- Outer Compressing Frame brackets -->
+    <path d="M 120 180 L 120 120 L 180 120" stroke="url(#neonGrad)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M 392 180 L 392 120 L 332 120" stroke="url(#neonGrad)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M 120 332 L 120 392 L 180 392" stroke="url(#neonGrad)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M 392 332 L 392 392 L 332 392" stroke="url(#neonGrad)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+    <!-- Central Squeezed Media Symbol (Image frame & Video Film strip hybrid) -->
+    <rect x="176" y="176" width="160" height="160" rx="28" fill="#1e293b" stroke="url(#neonGrad)" stroke-width="10"/>
+
+    <!-- Image mountain icon inside frame -->
+    <path d="M 196 290 L 240 230 L 270 265 L 300 220 L 320 290 Z" fill="url(#neonGrad)" opacity="0.85"/>
+    <circle cx="280" cy="210" r="14" fill="#06b6d4"/>
+
+    <!-- Compression Arrow indicators (Inward Arrows) -->
+    <!-- Top Arrow -->
+    <path d="M 256 65 L 256 100 M 244 88 L 256 100 L 268 88" stroke="#10b981" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- Bottom Arrow -->
+    <path d="M 256 447 L 256 412 M 244 424 L 256 412 L 268 424" stroke="#10b981" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- Left Arrow -->
+    <path d="M 65 256 L 100 256 M 88 244 L 100 256 L 88 268" stroke="#3b82f6" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- Right Arrow -->
+    <path d="M 447 256 L 412 256 M 424 244 L 412 256 L 424 268" stroke="#3b82f6" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <!-- Modern Glassmorphism gloss effect -->
+  <path d="M 6 150 Q 150 250 506 150 L 506 6 A 106 106 0 0 0 406 -94 L 106 -94 A 106 106 0 0 0 6 6 Z" fill="url(#glossGrad)" transform="translate(0, 0)" opacity="0.5"/>
+</svg>
