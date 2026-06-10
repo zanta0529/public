@@ -3,383 +3,384 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Encipher v4 - JWE 進階加密、解密器</title>
+    <title>Encipher v4.2 - JWE 進階加密、解密器</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="icon" href="/public/encipher/logo.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/public/encipher/logo.svg" />
     <script src="/public/encipher/argon2-bundled.min.js"></script>
-    <script type="module" crossorigin src="/public/encipher/assets/index-BjM0hxKo.js"></script>
-    <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-4QC6MV89.css">
+    <script type="module" crossorigin src="/public/encipher/assets/index-BUOEpnMK.js"></script>
+    <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-BPcJl2s1.css">
   <link rel="manifest" href="/public/encipher/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/public/encipher/registerSW.js"></script></head>
   <body>
+    <!-- 背景裝飾光暈 -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
 
+
+    <!-- 主題切換按鈕 -->
     <button id="themeToggleBtn" class="fab" title="切換主題">🌙</button>
 
     <div class="container">
-      <header>
-        <h1>進階加密、解密器 v4</h1>
+      <header class="app-header">
+        <div class="logo-area">
+          <span class="logo-icon">🔐</span>
+          <h1>Encipher <span class="badge">v4.2</span></h1>
+        </div>
+        <p class="subtitle">基於 AES-256-GCM (JWE) 標準的純客戶端本機加解密工具</p>
       </header>
 
+      <!-- 技術規格與關於本工具 -->
       <div class="accordion">
         <div class="accordion-item">
-          <button class="accordion-header" aria-expanded="false">ℹ️ 關於本工具 / v4.2 技術規格</button>
+          <button class="accordion-header" aria-expanded="false">
+            <span class="header-title">ℹ️ 關於本工具 & 技術規格</span>
+          </button>
           <div class="accordion-content" aria-hidden="true">
-            <h4>工具用途</h4>
-            <p>
-              這是一個純客戶端 (Client-side)
-              的加密與解密工具，所有運算都在您的瀏覽器本機完成，確保資料隱私。它可用於加密敏感文字或小型檔案，產生一個符合業界
-              JWE (JSON Web Encryption) 標準、可安全傳輸的密文。
-            </p>
+            <div class="info-grid">
+              <div class="info-card">
+                <h4>🛠️ 工具用途</h4>
+                <p>
+                  這是一個純客戶端 (Client-side)
+                  的加密與解密工具，所有運算都在您的瀏覽器本機完成，資料絕不上傳，確保隱私安全。支援加密敏感文字或小型檔案，產生符合
+                  <strong>JWE (JSON Web Encryption)</strong> 標準的密文。
+                </p>
+              </div>
+              <div class="info-card">
+                <h4>⚠️ 版本相容性</h4>
+                <p>
+                  此版本採用 <strong>JWE Compact Serialization</strong> 格式。與 v3.0 之前的版本不相容。在 JWE Protected
+                  Header 中新增了 <code>app: "encipher"</code> 與 <code>v: 4</code> 參數以識別密文來源。
+                </p>
+              </div>
+            </div>
 
-            <h4>版本 v4.2 說明</h4>
-            <p style="color: var(--warning-color)">
-              <strong>重要：</strong>此版本採用了業界標準的
-              <strong>JWE Compact Serialization</strong> 格式，旨在提供更好的互通性。它與 v3.0 之前的任何版本均不相容。
-            </p>
-            <p>
-              <strong>v4.2 更新：</strong>在 JWE Protected Header 中新增了 <code>app: "encipher"</code> 與
-              <code>v: 4</code> 兩個自訂參數，用於標示密文來源。
-            </p>
-
-            <h4>技術規格 (v4.2)</h4>
-            <ul>
-              <li><strong>加密格式：</strong> 最終輸出為一個 <strong>JWE Compact Serialization</strong> 字串。</li>
+            <h4>⚙️ 技術規格 (v4.2)</h4>
+            <ul class="specs-list">
+              <li><strong>加密格式：</strong> JWE Compact Serialization (符合 RFC 7516 標準)。</li>
               <li>
-                <strong>金鑰管理 (`alg`)：</strong> 支援兩種模式：
+                <strong>金鑰管理 (alg)：</strong>
                 <ul>
-                  <li>
-                    <code>dir</code> (Direct Encryption): 搭配自訂的 <code>Argon2id</code> KDF
-                    參數，為**最高安全模式**。
-                  </li>
-                  <li><code>PBES2-HS512+A256KW</code>: 遵循 RFC 7518 標準，為**最高相容模式**。</li>
+                  <li><code>dir</code> (Direct Encryption) + <code>Argon2id</code> KDF (最高安全，預設)。</li>
+                  <li><code>PBES2-HS512+A256KW</code> (符合 RFC 7518 標準，最高相容)。</li>
                 </ul>
               </li>
-              <li><strong>對稱加密 (`enc`)：</strong> 固定使用 <code>A256GCM</code> (AES-256-GCM)。</li>
+              <li><strong>對稱加密 (enc)：</strong> 固定採用 <code>A256GCM</code> (AES-256-GCM)。</li>
               <li>
-                <strong>標頭參數 (Header)：</strong> 除了標準 JWE 參數外，額外包含
-                <code>app: "encipher"</code> (應用程式識別) 和 <code>v: 4</code> (主版本號)。這些參數會被包含在 AAD
-                (附加驗證資料) 的計算中。
+                <strong>額外標頭：</strong> <code>app: "encipher"</code> 與 <code>v: 4</code> (作為 AAD 驗證資料)。
               </li>
             </ul>
 
-            <h4>給開發者的話：實作相容的 v4.2 解密器</h4>
-            <p>
-              <strong>首選作法：</strong><br />
-              我們強烈建議您使用一個成熟的 <strong>JOSE / JWE 函式庫</strong> (例如 Node.js 的 `jose`) 來處理解密。
-            </p>
-            <ol>
-              <li>
-                首先解析 JWE Protected Header 以取得 <code>alg</code> 參數 (以及可選的 <code>app</code>,
-                <code>v</code> 參數)。
-              </li>
-              <li>
-                <strong>若 <code>alg</code> 為 <code>"dir"</code></strong
-                >:
-                <ul>
+            <details class="dev-details">
+              <summary>💻 給開發者的話：實作相容的解密器</summary>
+              <div class="dev-details-content">
+                <p>我們建議使用成熟的 JOSE / JWE 函式庫 (例如 Node.js 的 <code>jose</code>) 進行解密：</p>
+                <ol>
+                  <li>解析 JWE Protected Header 取得 <code>alg</code>。</li>
                   <li>
-                    從 Header 讀取 <code>kdf</code> (應為 "Argon2id"), <code>salt</code>, <code>t</code>,
-                    <code>m</code>, <code>p</code> 參數。
+                    <strong>若為 <code>dir</code></strong
+                    >：讀取 <code>kdf</code> ("Argon2id"), <code>salt</code>, <code>t</code>, <code>m</code>,
+                    <code>p</code> 參數，並使用 Argon2id 衍生出 32-byte 金鑰，搭配 Header 作為 AAD 進行解密驗證。
                   </li>
-                  <li>使用 Argon2id 重現出 32 位元組金鑰。</li>
                   <li>
-                    將**金鑰**傳入解密函式。解密函式**必須**使用 JWE 字串第一部分 (Base64URL 編碼的 Header) 作為 AAD
-                    進行驗證。
+                    <strong>若為 <code>PBES2-HS512+A256KW</code></strong
+                    >：直接將密碼傳入 JWE 解密函式，函式庫會自動處理金鑰解包。
                   </li>
-                </ul>
-              </li>
-              <li>
-                <strong>若 <code>alg</code> 為 <code>"PBES2-HS512+A256KW"</code></strong
-                >:
-                <ul>
-                  <li>
-                    直接將**原始密碼**傳入解密函式，並在選項中明確允許此演算法。函式庫會自動處理金鑰解包、AAD
-                    驗證等所有流程。
-                  </li>
-                  <li>您不需要手動處理 Header 中的 <code>p2s</code> 或 <code>p2c</code> 參數。</li>
-                </ul>
-              </li>
-              <li>
-                <strong>處理自訂參數 (<code>app</code>, <code>v</code>)</strong>:
-                您的解密器**應該**忽略無法識別的標頭參數 (包括 <code>app</code> 和 <code>v</code>)，這是 JWE
-                標準的要求。您**可以**選擇性地讀取它們以獲取額外資訊，但**絕不能**因為它們的存在而拒絕解密。
-              </li>
-              <li>
-                <strong>向下相容性</strong>: 您的解密器**必須**能成功解密缺少 <code>app</code> 與 <code>v</code> 參數的
-                v4.0/v4.1 JWE 密文。
-              </li>
-            </ol>
-
-            <h4>標準測試向量 (Test Vector)</h4>
-            <p>為了協助第三方開發者驗證其解密實作的正確性，特提供以下測試案例。</p>
-            <pre><code style="font-family: monospace; white-space: pre-wrap; word-break: break-all;">
-// ----------
-// 測試案例 1: Argon2id (最高安全模式, v4.2 - 含 app/v)
-// ----------
-
-// -- 輸入 --
-明文 (Plaintext): "This is a JWE test vector with app/v headers."
-密碼短語 (Passphrase): "a_very_secure_password_123!@#"
-
-// -- KDF 參數 --
-Salt (Base64URL): AAAAAAAAAAAAAAAAAAAAAA  (16 zero bytes)
-Argon2 記憶體 (KiB): 65536
-Argon2 迭代次數: 4
-Argon2 平行度: 4
-
-// -- JWE 參數 --
-IV (Base64URL): AAAAAAAAAAAAAAAAAA (12 zero bytes)
-
-// -- 中間產物 (必須一致) --
-派生出的金鑰 (Hex):
-f3987f6dd2f02a632276e0a490f402f327916962077180556209cf556149021a
-
-// -- 最終輸出 (JWE Compact Serialization) --
-eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2RmIjoiQXJnb24yaWQiLCJzYWx0IjoiQUFBQUFBQUFBQUFBQUFBQUFBQUEiLCJ0Ijo0LCJtIjo2NTUzNiwicCI6NCwiYXBwIjoiZW5jaXBoZXIiLCJ2Ijo0fQ..AAAAAAAAAAAAAAAAAA.bN7aXI3R8l3oUa-P7U_Nrqy9HMfFwVps4k5XIFqKiyI9n3L_-p4e68p1Q_8JKA.2Fv-qjgy0C13p930z9v-fQ
-
-// ----------
-// 測試案例 2: PBES2 (最高相容模式, v4.2 - 含 app/v)
-// ----------
-
-// -- 輸入 --
-明文 (Plaintext): "This is a test for PBES2 compatibility with app/v headers."
-密碼短語 (Passphrase): "standard-compatible-password"
-
-// -- JWE 參數 (由 jose 函式庫自動產生) --
-p2s (Salt, Base64URL): pbjh5yW-bCa52erToj-2_A
-p2c (Count, Iterations): 4096
-IV (Base64URL): cN_t-stxEAx2jY4I
-
-// -- 最終輸出 (JWE Compact Serialization) --
-eyJhbGciOiJQQkVTMi1IUzUxMitBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIiwicDJjIjo0MDk2LCJwMnMiOiJwYmo1eVctYkNBNTJlclRvai0yX0EiLCJhcHAiOiJlbmNpcGhlciIsInYiOjR9.wRqpYyR01c8QyD6_R_lS_7e_U6D2Y-P4Z_N1-U6D_Q.cN_t-stxEAx2jY4I.sZ2Rj6tF-N_L5fJ-jS8K_tL-L-J3E_4n5Y-p9s-R.D2Zg-P4-Z-n1-U6D_Q
-            </code></pre>
+                </ol>
+              </div>
+            </details>
           </div>
         </div>
       </div>
 
-      <main>
-        <section class="card">
-          <h2>🔐 加解密工具</h2>
+      <main class="main-content">
+        <!-- 主要加解密卡片 -->
+        <section class="card main-card">
+          <div class="card-header-bar">
+            <h2>🛡️ 資料安全加解密</h2>
+          </div>
           <div class="card-content">
-            <div id="appModeSelector" class="option-group">
-              <div class="option selected" data-app-mode="text">📃 純文字模式</div>
-              <div class="option" data-app-mode="file">💾 檔案模式</div>
+            <!-- 模式切換：文字/檔案 -->
+            <div id="appModeSelector" class="option-group mode-selector-group">
+              <div class="option selected" data-app-mode="text"><span class="icon">📃</span>純文字模式</div>
+              <div class="option" data-app-mode="file"><span class="icon">💾</span>檔案模式</div>
             </div>
 
+            <!-- 純文字模式區塊 -->
             <div id="text-mode-section">
-              <div id="modeSelector" class="option-group">
-                <div class="option selected" data-mode="encrypt">🔒 加密模式</div>
-                <div class="option" data-mode="decrypt">🔓 解密模式</div>
+              <!-- 加解密切換 -->
+              <div id="modeSelector" class="option-group sub-selector-group">
+                <div class="option selected" data-mode="encrypt">🔒 加密</div>
+                <div class="option" data-mode="decrypt">🔓 解密</div>
               </div>
+
+              <!-- 加密模式 -->
               <div id="encrypt-section">
                 <div class="form-group">
                   <label for="mnemonic">明文 (Plain-Text)</label>
-                  <textarea id="mnemonic" rows="4" placeholder="在此輸入要加密的文字"></textarea>
-                </div>
-                <div class="form-group">
-                  <label>加密演算法</label>
-                  <div id="algoSelectionGroup" class="option-group">
-                    <div class="option selected" data-value="A256GCM" title="AES-256-GCM (JWE Standard)">
-                      AES-256-GCM (JWE)
-                    </div>
-                    <div
-                      class="option"
-                      data-value="ChaCha20-Poly1305"
-                      title="ChaCha20-Poly1305 (未來支援)"
-                      style="opacity: 0.5; cursor: not-allowed"
-                    >
-                      ChaCha20-Poly1305
-                    </div>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label>金鑰管理模式</label>
-                  <div id="kdfSelectionGroup" class="option-group">
-                    <div class="option selected" data-value="Argon2id" title="最高安全模式 (建議)">Argon2id</div>
-                    <div class="option" data-value="PBES2-HS512+A256KW" title="最高相容模式 (符合 RFC 7518)">PBES2</div>
-                  </div>
-                </div>
-                <div class="kdf-params-section" data-kdf="Argon2id">
-                  <div class="message-block hint-note" style="margin-top: 0; margin-bottom: 1rem">
-                    ℹ️ Argon2 參數會影響效能與安全性。記憶體越大、迭代次數越多，安全性越高但速度越慢。
-                  </div>
-                  <div class="param-grid">
-                    <div class="form-group">
-                      <label for="argon2-memory">記憶體 (MB)</label>
-                      <input type="number" id="argon2-memory" value="512" min="256" step="16" />
-                    </div>
-                    <div class="form-group">
-                      <label for="argon2-iterations">迭代次數</label>
-                      <input type="number" id="argon2-iterations" value="4" min="4" step="1" />
-                    </div>
-                    <div class="form-group">
-                      <label for="argon2-parallelism">平行度</label>
-                      <input type="number" id="argon2-parallelism" value="4" min="4" step="1" />
-                    </div>
-                  </div>
-                  <div class="button-group" style="margin-bottom: 1.5rem">
-                    <button id="benchmarkBtn" class="secondary" style="font-size: 0.9em; padding: 0.5rem 1rem">
-                      ⚡️ 產生建議參數
-                    </button>
-                    <span id="benchmarkStatus"></span>
-                  </div>
+                  <textarea id="mnemonic" rows="4" placeholder="在此輸入您要加密的機密文字..."></textarea>
                 </div>
 
-                <div class="kdf-params-section" data-kdf="PBES2-HS512+A256KW" hidden>
-                  <div class="message-block hint-note" style="margin-top: 0; margin-bottom: 1rem">
-                    ℹ️ PBKDF2 的核心安全參數是迭代次數。越高的次數能越有效抵抗暴力破解，但也會消耗更多運算時間。
-                  </div>
-                  <div class="param-grid">
+                <!-- 演算法與金鑰管理設定 (放在 Details 中作為進階設定) -->
+                <details class="advanced-settings-details">
+                  <summary class="advanced-summary">⚙️ 進階演算法與 KDF 參數設定</summary>
+                  <div class="advanced-settings-content">
                     <div class="form-group">
-                      <label for="pbkdf2-iterations">迭代次數 (p2c)</label>
-                      <input
-                        type="number"
-                        id="pbkdf2-iterations"
-                        value="1000000"
-                        min="600000"
-                        max="10000000"
-                        step="100000"
-                      />
+                      <label>加密演算法</label>
+                      <div id="algoSelectionGroup" class="option-group grid-options">
+                        <div class="option selected" data-value="A256GCM" title="AES-256-GCM (JWE Standard)">
+                          AES-256-GCM
+                        </div>
+                        <div
+                          class="option disabled-option"
+                          data-value="ChaCha20-Poly1305"
+                          title="未來支援"
+                          style="opacity: 0.5; cursor: not-allowed"
+                        >
+                          ChaCha20-Poly1305
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label>金鑰管理模式 (KDF)</label>
+                      <div id="kdfSelectionGroup" class="option-group grid-options">
+                        <div class="option selected" data-value="Argon2id" title="最高安全模式 (建議)">
+                          Argon2id (高安全)
+                        </div>
+                        <div class="option" data-value="PBES2-HS512+A256KW" title="最高相容模式 (符合 RFC 7518)">
+                          PBES2 (高相容)
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Argon2id 參數 -->
+                    <div class="kdf-params-section" data-kdf="Argon2id">
+                      <div class="message-block hint-note">ℹ️ Argon2 參數越安全，所需的計算時間就越長。</div>
+                      <div class="param-grid">
+                        <div class="form-group">
+                          <label for="argon2-memory">記憶體 (MB)</label>
+                          <input type="number" id="argon2-memory" value="512" min="256" step="16" />
+                        </div>
+                        <div class="form-group">
+                          <label for="argon2-iterations">迭代次數</label>
+                          <input type="number" id="argon2-iterations" value="4" min="4" step="1" />
+                        </div>
+                        <div class="form-group">
+                          <label for="argon2-parallelism">平行度</label>
+                          <input type="number" id="argon2-parallelism" value="4" min="4" step="1" />
+                        </div>
+                      </div>
+                      <div class="button-group align-center" style="margin-top: 1rem">
+                        <button id="benchmarkBtn" class="secondary btn-sm">⚡️ 測試本機效能並產生建議參數</button>
+                        <span id="benchmarkStatus"></span>
+                      </div>
+                    </div>
+
+                    <!-- PBES2 參數 -->
+                    <div class="kdf-params-section" data-kdf="PBES2-HS512+A256KW" hidden>
+                      <div class="message-block hint-note">ℹ️ PBKDF2 迭代次數越高，越能抵禦暴力破解。</div>
+                      <div class="param-grid">
+                        <div class="form-group">
+                          <label for="pbkdf2-iterations">迭代次數 (p2c)</label>
+                          <input
+                            type="number"
+                            id="pbkdf2-iterations"
+                            value="1000000"
+                            min="600000"
+                            max="10000000"
+                            step="100000"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </details>
 
-                <div class="form-group">
+                <div class="form-group passphrase-group">
                   <label for="passphrase-encrypt">密碼短語 (Passphrase)</label>
                   <div class="password-wrapper">
-                    <input id="passphrase-encrypt" type="password" placeholder="輸入密碼短語" />
+                    <input id="passphrase-encrypt" type="password" placeholder="請輸入高強度的密碼短語..." />
                     <span class="toggle-password-icon" data-for="passphrase-encrypt" title="顯示/隱藏密碼"></span>
                   </div>
-                  <div class="password-strength-meter">
-                    <div id="password-strength-bar-encrypt" class="password-strength-meter-bar"></div>
+                  <div class="password-strength-container">
+                    <div class="password-strength-meter">
+                      <div id="password-strength-bar-encrypt" class="password-strength-meter-bar"></div>
+                    </div>
+                    <div id="password-strength-text-encrypt" class="password-strength-meter-text"></div>
                   </div>
-                  <div id="password-strength-text-encrypt" class="password-strength-meter-text"></div>
                 </div>
-                <div class="form-group">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem">
-                    <input type="checkbox" id="self-verify-checkbox" style="width: auto" checked />
-                    <label for="self-verify-checkbox" style="margin-bottom: 0; font-weight: normal"
-                      >加密後自動驗證 (推薦)</label
-                    >
+
+                <div class="form-group check-btn-group">
+                  <div class="checkbox-container">
+                    <input type="checkbox" id="self-verify-checkbox" checked />
+                    <label for="self-verify-checkbox">加密後自動解密驗證 (強烈推薦)</label>
                   </div>
-                  <button id="encryptBtn">🔒 執行加密</button>
+                  <button id="encryptBtn" class="primary-btn btn-lg">🔒 執行安全加密</button>
                 </div>
               </div>
+
+              <!-- 解密模式 -->
               <div id="decrypt-section" hidden>
                 <div class="form-group">
                   <label for="ciphertext-input">JWE 密文</label>
                   <textarea
                     id="ciphertext-input"
                     rows="6"
-                    placeholder="在此貼上 JWE Compact Serialization 格式的密文"
+                    placeholder="在此貼上 JWE 格式的密文字串 (例如 eyJhbGciOi...)"
                   ></textarea>
                 </div>
-                <div class="form-group">
-                  <button id="parseBtn" class="secondary">🔍 解析參數 (可選)</button>
+                <div class="form-group text-right">
+                  <button id="parseBtn" class="secondary btn-sm">🔍 解析密文標頭參數 (可選)</button>
                 </div>
-                <div id="params-display-area" hidden></div>
+                <div id="params-display-area" class="glass-panel" hidden></div>
                 <div class="form-group">
                   <label for="passphrase-decrypt">密碼短語 (Passphrase)</label>
                   <div class="password-wrapper">
-                    <input id="passphrase-decrypt" type="password" placeholder="輸入解密用的密碼短語" />
+                    <input id="passphrase-decrypt" type="password" placeholder="請輸入該密文對應的密碼短語..." />
                     <span class="toggle-password-icon" data-for="passphrase-decrypt" title="顯示/隱藏密碼"></span>
                   </div>
                 </div>
-                <div class="form-group"><button id="decryptBtn">🔓 開始解密</button></div>
+                <div class="form-group" style="margin-top: 1.5rem">
+                  <button id="decryptBtn" class="primary-btn btn-lg">🔓 執行解密</button>
+                </div>
               </div>
             </div>
 
+            <!-- 檔案模式區塊 -->
             <div id="file-mode-section" hidden>
-              <div class="message-block hint-note" style="margin-top: 0">
-                ℹ️ 檔案加解密流程全程在您的瀏覽器本機完成，您的檔案不會被上傳到任何伺服器。<br />
-                ⚠️ <strong>請留意檔案大小限制為 10 MB 以下。</strong>
+              <div class="message-block info-note">
+                ℹ️ 檔案加解密皆在<strong>瀏覽器本機</strong>完成，您的隱私資料絕對不會外流。<br />
+                ⚠️ 由於瀏覽器限制，<strong>單次加密檔案大小限制為 10 MB 以下</strong>。
               </div>
-              <div id="file-encrypt-section" class="form-group" style="margin-top: 1rem">
-                <label>檔案加密</label>
+
+              <!-- 檔案加密 -->
+              <div id="file-encrypt-section" class="form-group file-action-box" style="margin-top: 1.5rem">
+                <h3>🔒 檔案加密</h3>
                 <div class="file-input-wrapper">
-                  <span>點擊此處選擇檔案，或將檔案拖曳至此</span>
+                  <span class="file-input-icon">📤</span>
+                  <span class="file-input-text">點擊此處選擇檔案，或將檔案拖曳至此</span>
                   <input type="file" id="file-encrypt-input" multiple />
                 </div>
-                <ul id="file-encrypt-list" class="file-info" hidden></ul>
-                <div class="form-group" style="margin-top: 1rem">
+                <ul id="file-encrypt-list" class="file-info-list" hidden></ul>
+
+                <div class="form-group passphrase-group" style="margin-top: 1.5rem">
                   <label for="passphrase-file-encrypt">密碼短語 (Passphrase)</label>
                   <div class="password-wrapper">
-                    <input id="passphrase-file-encrypt" type="password" placeholder="輸入加密用的密碼短語" />
+                    <input id="passphrase-file-encrypt" type="password" placeholder="請輸入加密用的密碼短語..." />
                     <span class="toggle-password-icon" data-for="passphrase-file-encrypt" title="顯示/隱藏密碼"></span>
                   </div>
-                  <div class="password-strength-meter">
-                    <div id="password-strength-bar-file" class="password-strength-meter-bar"></div>
+                  <div class="password-strength-container">
+                    <div class="password-strength-meter">
+                      <div id="password-strength-bar-file" class="password-strength-meter-bar"></div>
+                    </div>
+                    <div id="password-strength-text-file" class="password-strength-meter-text"></div>
                   </div>
-                  <div id="password-strength-text-file" class="password-strength-meter-text"></div>
                 </div>
-                <div class="form-group">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem">
-                    <input type="checkbox" id="self-verify-file-checkbox" style="width: auto" checked />
-                    <label for="self-verify-file-checkbox" style="margin-bottom: 0; font-weight: normal"
-                      >加密後自動驗證 (推薦)</label
-                    >
+
+                <div class="form-group check-btn-group">
+                  <div class="checkbox-container">
+                    <input type="checkbox" id="self-verify-file-checkbox" checked />
+                    <label for="self-verify-file-checkbox">加密後自動解密驗證 (推薦)</label>
                   </div>
-                  <button id="encryptFileBtn">🔒 加密並下載檔案</button>
+                  <button id="encryptFileBtn" class="primary-btn btn-lg">🔒 加密並下載檔案</button>
                 </div>
               </div>
-              <hr style="margin: 2rem 0; border-color: var(--border-color); border-style: dashed" />
-              <div id="file-decrypt-section" class="form-group">
-                <label>檔案解密</label>
+
+              <div class="separator-dashed"></div>
+
+              <!-- 檔案解密 -->
+              <div id="file-decrypt-section" class="form-group file-action-box">
+                <h3>🔓 檔案解密</h3>
                 <div class="file-input-wrapper">
-                  <span>點擊選擇加密檔 (.jwe)，或將檔案拖曳至此</span>
+                  <span class="file-input-icon">📥</span>
+                  <span class="file-input-text">點擊選擇加密檔 (.jwe)，或將檔案拖曳至此</span>
                   <input type="file" id="file-decrypt-input" accept=".jwe" multiple />
                 </div>
-                <ul id="file-decrypt-list" class="file-info" hidden></ul>
-                <div class="form-group" style="margin-top: 1rem">
+                <ul id="file-decrypt-list" class="file-info-list" hidden></ul>
+
+                <div class="form-group" style="margin-top: 1.5rem">
                   <label for="passphrase-file-decrypt">密碼短語 (Passphrase)</label>
                   <div class="password-wrapper">
-                    <input id="passphrase-file-decrypt" type="password" placeholder="輸入解密用的密碼短語" />
+                    <input id="passphrase-file-decrypt" type="password" placeholder="請輸入解密用的密碼短語..." />
                     <span class="toggle-password-icon" data-for="passphrase-file-decrypt" title="顯示/隱藏密碼"></span>
                   </div>
                 </div>
-                <div class="form-group"><button id="decryptFileBtn">🔓 解密並下載檔案</button></div>
+                <div class="form-group" style="margin-top: 1.5rem">
+                  <button id="decryptFileBtn" class="primary-btn btn-lg">🔓 解密並下載檔案</button>
+                </div>
               </div>
             </div>
 
-            <div class="button-group" style="justify-content: center; margin-top: 1.5rem">
-              <button id="pasteBtn" class="secondary" style="flex: 1; max-width: 200px" hidden>📋 貼上密文</button>
-              <button id="resetBtn" class="secondary" style="flex: 1; max-width: 200px">🔄 全部重設</button>
+            <!-- 底部的共用重設按鈕區 -->
+            <div class="card-footer-actions">
+              <button id="pasteBtn" class="secondary" hidden>📋 貼上剪貼簿密文</button>
+              <button id="resetBtn" class="danger-btn">🔄 全部重設清空</button>
             </div>
           </div>
         </section>
 
-        <section class="card" id="results-area" hidden>
-          <h2>執行結果</h2>
+        <!-- 執行結果卡片 -->
+        <section class="card results-card" id="results-area" hidden>
+          <div class="card-header-bar results-header">
+            <h2>📊 執行結果</h2>
+          </div>
           <div class="card-content">
             <div id="output" class="output-box info">...</div>
 
+            <!-- 文字模式的結果 -->
             <div id="text-mode-results" hidden>
               <div class="form-group" style="margin-top: 1.5rem">
-                <label for="base64ResultView">最終 JWE 密文 (可複製/分享)</label>
-                <textarea id="base64ResultView" readonly rows="10"></textarea>
-                <div class="button-group" style="margin-top: 1rem; justify-content: center">
-                  <button id="copyBtn" class="secondary">📚 複製密文</button>
-                  <button id="downloadBtn" class="secondary">⬇️ 下載為 .jwe</button>
+                <label for="base64ResultView">最終 JWE 密文字串</label>
+                <div class="textarea-result-container">
+                  <textarea id="base64ResultView" readonly rows="8" class="code-font"></textarea>
+                  <div class="result-actions-overlay">
+                    <button id="copyBtn" class="action-overlay-btn" title="複製密文">📚 複製密文</button>
+                    <button id="downloadBtn" class="action-overlay-btn" title="下載 .jwe 檔案">⬇️ 下載為 .jwe</button>
+                  </div>
                 </div>
               </div>
-              <div class="form-group" style="text-align: center">
-                <canvas id="qrCanvas" width="320" height="320"></canvas>
+
+              <!-- QR Code 區塊 -->
+              <div class="form-group qr-code-section">
+                <label>QR Code 分享密文</label>
+                <div class="qr-canvas-wrapper">
+                  <canvas id="qrCanvas" width="240" height="240"></canvas>
+                </div>
+                <p class="qr-hint">（當密文較短時，可透過掃描 QR Code 快速分享傳輸）</p>
               </div>
-              <div class="form-group">
-                <label for="jsonView">JWE Protected Header (解析後)</label>
-                <textarea id="jsonView" readonly rows="10"></textarea>
-              </div>
+
+              <!-- JWE Header 區塊 -->
+              <details class="header-json-details">
+                <summary>🔍 檢視 JWE Protected Header 結構</summary>
+                <div class="form-group" style="margin-top: 1rem">
+                  <textarea id="jsonView" readonly rows="8" class="code-font"></textarea>
+                </div>
+              </details>
             </div>
 
-            <div id="decryption-actions" class="button-group" style="margin-top: 1rem; justify-content: center" hidden>
-              <button id="copyDecryptedBtn" class="secondary">📚 複製解密結果</button>
+            <!-- 解密文字結果的動作按鈕 -->
+            <div id="decryption-actions" class="button-group justify-center" style="margin-top: 1.5rem" hidden>
+              <button id="copyDecryptedBtn" class="primary-btn">📚 複製解密明文</button>
             </div>
           </div>
         </section>
       </main>
+
+      <footer class="app-footer">
+        <p>&copy; <span id="currentYear"></span> Zanta's Utilities &bull; AES-256-GCM 密碼工具</p>
+      </footer>
     </div>
-    <footer>
-      <p>&copy; <span id="currentYear"></span> Zanta's Utilities</p>
-    </footer>
+
+    <!-- 全域 Toast 通知 -->
     <div id="toast"></div>
+
+    <!-- 回到頂端 -->
     <button id="scroll-to-top" class="fab" title="回到頂端"></button>
   </body>
 </html>
