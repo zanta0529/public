@@ -5,16 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self';"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self';"
     />
     <meta name="theme-color" content="#0f1117" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f0f4f8" media="(prefers-color-scheme: light)" />
     <link rel="icon" href="/public/comparator/logo.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/public/comparator/logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
     <title>單位比價</title>
-    <script type="module" crossorigin src="/public/comparator/assets/index-CV3dLGWv.js"></script>
-    <link rel="stylesheet" crossorigin href="/public/comparator/assets/index-C29eSsa8.css">
-  <link rel="manifest" href="/public/comparator/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/public/comparator/registerSW.js"></script></head>
+    <script type="module" crossorigin src="/public/comparator/assets/index-DF9vI3jF.js"></script>
+    <link rel="stylesheet" crossorigin href="/public/comparator/assets/index-Bn-y1SiA.css">
+  <link rel="manifest" href="/public/comparator/manifest.webmanifest"></head>
   <body>
     <div id="app">
       <header>
@@ -30,8 +36,17 @@
               <input type="number" inputmode="decimal" id="priceA" placeholder="例如：100" autocomplete="off" />
             </div>
             <div class="input-group">
-              <label for="unitA">單位 (Unit)</label>
-              <input type="number" inputmode="decimal" id="unitA" placeholder="例如：500 (個/ml)" autocomplete="off" />
+              <label for="unitA">單位數量與類別</label>
+              <div class="unit-input-container">
+                <input type="number" inputmode="decimal" id="unitA" placeholder="例如：500" autocomplete="off" />
+                <select id="unitTypeA" aria-label="商品 A 單位類別">
+                  <option value="g">公克 (g)</option>
+                  <option value="kg">公斤 (kg)</option>
+                  <option value="ml">毫升 (ml)</option>
+                  <option value="L">公升 (L)</option>
+                  <option value="pcs">個 / 入 (pcs)</option>
+                </select>
+              </div>
             </div>
             <div class="result-group">
               <label>單位價格</label>
@@ -42,6 +57,10 @@
             </div>
           </div>
 
+          <div class="vs-badge" aria-hidden="true">
+            <span>VS</span>
+          </div>
+
           <div class="card" id="cardB">
             <h2><span class="card-badge">B</span>商品 B</h2>
             <div class="input-group">
@@ -49,8 +68,17 @@
               <input type="number" inputmode="decimal" id="priceB" placeholder="例如：150" autocomplete="off" />
             </div>
             <div class="input-group">
-              <label for="unitB">單位 (Unit)</label>
-              <input type="number" inputmode="decimal" id="unitB" placeholder="例如：800 (個/ml)" autocomplete="off" />
+              <label for="unitB">單位數量與類別</label>
+              <div class="unit-input-container">
+                <input type="number" inputmode="decimal" id="unitB" placeholder="例如：800" autocomplete="off" />
+                <select id="unitTypeB" aria-label="商品 B 單位類別">
+                  <option value="g">公克 (g)</option>
+                  <option value="kg">公斤 (kg)</option>
+                  <option value="ml">毫升 (ml)</option>
+                  <option value="L">公升 (L)</option>
+                  <option value="pcs">個 / 入 (pcs)</option>
+                </select>
+              </div>
             </div>
             <div class="result-group">
               <label>單位價格</label>
