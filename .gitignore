@@ -150,3 +150,6 @@ update-batch/
 
 # Team cache folder
 .team-cache/
+
+# AI Agents Temporary Context
+.agents/context/
