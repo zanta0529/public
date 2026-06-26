@@ -14,8 +14,8 @@
     <link rel="icon" href="/public/encipher/logo.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/public/encipher/logo.svg" />
     <script src="/public/encipher/argon2-bundled.min.js"></script>
-    <script type="module" crossorigin src="/public/encipher/assets/index-BTpsdq8Q.js"></script>
-    <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-DTNJ42CL.css">
+    <script type="module" crossorigin src="/public/encipher/assets/index-Ezk_PPg4.js"></script>
+    <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-DCT3vFnb.css">
   <link rel="manifest" href="/public/encipher/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/public/encipher/registerSW.js"></script></head>
   <body>
     <!-- 背景裝飾光暈 -->
@@ -324,6 +324,19 @@
             </div>
           </div>
         </section>
+
+        <!-- 弱密碼安全性提示面板 -->
+        <div id="password-warning-panel" class="warning-panel" hidden>
+          <div class="warning-header">
+            <span class="warning-icon">⚠️</span>
+            <h4>安全性警告</h4>
+          </div>
+          <p id="password-warning-message"></p>
+          <div class="warning-actions">
+            <button id="btn-force-encrypt" class="danger-btn">我已了解風險，確認繼續</button>
+            <button id="btn-cancel-encrypt" class="secondary">返回修改密碼</button>
+          </div>
+        </div>
 
         <!-- 執行結果卡片 -->
         <section class="card results-card" id="results-area" hidden>
