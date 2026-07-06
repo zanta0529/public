@@ -1,6 +1,6 @@
 # Antigravity Agent Router Configuration
 
-本檔案為 Antigravity CLI 的專屬客製化進入點。本專案採用「單一規則庫 (Single Source of Truth)」架構，所有實質工程規範、開發守則與安全防護條款，皆統一維護在 `docs/` 下的指令檔中。
+本檔案為 Google Antigravity CLI (`agy`) 的專屬客製化進入點，作用等同於根目錄 `AGENTS.md` 在 Hermes / generic coding agent 中的「薄索引 / Router」。本專案採用「單一規則庫 (Single Source of Truth)」架構，所有實質工程規範、開發守則與安全防護條款，皆統一維護在 `docs/` 下的指令檔中；本檔案只保留 Antigravity 工具層必要的路由與終端機安全設定。
 
 ## 🤖 載入與路由規則 (Routing Protocol)
 

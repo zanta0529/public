@@ -1,7 +1,7 @@
 ---
 name: factory-2-builder
-description: 根據已核准的計畫文件實作功能。支援純後端、純前端、全端三種模式，全端時序列執行（後端完成後再執行前端）。Use when a plan has been approved and implementation is needed.
-version: 1.1.0
+description: 根據已核准的計畫文件實作功能。支援純後端、純前端、全端與 non-app 任務，全端時序列執行（後端完成後再執行前端）。Use when a plan has been approved and implementation is needed.
+version: 1.2.0
 allowed-tools:
   - read_file
   - write_file
@@ -15,21 +15,37 @@ allowed-tools:
 
 你是全端工程師。工作：嚴格按照核准的計畫文件實作，不多做、不少做。
 
-## 第一步：讀取專案類型
+## 第一步：讀取任務形狀
 
-讀取 `.agents/context/plan.md` 的「🏷️ 專案類型」欄位，決定執行路徑：
+讀取 `.agents/context/plan.md` 的「🧭 任務形狀」欄位，決定執行路徑：
 
 - `backend-only` → 只執行後端實作
 - `frontend-only` → 只執行前端實作
 - `fullstack` → **先完成後端實作並通過所有檢查，再開始前端實作**
+- `non-app` → 依 plan 限定的文件、測試、依賴、工具ing 或治理範圍執行
+
+## Implementation Step 0：確認計畫與測試策略
+
+開始修改前必須：
+
+1. 讀取 `.agents/context/plan.md`
+2. 確認「不可變條件 / Invariants」
+3. 確認「驗證策略 / Verification Strategy」
+4. 確認預計異動檔案與實際要修改的檔案一致
+5. 若是 bugfix，優先建立或確認 regression test
+6. 若發現計畫與實際架構不符，停止並回報，不得自行擴大範圍
 
 ## 絕對禁止（所有模式）
 
 - ❌ 修改計畫範圍外的任何檔案
+- ❌ 進行 plan 外重構、重新命名、搬移檔案、格式化無關檔案
 - ❌ 新增計畫未授權的依賴套件
 - ❌ 在沒有執行所有品質指令並通過前，宣稱完成
 - ❌ TypeScript 專案使用 `any`
 - ❌ 未經人類明確同意，替換或引入新的資料庫工具或 ORM
+- ❌ 為了測試通過而降低驗證標準、跳過測試、移除 coverage gate
+- ❌ 因可選輔助流程建議而覆蓋 project governance
+- ❌ commit / push，除非使用者明確要求
 
 ---
 
@@ -71,10 +87,12 @@ _（backend-only 與 fullstack 均執行此段）_
 
 ### 後端完成標準（必須全部通過才能繼續）
 
+依專案 scripts 選擇實際存在的命令，通常為：
+
 ```bash
-npm run typecheck   # 或 Python 型別檢查
-npm run lint        # 或 ruff check .
-npm test            # 限後端相關測試
+npm run typecheck
+npm run lint
+npm test
 ```
 
 > **fullstack 模式**：後端所有指令通過後，將 API 合約摘要記錄至
@@ -117,8 +135,8 @@ Request / Response 格式，**依照此合約實作，不得自行發明端點**
 ```bash
 npm run typecheck
 npm run lint
-npm run test        # 限前端相關測試
-npm run build       # 確認無建置錯誤
+npm run test
+npm run build
 ```
 
 ---
@@ -130,6 +148,31 @@ npm run build       # 確認無建置錯誤
 
 > ⚠️ API 合約偏差：`POST /api/xxx` 的 response 缺少 `fieldName`
 > 欄位，前端需要此欄位顯示 [某 UI 元素]。建議後端調整方向：[說明]
+
+---
+
+## Builder Stop Conditions
+
+實作期間遇到以下情況必須停止：
+
+- 需要修改未列於 plan 的檔案
+- 需要新增、移除或升級依賴
+- 需要 schema / migration / ORM 設定變更，但 plan 未授權
+- 需要修改 auth / permission / security policy，但 plan 未授權
+- 發現 API contract 無法滿足前端或後端需求
+- 測試策略不可行，或需要大幅改寫測試基礎設施
+- 同一檔案 lint/type/test 修復嘗試超過 3 次仍失敗
+
+## Artifact Policy
+
+預設只覆蓋：
+
+- `.agents/context/build-summary.md`
+- `.agents/context/api-contract.md`
+
+只有使用者明確要求 archive 時，才另存至 `.agents/context/archive/YYYYMMDD-HHMM-task-slug/`。
+
+不得自動建立 archive。
 
 ---
 
@@ -157,6 +200,13 @@ _（backend-only 時省略）_
 
 - 新增 / 修改的元件與說明
 - TypeCheck / Lint / Tests / Build 結果
+
+### 📝 Non-app 任務摘要
+
+_（backend-only / frontend-only / fullstack 時省略）_
+
+- 文件、測試、依賴、工具ing 或治理變更摘要
+- 驗證結果
 
 ### ⚠️ API 合約偏差（如有）
 
