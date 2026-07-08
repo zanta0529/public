@@ -15,7 +15,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="SSS Tool" />
     <title>Shamir's Secret Sharing</title>
-    <script type="module" crossorigin src="/public/shamir/assets/index-DTCZF5Kt.js"></script>
+    <script type="module" crossorigin src="/public/shamir/assets/index-DB9FvuWS.js"></script>
     <link rel="stylesheet" crossorigin href="/public/shamir/assets/index-BVksO6e1.css">
   <link rel="manifest" href="/public/shamir/manifest.webmanifest"></head>
   <body>
@@ -88,7 +88,7 @@
   "p": "1D",        // 質多項式 (GF(2^8) AES)
   "enc": "utf8",    // 原始祕密的編碼 (固定為 utf8)
   "pad": "secrets.js-1bit", // 填充方案
-  "cs": "sha256-4", // 校驗碼演算法 (sha256 取前 4 bytes)
+  "cs": "sha256-4", // 錯誤檢測碼演算法 (sha256 取前 4 bytes；非簽章/MAC)
   "id": 1,          // 此分片的 X 軸座標 (1-255)
   "share": [ ... ], // 分片的 Y 軸座標 (Uint8Array)
   "chk": "..."     // 8 字元校驗碼 (sha256(json_without_chk).substr(0, 8))
@@ -99,9 +99,9 @@
               <li>將分割值字串解碼為 JSON 字串 (Base64: <code>atob()</code> | Base58Check: <code>decode()</code>)。</li>
               <li>將 JSON 字串解析為物件 (<code>JSON.parse()</code>)。</li>
               <li>
-                <b>[重要] 驗證校驗碼 (chk):</b> 移除 <code>chk</code> 欄位後，對剩餘物件進行
+                <b>[重要] 驗證錯誤檢測碼 (chk):</b> 移除 <code>chk</code> 欄位後，對剩餘物件進行
                 <code>JSON.stringify()</code>，計算其 SHA-256 雜湊，取前 8 個字元，必須與
-                <code>chk</code> 欄位的值完全相符。
+                <code>chk</code> 欄位的值完全相符。此機制用於偵測輸入錯誤或資料損毀，不提供惡意竄改防護。
               </li>
               <li>檢查所有分片的 <code>v</code>, <code>n</code>, <code>k</code>, <code>p</code> 等參數是否一致。</li>
               <li>收集至少 <strong>k</strong> 組 <code>id</code> (X座標) 與 <code>share</code> (Y座標陣列)。</li>
@@ -131,13 +131,13 @@
           <label for="originalString">原始字串</label>
           <textarea id="originalString" rows="3" placeholder="請在此輸入任何您想加密保護的文字..."></textarea>
         </div>
-        <div class_name="form-grid">
-          <div class_name="form-group">
+        <div class="form-grid">
+          <div class="form-group">
             <label for="n">總分割數 (n)</label>
             <input type="number" id="n" min="2" max="255" placeholder="e.g., 5" inputmode="numeric" pattern="[0-9]*" />
             <div id="nErrorMessage" class="input-error-message"></div>
           </div>
-          <div class_name="form-group">
+          <div class="form-group">
             <label for="k">重建門檻值 (k)</label>
             <input type="number" id="k" min="2" max="255" placeholder="e.g., 3" inputmode="numeric" pattern="[0-9]*" />
             <div id="kErrorMessage" class="input-error-message"></div>
@@ -160,7 +160,7 @@
               <span>Base58Check</span>
               <span
                 class="tooltip-icon"
-                data-tooltip="Base58Check 是一種常用於加密貨幣的編碼方式。它移除了視覺上易混淆的字元 (0, O, I, l)，並內建校驗碼 (Checksum) 來驗證資料完整性，大幅降低手動抄寫時的出錯風險。"
+                data-tooltip="Base58Check 是一種常用於加密貨幣的編碼方式。它移除了視覺上易混淆的字元 (0, O, I, l)，可降低手動抄寫時的出錯風險。"
                 >ⓘ</span
               >
             </div>
@@ -186,7 +186,7 @@
           <div id="queueList"></div>
         </div>
 
-        <div class_name="form-group">
+        <div class="form-group">
           <label for="customShareInput">手動貼上 Base64 / Base58Check 分割值</label>
           <textarea
             id="customShareInput"
