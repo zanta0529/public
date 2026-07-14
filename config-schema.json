@@ -11,21 +11,87 @@
     "ai": {
       "type": "object",
       "properties": {
-        "provider": {
+        "defaultProvider": {
           "type": "string",
-          "enum": ["gemini"]
+          "enum": ["gemini", "openai", "ollama", "claude"]
         },
-        "models": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": { "type": "string" },
-              "enabled": { "type": "integer", "enum": [0, 1] }
+        "providers": {
+          "type": "object",
+          "properties": {
+            "gemini": {
+              "type": "object",
+              "properties": {
+                "models": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "enabled": { "type": "integer", "enum": [0, 1] }
+                    },
+                    "required": ["name", "enabled"]
+                  },
+                  "minItems": 1
+                }
+              },
+              "required": ["models"]
             },
-            "required": ["name", "enabled"]
+            "openai": {
+              "type": "object",
+              "properties": {
+                "models": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "enabled": { "type": "integer", "enum": [0, 1] }
+                    },
+                    "required": ["name", "enabled"]
+                  },
+                  "minItems": 1
+                }
+              },
+              "required": ["models"]
+            },
+            "claude": {
+              "type": "object",
+              "properties": {
+                "models": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "enabled": { "type": "integer", "enum": [0, 1] }
+                    },
+                    "required": ["name", "enabled"]
+                  },
+                  "minItems": 1
+                }
+              },
+              "required": ["models"]
+            },
+            "ollama": {
+              "type": "object",
+              "properties": {
+                "models": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "enabled": { "type": "integer", "enum": [0, 1] }
+                    },
+                    "required": ["name", "enabled"]
+                  },
+                  "minItems": 1
+                }
+              },
+              "required": ["models"]
+            }
           },
-          "minItems": 1
+          "required": ["gemini"]
         },
         "requestConfig": {
           "type": "object",
@@ -48,7 +114,8 @@
             }
           }
         }
-      }
+      },
+      "required": ["defaultProvider", "providers"]
     },
     "git": {
       "type": "object",
