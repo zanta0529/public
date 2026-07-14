@@ -72,7 +72,7 @@ var CipherCore = (function (e) {
           if (((n += 2), isNaN(t))) throw Error(`Invalid hex character in hex string`);
           return t;
         };
-      for (; n < e.length; ) {
+      for (; n < e.length;) {
         let e,
           n = r();
         if (n < 128) e = n;
@@ -178,10 +178,10 @@ var CipherCore = (function (e) {
         o = 0,
         s = 0,
         c = t.length;
-      for (; s !== c && t[s] === 0; ) (s++, i++);
+      for (; s !== c && t[s] === 0;) (s++, i++);
       let l = ((c - s) * a + 1) >>> 0,
         u = new Uint8Array(l);
-      for (; s !== c; ) {
+      for (; s !== c;) {
         let e = t[s],
           r = 0;
         for (let t = l - 1; (e !== 0 || r < o) && t !== -1; t--, r++)
@@ -190,7 +190,7 @@ var CipherCore = (function (e) {
         ((o = r), s++);
       }
       let d = l - o;
-      for (; d !== l && u[d] === 0; ) d++;
+      for (; d !== l && u[d] === 0;) d++;
       let f = r.repeat(i);
       for (; d < l; ++d) f += e.charAt(u[d]);
       return f;
@@ -201,10 +201,10 @@ var CipherCore = (function (e) {
       let a = 0,
         o = 0,
         s = 0;
-      for (; e[a] === r; ) (o++, a++);
+      for (; e[a] === r;) (o++, a++);
       let c = ((e.length - a) * i + 1) >>> 0,
         l = new Uint8Array(c);
-      for (; a < e.length; ) {
+      for (; a < e.length;) {
         let r = e.charCodeAt(a);
         if (r > 255) return;
         let i = t[r];
@@ -216,10 +216,10 @@ var CipherCore = (function (e) {
         ((s = o), a++);
       }
       let u = c - s;
-      for (; u !== c && l[u] === 0; ) u++;
+      for (; u !== c && l[u] === 0;) u++;
       let d = new Uint8Array(o + (c - u)),
         f = o;
-      for (; u !== c; ) d[f++] = l[u++];
+      for (; u !== c;) d[f++] = l[u++];
       return d;
     }
     function c(e) {
@@ -391,7 +391,7 @@ var CipherCore = (function (e) {
               } else throw Error(e);
               n = !0;
             }
-            for (var i, a = 0, o, s = t.length, c = this.blocks; a < s; ) {
+            for (var i, a = 0, o, s = t.length, c = this.blocks; a < s;) {
               if (
                 (this.hashed &&
                   ((this.hashed = !1),
