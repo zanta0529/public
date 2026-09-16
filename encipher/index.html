@@ -14,8 +14,8 @@
     <link rel="icon" href="/public/encipher/logo.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/public/encipher/logo.svg" />
     <script src="/public/encipher/argon2-bundled.min.js"></script>
-    <script type="module" crossorigin src="/public/encipher/assets/index-CmMRz6xA.js"></script>
-    <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-IGwAH51g.css">
+    <script type="module" crossorigin src="/public/encipher/assets/index-9JzAcFVx.js"></script>
+    <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-HQBJK_0T.css">
   <link rel="manifest" href="/public/encipher/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/public/encipher/registerSW.js"></script></head>
   <body>
     <!-- 背景裝飾光暈 -->
@@ -126,6 +126,11 @@
                   <textarea id="mnemonic" rows="4" placeholder="在此輸入您要加密的機密文字..."></textarea>
                 </div>
 
+                <!-- 目前設定顯示區塊 -->
+                <div class="current-config-display" id="currentConfigDisplay">
+                  目前設定：<span id="display-algo">AES-256-GCM</span> + <span id="display-kdf">Argon2id</span>
+                </div>
+
                 <!-- 演算法與金鑰管理設定 (放在 Details 中作為進階設定) -->
                 <details class="advanced-settings-details">
                   <summary class="advanced-summary">⚙️ 進階演算法與 KDF 參數設定</summary>
@@ -136,12 +141,7 @@
                         <div class="option selected" data-value="A256GCM" title="AES-256-GCM (JWE Standard)">
                           AES-256-GCM
                         </div>
-                        <div
-                          class="option disabled-option"
-                          data-value="ChaCha20-Poly1305"
-                          title="未來支援"
-                          style="opacity: 0.5; cursor: not-allowed"
-                        >
+                        <div class="option" data-value="C20P" title="ChaCha20-Poly1305 (跨平台支援)">
                           ChaCha20-Poly1305
                         </div>
                       </div>
@@ -239,7 +239,7 @@
                   <button id="parseBtn" class="secondary btn-sm">🔍 解析密文標頭參數 (可選)</button>
                 </div>
                 <div id="params-display-area" class="glass-panel" hidden></div>
-                <div class="form-group">
+                <div class="form-group" style="margin-top: 1.5rem">
                   <label for="passphrase-decrypt">密碼短語 (Passphrase)</label>
                   <div class="password-wrapper">
                     <input id="passphrase-decrypt" type="password" placeholder="請輸入該密文對應的密碼短語..." />
