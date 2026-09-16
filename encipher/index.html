@@ -14,8 +14,8 @@
     <link rel="icon" href="/public/encipher/logo.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/public/encipher/logo.svg" />
     <script src="/public/encipher/argon2-bundled.min.js"></script>
-    <script type="module" crossorigin src="/public/encipher/assets/index-9JzAcFVx.js"></script>
-    <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-HQBJK_0T.css">
+    <script type="module" crossorigin src="/public/encipher/assets/index-CTcvrTYx.js"></script>
+    <link rel="stylesheet" crossorigin href="/public/encipher/assets/index-C-Hh87yp.css">
   <link rel="manifest" href="/public/encipher/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/public/encipher/registerSW.js"></script></head>
   <body>
     <!-- 背景裝飾光暈 -->
@@ -235,10 +235,16 @@
                     placeholder="在此貼上 JWE 格式的密文字串 (例如 eyJhbGciOi...)"
                   ></textarea>
                 </div>
-                <div class="form-group text-right">
-                  <button id="parseBtn" class="secondary btn-sm">🔍 解析密文標頭參數 (可選)</button>
-                </div>
-                <div id="params-display-area" class="glass-panel" hidden></div>
+                <details
+                  id="params-details"
+                  class="advanced-settings-details"
+                  style="margin-top: 1rem; margin-bottom: 0"
+                >
+                  <summary class="advanced-summary" id="parseBtn">🔍 檢視 JWE Protected Header 參數</summary>
+                  <div class="advanced-settings-content" id="params-display-area">
+                    <p style="color: var(--text-muted); margin: 0">展開時自動解析。請確保上方已填入 JWE 密文。</p>
+                  </div>
+                </details>
                 <div class="form-group" style="margin-top: 1.5rem">
                   <label for="passphrase-decrypt">密碼短語 (Passphrase)</label>
                   <div class="password-wrapper">
