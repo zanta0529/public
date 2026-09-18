@@ -154,3 +154,6 @@ update-batch/
 # AI Agents Temporary Context and logs
 .agents/context/
 .agents/logs/
+
+# AI Agent plans
+.agents/plans/
